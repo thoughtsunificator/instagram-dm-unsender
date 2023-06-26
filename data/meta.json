@@ -1,0 +1,15 @@
+{
+    "name":"instagram-dm-unsender",
+    "license": "MIT", 
+    "copyright":"Copyright (c) 2023, Romain Lebesle <oss@thoughtsunificator.me> (https://thoughtsunificator.me)",
+    "namespace":"https://thoughtsunificator.me/",
+    "author":"Romain Lebesle <oss@thoughtsunificator.me> (https://thoughtsunificator.me)",
+    "homepageURL":"https://thoughtsunificator.me/",
+    "supportURL":"https://thoughtsunificator.me/",
+    "contributionURL":"https://thoughtsunificator.me/",
+    "icon":"https://www.instagram.com/favicon.ico",
+    "version":"",
+    "description":"Simple script to unsend all DMs in a thread on instagram.com",
+    "run-at":"document-end",
+    "include":"/^https://(www\\.)?instagram\\.com/direct*/"
+}
