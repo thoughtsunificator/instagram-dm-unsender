@@ -8,7 +8,7 @@
 // @supportURL				https://thoughtsunificator.me/
 // @contributionURL				https://thoughtsunificator.me/
 // @icon				https://www.instagram.com/favicon.ico
-// @version				0.3.9
+// @version				0.4.0
 // @updateURL				https://raw.githubusercontent.com/thoughtsunificator/instagram-dm-unsender/userscript/idmu.user.js
 // @downloadURL				https://raw.githubusercontent.com/thoughtsunificator/instagram-dm-unsender/userscript/idmu.user.js
 // @description				Simple script to unsend all DMs in a thread on instagram.com
@@ -33,7 +33,7 @@ constructor(e,t,s){this._window=e,this._root=t,this._data=s}get window(){return 
 /**
          *
          * @returns {Promise}`
-         */;run(){return new Promise(((e,t)=>{let o,i=setTimeout((()=>{o&&o.disconnect(),t("Workflow failed for messageNode",this.root)}),2500);new MutationObserver(((t,r)=>{o=r;e:for(const o of t){for(const t of o.addedNodes){if(t.nodeType!=Node.ELEMENT_NODE)continue;const o=t.querySelector(s.SELECTOR_ACTIONS_BUTTON);if(o&&(o.click?o.click():o.parentNode.click()),t.querySelector(SELECTOR_ACTIONS_MENU)){const t=[...this.window.document.querySelectorAll("div[role] [role]")].pop();// TODO SELECTOR_ACTIONS_MENU_UNSEND_SELECTOR
+         */;run(){return new Promise(((e,t)=>{let o,i=setTimeout((()=>{o&&o.disconnect(),t("Workflow failed for messageNode",this.root)}),2500);new MutationObserver(((t,r)=>{o=r;e:for(const o of t){for(const t of o.addedNodes){if(t.nodeType!=Node.ELEMENT_NODE)continue;const o=t.querySelector(s.SELECTOR_ACTIONS_BUTTON);if(o&&(o.click?o.click():o.parentNode.click()),t.querySelector(s,SELECTOR_ACTIONS_MENU)){const t=[...this.window.document.querySelectorAll("div[role] [role]")].pop();// TODO SELECTOR_ACTIONS_MENU_UNSEND_SELECTOR
 t&&("unsend"===t.textContent.toLocaleLowerCase()?t.click():e())}const i=this.window.document.querySelector(s.SELECTOR_CONFIRM_MODAL_BUTTON);if(i){i.click();break e}}for(const t of o.removedNodes)t.nodeType==Node.ELEMENT_NODE&&(t.contains(this.root)||t===this.root)&&(r.disconnect(),clearTimeout(i),e())}})).observe(this.window.document.body,{childList:!0,subtree:!0}),this.root.dispatchEvent(new MouseEvent("mousemove",{bubbles:!0})),this.root.dispatchEvent(new MouseEvent("mouseover",{bubbles:!0})),this.root.dispatchEvent(new MouseEvent("mouseenter",{bubbles:!0})),this.root.setAttribute("data-test","")}))}}class o{constructor(){this.lastPromise=null}
 /**
          *
