@@ -1,8 +1,8 @@
 {
   "name": "idmu",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "idmu (instagram-dm-unsender) is a simple script to unsend all DMs in a thread on instagram.com",
-  "short_name":" idmu",
+  "short_name": " idmu",
   "type": "module",
   "scripts": {
     "test": "ava **/*.test.js",
