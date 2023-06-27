@@ -1,25 +1,33 @@
 export default class Queue {
-    constructor() {
-        this.lastPromise = null
-    }
-    /**
-     *
-     * @param {UnsendTask} task
-     * @returns {Promise}
-     */
-    add(task, delay=0, retry) {
-        if(this.lastPromise) {
-            this.lastPromise = this.lastPromise.then(() => new Promise(resolve => {
-                setTimeout(() => task.run().then(resolve).catch(() => {
-                    if(retry) {
-                        this.add(task, delay, retry)
-                    }
-                    resolve()
-                }), delay)
-            }))
-        } else {
-            this.lastPromise = task.run()
-        }
-        return this.lastPromise
-    }
- }
+	constructor() {
+		this.items = []
+	}
+
+	clearQueue() {
+		const item = this.items.shift()
+		return item.promise()
+	}
+
+	/**
+	*
+	* @param {UnseTaskndTask} task
+	* @returns {Promise}
+	*/
+	add(task, delay=0, retry, retryDelay=0) {
+		const promise = () => new Promise((resolve, reject) => {
+			setTimeout(() => {
+				task.run().then(resolve).catch(() => {
+					if(item.retry) {
+						setTimeout(() => this.add(item.task, item.delay, item.retry, item.retryDelay), item.retryDelay)
+					} else {
+						reject()
+					}
+				})
+			}, task.delay)
+		})
+		const item = { task, delay, retry, retryDelay, promise }
+		this.items.push(item)
+		return this.clearQueue()
+	}
+
+}

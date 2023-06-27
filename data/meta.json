@@ -1,6 +1,6 @@
 {
     "name":"instagram-dm-unsender",
-    "license": "MIT", 
+    "license": "MIT",
     "copyright":"Copyright (c) 2023, Romain Lebesle <oss@thoughtsunificator.me> (https://thoughtsunificator.me)",
     "namespace":"https://thoughtsunificator.me/",
     "author":"Romain Lebesle <oss@thoughtsunificator.me> (https://thoughtsunificator.me)",

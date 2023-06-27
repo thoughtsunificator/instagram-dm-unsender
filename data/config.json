@@ -1,5 +1,4 @@
 {
-    "IDMU_INCLUDE_MEDIA": true,
     "IDMU_MESSAGE_QUEUE_DELAY": 1000,
     "IDMU_DRY_RUN": false,
     "IDMU_RETRY": true,

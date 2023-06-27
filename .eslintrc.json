@@ -2,7 +2,7 @@
 	"root": true,
 	"env": {
 		"browser": true,
-		"es2021": true
+		"es2022": true
 	},
 	"extends": [
 		"eslint:recommended",
@@ -14,12 +14,11 @@
 		"SharedArrayBuffer": "readonly"
 	},
 	"parserOptions": {
-		"ecmaVersion": 12,
+		"ecmaVersion": "latest",
 		"sourceType": "module"
 	},
 	"plugins": [
-		"eslint-plugin",
-		"import"
+		"eslint-plugin"
 	],
 	"rules": {
 		"comma-style": [1, "last"],
@@ -29,10 +28,9 @@
 		"func-call-spacing": 1,
 		"no-unused-vars": 1,
 		"indent": ["warn", "tab"],
-		"max-len": [1, 99, 2],
 		"no-cond-assign": [1, "always"],
 		"no-return-assign": [1, "always"],
-		"no-shadow": 1,
+		"no-shadow": ["error", { "builtinGlobals": false, "hoist": "functions", "allow": [], "ignoreOnInitialization": true }],
 		"no-var": 1,
 		"object-curly-spacing": [1, "always"],
 		"one-var": [1, "never"],
@@ -52,8 +50,6 @@
 		"eslint-plugin/prefer-replace-text": "warn",
 		"eslint-plugin/report-message-format": "warn",
 		"eslint-plugin/require-meta-schema": "warn",
-		"eslint-plugin/require-meta-type": "warn",
-		"import/no-extraneous-dependencies": "warn",
-		"import/unambiguous": "off"
+		"eslint-plugin/require-meta-type": "warn"
 	}
 }
