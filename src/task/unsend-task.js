@@ -35,7 +35,7 @@ export default class UnsendTask extends Task {
                                 threeDotsButton.parentNode.click()
                             }
                         }
-                        if(addedNode.querySelector(UnsendTask,SELECTOR_ACTIONS_MENU)) {
+                        if(addedNode.querySelector(UnsendTask.SELECTOR_ACTIONS_MENU)) {
                             const button = [...this.window.document.querySelectorAll("div[role] [role]")].pop() // TODO SELECTOR_ACTIONS_MENU_UNSEND_SELECTOR
                             if(button) {
                                 if(button.textContent.toLocaleLowerCase() === "unsend") {
