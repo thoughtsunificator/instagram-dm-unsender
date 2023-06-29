@@ -20,12 +20,15 @@ export default class Message {
 
 	async unsend() {
 		try {
-			await this.ui.showActionsMenu()
+			await this.ui.showActionsMenuButton()
 			await this.ui.openActionsMenu()
 			await this.ui.clickUnsend()
 			await this.ui.confirmUnsend()
+			return true
 		} catch(ex) {
 			console.error(ex)
+			this.ui.hideActionMenuButton()
+			this.ui.closeActionMenuButton()
 			throw FailedWorkflowException({ error: "Failed to execute workflow for this message", task: this.task })
 		}
 	}

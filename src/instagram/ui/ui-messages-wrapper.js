@@ -19,6 +19,7 @@ export default class UIMessagesWrapper extends UIComponent {
 		try {
 			await waitFor(this.root.ownerDocument.body, node => this.#isLoader(node), false, 10000)
 			if(this.root.scrollTop !== 0) {
+				await new Promise(resolve => setTimeout(resolve, 1000))
 				await this.loadEntireThread()
 			}
 		} catch(ex) {

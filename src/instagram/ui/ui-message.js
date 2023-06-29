@@ -12,11 +12,22 @@ export default class UIMessage extends UIComponent {
 	}
 
 
-	async showActionsMenu() {
-		console.debug("showActionsMenu")
-		this.root?.firstChild.dispatchEvent(new MouseEvent("mousemove", { bubbles: true }))
-		this.root?.firstChild.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }))
-		this.root?.firstChild.dispatchEvent(new MouseEvent("mousenter", { bubbles: true }))
+	showActionsMenuButton() {
+		console.debug("showActionsMenuButton")
+		;[...this.root.ownerDocument.querySelectorAll("div")].forEach(node => node.dispatchEvent(new MouseEvent("mousemove", { bubbles: true })))
+		;[...this.root.ownerDocument.querySelectorAll("div")].forEach(node => node.dispatchEvent(new MouseEvent("mouseover", { bubbles: true })))
+		;[...this.root.ownerDocument.querySelectorAll("div")].forEach(node => node.dispatchEvent(new MouseEvent("mousenter", { bubbles: true })))
+	}
+
+	hideActionMenuButton() {
+		console.debug("hideActionMenuButton")
+		;[...this.root.ownerDocument.querySelectorAll("div")].forEach(node => node.dispatchEvent(new MouseEvent("mousemove", { bubbles: true })))
+		;[...this.root.ownerDocument.querySelectorAll("div")].forEach(node => node.dispatchEvent(new MouseEvent("mouseout", { bubbles: true })))
+		;[...this.root.ownerDocument.querySelectorAll("div")].forEach(node => node.dispatchEvent(new MouseEvent("mouseleave", { bubbles: true })))
+	}
+
+	async openActionsMenu() {
+		console.debug("openActionsMenu")
 		this.identifier.actionButton = await new Promise((resolve, reject) => {
 			setTimeout(() => {
 				const button = [...this.root.ownerDocument.querySelectorAll("[aria-describedby] [role] [aria-label=Unsend], [aria-label=More]")].pop()
@@ -27,11 +38,19 @@ export default class UIMessage extends UIComponent {
 				reject("Unable to find actionButton")
 			})
 		})
+		console.debug(this.identifier.actionButton)
+		this.identifier.actionButton.parentNode.click()
 	}
 
-	async openActionsMenu() {
-		console.debug("openActionsMenu", this.identifier.actionButton)
-		this.identifier.actionButton.parentNode.click()
+	closeActionsMenu() {
+		console.debug("hideActionMenuButton")
+		if(this.identifier.actionButton) {
+			this.identifier.actionButton.parentNode.click()
+		}
+	}
+
+	async clickUnsend() {
+		console.debug("clickUnsend")
 		this.identifier.unSendButton = await new Promise((resolve, reject) => {
 			setTimeout(() => {
 				if(this.root.ownerDocument.querySelector("[style*=translate]")) {
@@ -46,10 +65,7 @@ export default class UIMessage extends UIComponent {
 				}
 			})
 		})
-	}
-
-	async clickUnsend() {
-		console.debug("clickUnsend", this.identifier.unSendButton)
+		console.debug(this.identifier.unSendButton)
 		this.identifier.unSendButton.click()
 		this.identifier.dialogButton = await waitFor(this.root.ownerDocument.body, () => this.root.ownerDocument.querySelector("[role=dialog] button"))
 	}
@@ -57,7 +73,6 @@ export default class UIMessage extends UIComponent {
 	async confirmUnsend() {
 		console.debug("confirmUnsend", this.identifier.dialogButton)
 		this.identifier.dialogButton.click()
-		await waitFor(this.root.ownerDocument.body, node => node.nodeType === Node.ELEMENT_NODE && node.contains(this.root) || node === this.root, true)
 	}
 
 }

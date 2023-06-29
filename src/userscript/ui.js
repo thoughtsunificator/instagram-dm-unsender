@@ -12,11 +12,6 @@ applyDefaultStyle(unsendDMButton)
 unsendDMButton.addEventListener("click", async () => {
 	console.log("dmUnsender button click")
 	unsendDMButton.disabled = true
-	try {
-		await dmUnsender.instagram.ui.uiMessagesWrapper.loadEntireThread()
-	} catch(ex) {
-		console.error(ex)
-	}
 	const messages = dmUnsender.getMessages()
 	console.debug(messages)
 	try {
@@ -32,16 +27,22 @@ const loadDMsButton = document.createElement("button")
 loadDMsButton.textContent = "Load all DMs"
 loadDMsButton.style.top = "20px"
 loadDMsButton.style.right = "550px"
-applyDefaultStyle(loadDMsButton)
+applyDefaultStyle(loadDMsButton, "secondary")
 loadDMsButton.addEventListener("click", async () => {
 	unsendDMButton.disabled = true
-	await dmUnsender.instagram.ui.uiMessagesWrapper.loadEntireThread()
+	try {
+		await dmUnsender.instagram.ui.uiMessagesWrapper.loadEntireThread()
+		const messages = dmUnsender.getMessages()
+		console.debug(messages)
+	} catch(ex) {
+		console.error(ex)
+	}
 	unsendDMButton.disabled = false
 })
 document.body.appendChild(loadDMsButton)
 
 
-function applyDefaultStyle(node) {
+function applyDefaultStyle(node, styleName="primary") {
 	node.style.position = "fixed"
 	node.style.zIndex = 9999
 	node.style.fontSize = "var(--system-14-font-size)"
@@ -52,11 +53,11 @@ function applyDefaultStyle(node) {
 	node.style.fontWeight = "bold"
 	node.style.cursor = "pointer"
 	node.style.lineHeight = "var(--system-14-line-height)"
-	node.style.backgroundColor = "rgb(var(--ig-primary-button))"
+	node.style.backgroundColor = `rgb(var(--ig-${styleName}-button))`
 	node.addEventListener("mouseover", async () => {
-		node.style.backgroundColor = "rgb(var(--ig-primary-button-hover))"
+		node.style.backgroundColor = `rgb(var(--ig-${styleName}-button-hover))`
 	})
 	node.addEventListener("mouseout", async () => {
-		node.style.backgroundColor = "rgb(var(--ig-primary-button))"
+		node.style.backgroundColor = `rgb(var(--ig-${styleName}-button))`
 	})
 }

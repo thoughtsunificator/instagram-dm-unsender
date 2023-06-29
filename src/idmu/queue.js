@@ -14,7 +14,7 @@ export default class Queue {
 	*/
 	add(task) {
 		const promise = () => new Promise((resolve, reject) => {
-			task.run().then(resolve).catch(() => {
+			task.run().then(() => resolve(task)).catch(() => {
 				console.debug("Task failed")
 				reject({ error: "Task failed", task })
 			})

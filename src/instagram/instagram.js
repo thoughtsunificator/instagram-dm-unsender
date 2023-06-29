@@ -29,8 +29,9 @@ export default class Instagram {
 	clearUnsendQueue() {
 		console.debug("clearUnsendQueue", this.unsendQueue.items)
 		if(this.unsendQueue.items.length >= 1) {
-			this.unsendQueue.clearQueue().then(() => {
-				console.debug(`Completed task will continue again in ${this.window.IDMU_MESSAGE_QUEUE_DELAY}ms`)
+			this.unsendQueue.clearQueue().then((task) => {
+				console.debug(`Completed Task ${task.id} will continue again in ${this.window.IDMU_MESSAGE_QUEUE_DELAY}ms`)
+				this.#removeMessage(task.message)
 				new Promise(resolve => setTimeout(resolve, this.window.IDMU_MESSAGE_QUEUE_DELAY)).then(() => this.clearUnsendQueue())
 			}).catch(({error, task}) => {
 				if(task.runCount < 3) {
@@ -82,38 +83,19 @@ export default class Instagram {
 				const messageNodes = [...this.ui.uiMessagesWrapper.root.querySelectorAll("div[role] div[role=button] div[dir=auto], div[role] div[role=button] div > img, div[role] div[role=button] > svg, div[role] div[role=button] div > p > span")]
 				// TODO assign message type
 				for(const messageNode of messageNodes) {
-					if(!this.messages.find(message => messageNode === message.ui.root || message.ui.root.contains(messageNode))) {
+					if(window.innerWidth - messageNode.getBoundingClientRect().x < 200 && messageNode.querySelector("div > span > img") == null && !this.messages.find(message => messageNode === message.ui.root || message.ui.root.contains(messageNode))) {
 						this.#addMessage(messageNode)
 					}
 				}
 			}
 		}
 	}
-
-	#onNodeRemoved(removedNode) {
-		if(removedNode.nodeType === Node.ELEMENT_NODE) {
-			if(this.ui !== null) {
-				const message = this.messages.find(message => removedNode === message.ui.root || removedNode.contains(message.ui.root))
-				if(message) {
-					this.#removeMessage(message)
-				}
-			}
-		}
-	}
-
 	observe() {
 		this._mutationObserver = new MutationObserver((mutations) => {
 			for(const mutation of mutations) {
 				for(const addedNode of mutation.addedNodes) {
 					try {
 						this.#onNodeAdded(addedNode)
-					} catch(ex) {
-						console.error(ex)
-					}
-				}
-				for(const removedNode of mutation.removedNodes) {
-					try {
-						this.#onNodeRemoved(removedNode)
 					} catch(ex) {
 						console.error(ex)
 					}
