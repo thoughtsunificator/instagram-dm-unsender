@@ -37,20 +37,22 @@ export default class Instagram {
 
 	#onNodeAdded(addedNode) {
 		if(addedNode.nodeType === Node.ELEMENT_NODE) {
-			const messageNodes = this.window.document.querySelectorAll("div[role] div[role=button] div[dir=auto], div[role] div[role=button] div > img, div[role] div[role=button] > svg, div[role] div[role=button] div > p > span")
+			const messageNodes = [...this.window.document.querySelectorAll("div[role] div[role=button] div[dir=auto], div[role] div[role=button] div > img, div[role] div[role=button] > svg, div[role] div[role=button] div > p > span")]
 			if(this.ui === null) {
 				if(addedNode.querySelector('div > textarea[dir=auto], div[aria-label="Message"]')) {
+					const treeWalker = this.window.document.createTreeWalker(
+						this.window.document.body,
+						NodeFilter.SHOW_ELEMENT,
+					)
 					const resultNodes = []
-					let parentNode = messageNodes[0].parentNode
-					while(parentNode !== null) {
-						if(parentNode.nodeType === Node.ELEMENT_NODE && parentNode.tagName === "DIV" && ["hidden scroll", "hidden auto"].includes(getComputedStyle(parentNode).overflow)) {
-							resultNodes.push(parentNode)
+					while(treeWalker.nextNode()) {
+						const containMessage = messageNodes.find(messageNode => treeWalker.currentNode.contains(messageNode))
+						if(containMessage && ["hidden auto", "hidden scroll"].includes(getComputedStyle(treeWalker.currentNode).overflow) && treeWalker.currentNode.tagName === "DIV") {
+							resultNodes.push(treeWalker.currentNode)
 						}
-						parentNode = parentNode.parentNode
 					}
-					console.debug(resultNodes)
+					console.log(resultNodes)
 					const messagesWrapperNode = resultNodes[0]
-					console.debug(messagesWrapperNode)
 					if(messagesWrapperNode !== null) {
 						const uiMessagesWrapper = new UIMessagesWrapper(messagesWrapperNode)
 						this._ui = new UI(this.window, uiMessagesWrapper)
