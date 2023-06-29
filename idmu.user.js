@@ -10,7 +10,7 @@
 // @supportURL				https://thoughtsunificator.me/
 // @contributionURL				https://thoughtsunificator.me/
 // @icon				https://www.instagram.com/favicon.ico
-// @version				0.4.22
+// @version				0.4.23
 // @updateURL				https://raw.githubusercontent.com/thoughtsunificator/instagram-dm-unsender/userscript/idmu.user.js
 // @downloadURL				https://raw.githubusercontent.com/thoughtsunificator/instagram-dm-unsender/userscript/idmu.user.js
 // @description				Simple script to unsend all DMs in a thread on instagram.com
@@ -286,8 +286,8 @@
 			if(addedNode.nodeType === Node.ELEMENT_NODE) {
 				if(this.ui === null) {
 					const messagesWrapperNode = this.window.document.querySelector("div[role=grid]  > div > div > div > div, section > div > div > div > div > div > div > div > div[style*=height] > div");
-					console.log(messagesWrapperNode);
 					if(messagesWrapperNode !== null) {
+						console.log(messagesWrapperNode);
 						const uiMessagesWrapper = new UIMessagesWrapper(messagesWrapperNode);
 						this._ui = new UI(this.window, uiMessagesWrapper);
 					}
@@ -384,27 +384,22 @@
 			return this.unsendQueue.items.find(item => item.message === message)
 		}
 
-		async #unSendMessage(message) {
-			if(!this.#isMessageQueued(message)) {
-				console.debug("Queuing message", message);
+		async unsendMessages() {// TODO doesn't work for new messages
+			for(const message of this.instagram.messages.slice()) {
 				try {
-					await this.unsendQueue.add(new MessageUnsendTask(message), true, 2000);
+					if(!this.#isMessageQueued(message)) {
+						console.debug("Queuing message", message);
+						await this.unsendQueue.add(new MessageUnsendTask(message), true, 2000);
+					}
 				} catch(ex) {
+					this.instagram.messages.push(this.instagram.messages.shift());
 					console.error(ex);
 				}
+				await new Promise(resolve => {
+					setTimeout(resolve, this.instagram.window.IDMU_MESSAGE_QUEUE_DELAY);
+				});
 			}
-			setTimeout(() => {
-				if(this.instagram.messages.length >= 1) {
-					this.#unSendMessage(this.instagram.messages[0]);
-				}
-			}, this.instagram.window.IDMU_MESSAGE_QUEUE_DELAY);
 
-		}
-
-		async unsendMessages() {// TODO doesn't work for new messages
-			if(this.instagram.messages.length >= 1) {
-				this.#unSendMessage(this.instagram.messages[0]);
-			}
 		}
 
 		getMessages() {
