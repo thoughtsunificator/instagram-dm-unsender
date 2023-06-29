@@ -10,7 +10,7 @@
 // @supportURL				https://thoughtsunificator.me/
 // @contributionURL				https://thoughtsunificator.me/
 // @icon				https://www.instagram.com/favicon.ico
-// @version				0.4.7
+// @version				0.4.8
 // @updateURL				https://raw.githubusercontent.com/thoughtsunificator/instagram-dm-unsender/userscript/idmu.user.js
 // @downloadURL				https://raw.githubusercontent.com/thoughtsunificator/instagram-dm-unsender/userscript/idmu.user.js
 // @description				Simple script to unsend all DMs in a thread on instagram.com
@@ -44,19 +44,17 @@
 		* @param {UnseTaskndTask} task
 		* @returns {Promise}
 		*/
-		add(task, delay=0, retry, retryDelay=0) {
+		add(task, retry, retryDelay=0) {
 			const promise = () => new Promise((resolve, reject) => {
-				setTimeout(() => {
-					task.run().then(resolve).catch(() => {
-						if(item.retry) {
-							setTimeout(() => this.add(item.task, item.delay, item.retry, item.retryDelay), item.retryDelay);
-						} else {
-							reject();
-						}
-					});
-				}, task.delay);
+				task.run().then(resolve).catch(() => {
+					if(item.retry) {
+						setTimeout(() => this.add(item.task, item.retry, item.retryDelay), item.retryDelay);
+					} else {
+						reject();
+					}
+				});
 			});
-			const item = { task, delay, retry, retryDelay, promise };
+			const item = { task, retry, retryDelay, promise };
 			this.items.push(item);
 			return this.clearQueue()
 		}
@@ -299,6 +297,7 @@
 						if(messagesWrapperNode !== null) {
 							const uiMessagesWrapper = new UIMessagesWrapper(messagesWrapperNode);
 							this._ui = new UI(this.window, uiMessagesWrapper);
+							setTimeout(() => this.ui.uiMessagesWrapper.loadEntireThread(), 500);
 						}
 					}
 				}
@@ -307,7 +306,6 @@
 					for(const messageNode of messageNodes) {
 						if(messageNode.querySelector("div > span > img") == null && !this.messages.find(message => messageNode === message.ui.root || message.ui.root.contains(messageNode))) {
 							this.#addMessage(messageNode);
-							setTimeout(() => this.ui.uiMessagesWrapper.loadEntireThread(), 500);
 
 						}
 					}
@@ -399,13 +397,15 @@
 			if(!this.#isMessageQueued(message)) {
 				console.debug("Queuing message", message);
 				try {
-					await this.unsendQueue.add(new MessageUnsendTask(message), this.instagram.window.IDMU_MESSAGE_QUEUE_DELAY, true, 2000);
+					await this.unsendQueue.add(new MessageUnsendTask(message), true, 2000);
 				} catch(ex) {
 					console.error(ex);
 				}
 			}
 			if(this.instagram.messages.length >= 1) {
-				this.#unSendMessage(this.instagram.messages[0]);
+				setTimeout(() => {
+					this.#unSendMessage(this.instagram.messages[0]);
+				}, this.instagram.window.IDMU_MESSAGE_QUEUE_DELAY);
 			}
 		}
 
