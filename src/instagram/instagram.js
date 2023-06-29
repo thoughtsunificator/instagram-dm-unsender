@@ -33,14 +33,7 @@ export default class Instagram {
 				console.debug(`Completed Task ${task.id} will continue again in ${this.window.IDMU_MESSAGE_QUEUE_DELAY}ms`)
 				new Promise(resolve => setTimeout(resolve, this.window.IDMU_MESSAGE_QUEUE_DELAY)).then(() => this.clearUnsendQueue())
 			}).catch(({error, task}) => {
-				if(task.runCount < 3) {
-					console.error(error, `Task ${task.id} will be placed at the end of the queue`)
-					this.unsendQueue.add(task)
-				} else {
-					console.error(error, `Max runCount reached (3) for task ${task.id}; Skipping`)
-				}
-				console.debug(`Will continue again in ${this.window.IDMU_MESSAGE_QUEUE_DELAY}ms`)
-				new Promise(resolve => setTimeout(resolve, this.window.IDMU_MESSAGE_QUEUE_DELAY)).then(() => this.clearUnsendQueue())
+				console.error(error, `Task ${task.id}`)
 			})
 		}
 	}
