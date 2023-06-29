@@ -10,7 +10,7 @@
 // @supportURL				https://thoughtsunificator.me/
 // @contributionURL				https://thoughtsunificator.me/
 // @icon				https://www.instagram.com/favicon.ico
-// @version				0.4.32
+// @version				0.4.33
 // @updateURL				https://raw.githubusercontent.com/thoughtsunificator/instagram-dm-unsender/userscript/idmu.user.js
 // @downloadURL				https://raw.githubusercontent.com/thoughtsunificator/instagram-dm-unsender/userscript/idmu.user.js
 // @description				Simple script to unsend all DMs in a thread on instagram.com
@@ -364,14 +364,7 @@
 					console.debug(`Completed Task ${task.id} will continue again in ${this.window.IDMU_MESSAGE_QUEUE_DELAY}ms`);
 					new Promise(resolve => setTimeout(resolve, this.window.IDMU_MESSAGE_QUEUE_DELAY)).then(() => this.clearUnsendQueue());
 				}).catch(({error, task}) => {
-					if(task.runCount < 3) {
-						console.error(error, `Task ${task.id} will be placed at the end of the queue`);
-						this.unsendQueue.add(task);
-					} else {
-						console.error(error, `Max runCount reached (3) for task ${task.id}; Skipping`);
-					}
-					console.debug(`Will continue again in ${this.window.IDMU_MESSAGE_QUEUE_DELAY}ms`);
-					new Promise(resolve => setTimeout(resolve, this.window.IDMU_MESSAGE_QUEUE_DELAY)).then(() => this.clearUnsendQueue());
+					console.error(error, `Task ${task.id}`);
 				});
 			}
 		}
