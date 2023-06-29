@@ -10,7 +10,7 @@
 // @supportURL				https://thoughtsunificator.me/
 // @contributionURL				https://thoughtsunificator.me/
 // @icon				https://www.instagram.com/favicon.ico
-// @version				0.4.6
+// @version				0.4.7
 // @updateURL				https://raw.githubusercontent.com/thoughtsunificator/instagram-dm-unsender/userscript/idmu.user.js
 // @downloadURL				https://raw.githubusercontent.com/thoughtsunificator/instagram-dm-unsender/userscript/idmu.user.js
 // @description				Simple script to unsend all DMs in a thread on instagram.com
@@ -395,18 +395,22 @@
 			return this.unsendQueue.items.find(item => item.message === message)
 		}
 
-		async unsendMessages() {// TODO doesn't work for new messages
-			for(const [index, message] of this.instagram.messages.entries()) { // TODO remove slice
-				console.log(message);
-				if(!this.#isMessageQueued(message)) {
-					console.debug("Queuing message", message);
-					try {
-						await this.unsendQueue.add(new MessageUnsendTask(message), index >= 1 ? this.instagram.window.IDMU_MESSAGE_QUEUE_DELAY : 0, true, 2000);
-					} catch(ex) {
-						console.error(ex);
-					}
+		async #unSendMessage(message) {
+			if(!this.#isMessageQueued(message)) {
+				console.debug("Queuing message", message);
+				try {
+					await this.unsendQueue.add(new MessageUnsendTask(message), this.instagram.window.IDMU_MESSAGE_QUEUE_DELAY, true, 2000);
+				} catch(ex) {
+					console.error(ex);
 				}
 			}
+			if(this.instagram.messages.length >= 1) {
+				this.#unSendMessage(this.instagram.messages[0]);
+			}
+		}
+
+		async unsendMessages() {// TODO doesn't work for new messages
+			this.#unSendMessage(this.instagram.messages[0]);
 		}
 
 		getMessages() {
