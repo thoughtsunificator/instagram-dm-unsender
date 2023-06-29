@@ -1,8 +1,6 @@
 import IDMU from "../idmu/idmu.js"
 
 const dmUnsender = new IDMU(window)
-dmUnsender.instagram.observe()
-console.log("dmUnsender observing...")
 
 const unsendDMButton = document.createElement("button")
 unsendDMButton.textContent = "Unsend all DMs"
@@ -10,6 +8,11 @@ unsendDMButton.style.top = "20px"
 unsendDMButton.style.right = "430px"
 applyDefaultStyle(unsendDMButton)
 unsendDMButton.addEventListener("click", async () => {
+	try {
+		await dmUnsender.instagram.buildUI()
+	} catch(ex) {
+		console.error(ex)
+	}
 	console.log("dmUnsender button click")
 	unsendDMButton.disabled = true
 	const messages = dmUnsender.getMessages()
@@ -29,6 +32,11 @@ loadDMsButton.style.top = "20px"
 loadDMsButton.style.right = "550px"
 applyDefaultStyle(loadDMsButton, "secondary")
 loadDMsButton.addEventListener("click", async () => {
+	try {
+		await dmUnsender.instagram.buildUI()
+	} catch(ex) {
+		console.error(ex)
+	}
 	unsendDMButton.disabled = true
 	try {
 		await dmUnsender.instagram.ui.uiMessagesWrapper.loadEntireThread()

@@ -31,7 +31,6 @@ export default class Instagram {
 		if(this.unsendQueue.items.length >= 1) {
 			this.unsendQueue.clearQueue().then((task) => {
 				console.debug(`Completed Task ${task.id} will continue again in ${this.window.IDMU_MESSAGE_QUEUE_DELAY}ms`)
-				this.#removeMessage(task.message)
 				new Promise(resolve => setTimeout(resolve, this.window.IDMU_MESSAGE_QUEUE_DELAY)).then(() => this.clearUnsendQueue())
 			}).catch(({error, task}) => {
 				if(task.runCount < 3) {
@@ -46,11 +45,6 @@ export default class Instagram {
 		}
 	}
 
-	stopUnsendQueue() {
-		console.debug("stopUnsendQueue", this.unsendQueue.items)
-		this.unsendQueue.stop()
-	}
-
 	#addMessage(messageNode) {
 		const uiMessage = this.ui.addUIMessage(messageNode)
 		const message = new Message(uiMessage)
@@ -63,46 +57,26 @@ export default class Instagram {
 		return message
 	}
 
-	#removeMessage(message) {
-		this.messages.splice(this.messages.indexOf(message), 1)
-		this.ui.removeMessage(message.ui)
-		this.unsendQueue.removeTask(message.task)
-	}
-
-	#onNodeAdded(addedNode) {
-		if(addedNode.nodeType === Node.ELEMENT_NODE) {
-			if(this.ui === null) {
-				const messagesWrapperNode = this.window.document.querySelector("div[role=grid]  > div > div > div > div, section > div > div > div > div > div > div > div > div[style*=height] > div")
-				if(messagesWrapperNode !== null) {
-					console.log(messagesWrapperNode)
-					const uiMessagesWrapper = new UIMessagesWrapper(messagesWrapperNode)
-					this._ui = new UI(this.window, uiMessagesWrapper)
-				}
-			}
-			if(this.ui !== null) {
-				const messageNodes = [...this.ui.uiMessagesWrapper.root.querySelectorAll("div[role] div[role=button] div[dir=auto], div[role] div[role=button] div > img, div[role] div[role=button] > svg, div[role] div[role=button] div > p > span")]
-				// TODO assign message type
-				for(const messageNode of messageNodes) {
-					if(window.innerWidth - messageNode.getBoundingClientRect().x < 200 && messageNode.querySelector("div > span > img") == null && !this.messages.find(message => messageNode === message.ui.root || message.ui.root.contains(messageNode))) {
-						this.#addMessage(messageNode)
-					}
-				}
-			}
+	async buildUI() {
+		const messagesWrapperNode = this.window.document.querySelector("div[role=grid]  > div > div > div > div, section > div > div > div > div > div > div > div > div[style*=height] > div")
+		if(messagesWrapperNode !== null) {
+			console.log(messagesWrapperNode)
+			const uiMessagesWrapper = new UIMessagesWrapper(messagesWrapperNode)
+			this._ui = new UI(this.window, uiMessagesWrapper)
 		}
-	}
-	observe() {
-		this._mutationObserver = new MutationObserver((mutations) => {
-			for(const mutation of mutations) {
-				for(const addedNode of mutation.addedNodes) {
-					try {
-						this.#onNodeAdded(addedNode)
-					} catch(ex) {
-						console.error(ex)
-					}
+		const nodes = [...this.ui.uiMessagesWrapper.root.querySelector("div + div + div > div").childNodes]
+		for(const node of nodes) {
+			node.dispatchEvent(new MouseEvent("mousemove", { bubbles: true }))
+			node.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }))
+			node.dispatchEvent(new MouseEvent("mousenter", { bubbles: true }))
+			await new Promise(resolve => setTimeout(() => {
+				const more = node.querySelector("div > [aria-label=More]")
+				if(more && (window.innerWidth - more.getBoundingClientRect().right) < 400) {
+					this.#addMessage(node)
 				}
-			}
-		})
-		this._mutationObserver.observe(this.window.document.body, { subtree: true, childList: true, attributes: true })
+				resolve()
+			}))
+		}
 	}
 
 }

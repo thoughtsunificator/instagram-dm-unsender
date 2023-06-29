@@ -26,8 +26,4 @@ export default class UI extends UIComponent {
 		return uiMessage
 	}
 
-	removeMessage(uiMessage) {
-		this.uiMessages.splice(this.uiMessages.indexOf(uiMessage), 1)
-	}
-
 }

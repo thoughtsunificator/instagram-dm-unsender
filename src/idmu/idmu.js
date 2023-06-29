@@ -13,11 +13,6 @@ export default class IDMU {
 
 	async unsendMessages() {
 		console.debug("User asked for messages unsending")
-		try {
-			this.instagram.stopUnsendQueue()
-		} catch(ex) {
-			console.error(ex)
-		}
 		return this.instagram.clearUnsendQueue()
 	}
 

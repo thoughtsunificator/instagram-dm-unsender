@@ -14,23 +14,25 @@ export default class UIMessage extends UIComponent {
 
 	showActionsMenuButton() {
 		console.debug("showActionsMenuButton")
-		;[...this.root.ownerDocument.querySelectorAll("div")].forEach(node => node.dispatchEvent(new MouseEvent("mousemove", { bubbles: true })))
-		;[...this.root.ownerDocument.querySelectorAll("div")].forEach(node => node.dispatchEvent(new MouseEvent("mouseover", { bubbles: true })))
-		;[...this.root.ownerDocument.querySelectorAll("div")].forEach(node => node.dispatchEvent(new MouseEvent("mousenter", { bubbles: true })))
+		this.root.dispatchEvent(new MouseEvent("mousemove", { bubbles: true }))
+		this.root.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }))
+		this.root.dispatchEvent(new MouseEvent("mousenter", { bubbles: true }))
 	}
 
 	hideActionMenuButton() {
 		console.debug("hideActionMenuButton")
-		;[...this.root.ownerDocument.querySelectorAll("div")].forEach(node => node.dispatchEvent(new MouseEvent("mousemove", { bubbles: true })))
-		;[...this.root.ownerDocument.querySelectorAll("div")].forEach(node => node.dispatchEvent(new MouseEvent("mouseout", { bubbles: true })))
-		;[...this.root.ownerDocument.querySelectorAll("div")].forEach(node => node.dispatchEvent(new MouseEvent("mouseleave", { bubbles: true })))
+		this.root.dispatchEvent(new MouseEvent("mousemove", { bubbles: true }))
+		this.root.dispatchEvent(new MouseEvent("mouseout", { bubbles: true }))
+		this.root.dispatchEvent(new MouseEvent("mouseleave", { bubbles: true }))
 	}
+
 
 	async openActionsMenu() {
 		console.debug("openActionsMenu")
+		// console.log(this.root.ownerDocument.querySelector("[aria-describedby] [role] [aria-label=Unsend], [aria-label=More]"))
 		this.identifier.actionButton = await new Promise((resolve, reject) => {
 			setTimeout(() => {
-				const button = [...this.root.ownerDocument.querySelectorAll("[aria-describedby] [role] [aria-label=Unsend], [aria-label=More]")].pop()
+				const button = this.root.querySelector("[aria-label=More]")
 				if(button) {
 					resolve(button)
 					return
@@ -39,13 +41,13 @@ export default class UIMessage extends UIComponent {
 			})
 		})
 		console.debug(this.identifier.actionButton)
-		this.identifier.actionButton.parentNode.click()
+		this.identifier.actionButton.click()
 	}
 
 	closeActionsMenu() {
 		console.debug("hideActionMenuButton")
 		if(this.identifier.actionButton) {
-			this.identifier.actionButton.parentNode.click()
+			this.identifier.actionButton.click()
 		}
 	}
 
