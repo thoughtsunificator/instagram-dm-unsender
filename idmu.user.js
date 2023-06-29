@@ -10,7 +10,7 @@
 // @supportURL				https://thoughtsunificator.me/
 // @contributionURL				https://thoughtsunificator.me/
 // @icon				https://www.instagram.com/favicon.ico
-// @version				0.4.28
+// @version				0.4.29
 // @updateURL				https://raw.githubusercontent.com/thoughtsunificator/instagram-dm-unsender/userscript/idmu.user.js
 // @downloadURL				https://raw.githubusercontent.com/thoughtsunificator/instagram-dm-unsender/userscript/idmu.user.js
 // @description				Simple script to unsend all DMs in a thread on instagram.com
@@ -472,7 +472,7 @@
 	const unsendDMButton = document.createElement("button");
 	unsendDMButton.textContent = "Unsend all DMs";
 	unsendDMButton.style.top = "20px";
-	unsendDMButton.style.right = "230px";
+	unsendDMButton.style.right = "430px";
 	applyDefaultStyle(unsendDMButton);
 	unsendDMButton.addEventListener("click", async () => {
 		console.log("dmUnsender button click");
@@ -496,7 +496,7 @@
 	const loadDMsButton = document.createElement("button");
 	loadDMsButton.textContent = "Load all DMs";
 	loadDMsButton.style.top = "20px";
-	loadDMsButton.style.right = "350px";
+	loadDMsButton.style.right = "550px";
 	applyDefaultStyle(loadDMsButton);
 	loadDMsButton.addEventListener("click", async () => {
 		unsendDMButton.disabled = true;
