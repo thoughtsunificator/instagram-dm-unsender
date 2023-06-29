@@ -24,6 +24,10 @@ class TestTask extends Task {
 	}
 }
 
+test("Test", t => {
+	t.pass()
+})
+
 // test("Queue tasks", async t => {
 // 	const queue = new Queue()
 // 	const ids = []

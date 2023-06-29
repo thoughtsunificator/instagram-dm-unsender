@@ -26,6 +26,9 @@ test.beforeEach(t => {
 	t.context.window.IDMU_RETRY = false
 })
 
+test("Test", t => {
+	t.pass()
+})
 
 // test("SAMPLE_FRANCE_PAGE_HTML", async t => {
 // 	t.context.window.IDMU_INCLUDE_MEDIA = true

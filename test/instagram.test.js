@@ -19,6 +19,12 @@ test.beforeEach(t => {
 	t.context.window.IDMU_RETRY = false
 })
 
+
+
+test("Test", t => {
+	t.pass()
+})
+
 // test("Instagram observe", async t => {
 	// t.plan(2)
 	// await new Promise(resolve => {

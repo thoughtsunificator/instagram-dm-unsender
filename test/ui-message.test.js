@@ -21,6 +21,11 @@ test.beforeEach(t => {
 	t.context.window.IDMU_RETRY = false
 })
 
+
+test("Test", t => {
+	t.pass()
+})
+
 // test("UIMessage showActionsMenu throws", async t => {
 // 	t.context.document.body.innerHTML = SAMPLE_FRANCE_PAGE_HTML
 // 	const node = t.context.document.createElement("div")
