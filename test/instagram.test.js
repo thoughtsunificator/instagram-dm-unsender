@@ -38,7 +38,7 @@ test("Instagram observe messagesWrapper", async t => {
 	await new Promise(resolve => {
 		const instagram = new Instagram(t.context.window)
 		instagram.observe()
-		t.context.document.body.innerHTML += `<div><div style="overflow-x: hidden"><div><div><div><textarea dir="auto"></div></div></div></div></div>`
+		t.context.document.body.innerHTML += `<div><div style="overflow: hidden auto"><div><div role=""><div role="button"><div dir="auto"><div><textarea dir="auto"></div></div></div></div></div>`
 		setTimeout(() => {
 			t.not(instagram.ui, null)
 			resolve()

@@ -40,15 +40,13 @@ export default class Instagram {
 			const messageNodes = this.window.document.querySelectorAll("div[role] div[role=button] div[dir=auto], div[role] div[role=button] div > img, div[role] div[role=button] > svg, div[role] div[role=button] div > p > span")
 			if(this.ui === null) {
 				if(addedNode.querySelector('div > textarea[dir=auto], div[aria-label="Message"]')) {
-					const treeWalker = this.window.document.createTreeWalker(
-						addedNode,
-						NodeFilter.SHOW_ELEMENT,
-					)
 					const resultNodes = []
-					while(treeWalker.nextNode()) {
-						if(getComputedStyle(treeWalker.currentNode).overflowX === "hidden") {
-							resultNodes.push(treeWalker.currentNode)
+					let parentNode = messageNodes[0].parentNode
+					while(parentNode !== null) {
+						if(parentNode.nodeType === Node.ELEMENT_NODE && ["hidden scroll", "hidden auto"].includes(getComputedStyle(parentNode).overflow)) {
+							resultNodes.push(parentNode)
 						}
+						parentNode = parentNode.parentNode
 					}
 					const messagesWrapperNode = resultNodes[0]
 					console.debug(messagesWrapperNode)
