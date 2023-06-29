@@ -15,7 +15,6 @@ export default function(target, test, removed=false, timeout=2000) {
 			for(const mutation of mutations) {
 				const nodes = removed ? mutation.removedNodes : mutation.addedNodes
 				for(const node of [...nodes]) {
-					console.log(node)
 					const testNode = test(node)
 					if(testNode) {
 						clearTimeout(timeoutId)

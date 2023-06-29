@@ -36,7 +36,9 @@ export default class IDMU {
 	}
 
 	async unsendMessages() {// TODO doesn't work for new messages
-		this.#unSendMessage(this.instagram.messages[0])
+		if(this.instagram.messages.length >= 1) {
+			this.#unSendMessage(this.instagram.messages[0])
+		}
 	}
 
 	getMessages() {
