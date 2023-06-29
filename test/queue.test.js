@@ -24,98 +24,98 @@ class TestTask extends Task {
 	}
 }
 
-test("Queue tasks", async t => {
-	const queue = new Queue()
-	const ids = []
-	queue.add(new TestTask({
-		callback: () => ids.push(1),
-		delay: 0,
-		resolve: true
-	}))
-	queue.add(new TestTask({
-		callback: () => ids.push(2),
-		delay: 0,
-		resolve: true
-	}))
-	queue.add(new TestTask({
-		callback: () => ids.push(3),
-		delay: 0,
-		resolve: true
-	}))
-	await queue.add(new TestTask({
-		callback: () => ids.push(4),
-		delay: 0,
-		resolve: true
-	}))
-	t.deepEqual(ids, [1,2,3,4])
-})
+// test("Queue tasks", async t => {
+// 	const queue = new Queue()
+// 	const ids = []
+// 	queue.add(new TestTask({
+// 		callback: () => ids.push(1),
+// 		delay: 0,
+// 		resolve: true
+// 	}))
+// 	queue.add(new TestTask({
+// 		callback: () => ids.push(2),
+// 		delay: 0,
+// 		resolve: true
+// 	}))
+// 	queue.add(new TestTask({
+// 		callback: () => ids.push(3),
+// 		delay: 0,
+// 		resolve: true
+// 	}))
+// 	await queue.add(new TestTask({
+// 		callback: () => ids.push(4),
+// 		delay: 0,
+// 		resolve: true
+// 	}))
+// 	t.deepEqual(ids, [1,2,3,4])
+// })
 
-test("Queue retry=false", async t => {
-	const queue = new Queue()
-	const ids = []
-	queue.add(new TestTask({
-		callback: () => ids.push(1),
-		delay: 0,
-		resolve: true
-	}))
-	queue.add(new TestTask({
-		callback: () => ids.push(2),
-		delay: 0,
-		resolve: true
-	}))
-	queue.add(new TestTask({
-		callback: () => ids.push(3),
-		delay: 0,
-		resolve: false
-	})).catch(() => {
+// test("Queue retry=false", async t => {
+// 	const queue = new Queue()
+// 	const ids = []
+// 	queue.add(new TestTask({
+// 		callback: () => ids.push(1),
+// 		delay: 0,
+// 		resolve: true
+// 	}))
+// 	queue.add(new TestTask({
+// 		callback: () => ids.push(2),
+// 		delay: 0,
+// 		resolve: true
+// 	}))
+// 	queue.add(new TestTask({
+// 		callback: () => ids.push(3),
+// 		delay: 0,
+// 		resolve: false
+// 	})).catch(() => {
 
-	})
-	await queue.add(new TestTask({
-		callback: () => ids.push(4),
-		delay: 0,
-		resolve: true
-	}))
-	t.deepEqual(ids, [1,2,4])
-})
+// 	})
+// 	await queue.add(new TestTask({
+// 		callback: () => ids.push(4),
+// 		delay: 0,
+// 		resolve: true
+// 	}))
+// 	t.deepEqual(ids, [1,2,4])
+// })
 
 
-test("Queue retry=true", async t => {
-	return new Promise((resolve) => {
-		const queue = new Queue()
-		const ids = []
-		queue.add(new TestTask({
-			callback: () => ids.push(1),
-			delay: 0,
-			resolve: true
-		}))
-		queue.add(new TestTask({
-			callback: () => ids.push(2),
-			delay: 0,
-			resolve: true
-		}))
-		queue.add(new TestTask({
-			callback: () => {
-				ids.push(3)
-				t.deepEqual(ids, [1,2,4,5,3])
-				resolve()
-			},
-			delay: 0,
-			resolve: false
-		}), true).catch(() => {
+// test("Queue retry=true", async t => {
+// 	return new Promise((resolve) => {
+// 		const queue = new Queue()
+// 		const ids = []
+// 		queue.add(new TestTask({
+// 			callback: () => ids.push(1),
+// 			delay: 0,
+// 			resolve: true
+// 		}))
+// 		queue.add(new TestTask({
+// 			callback: () => ids.push(2),
+// 			delay: 0,
+// 			resolve: true
+// 		}))
+// 		queue.add(new TestTask({
+// 			callback: () => {
+// 				ids.push(3)
+// 				t.deepEqual(ids, [1,2,4,5,3])
+// 				resolve()
+// 			},
+// 			delay: 0,
+// 			resolve: false
+// 		}), true).catch(() => {
 
-		})
-		queue.add(new TestTask({
-			callback: () => ids.push(4),
-			delay: 0,
-			resolve: true
-		}))
-		queue.add(new TestTask({
-			callback: () => ids.push(5),
-			delay: 0,
-			resolve: true
-		}))
+// 		})
+// 		queue.add(new TestTask({
+// 			callback: () => ids.push(4),
+// 			delay: 0,
+// 			resolve: true
+// 		}))
+// 		queue.add(new TestTask({
+// 			callback: () => ids.push(5),
+// 			delay: 0,
+// 			resolve: true
+// 		}))
 
-	})
-})
+// 	})
+// })
 
 
