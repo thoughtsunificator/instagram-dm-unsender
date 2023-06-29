@@ -1,15 +1,15 @@
-export default function(target, test, removed=false, timeout=2000) {
+export default function(target, test, removed=false, timeout=100) {
 	return new Promise((resolve, reject) => {
 		let _observer
 		let timeoutId
-		if(timeout) {
-			timeoutId = setTimeout(() => {
-				if(_observer) {
-					_observer.disconnect()
-				}
-				reject(`waitFor timed out before finding its target (${timeout}ms)`)
-			}, timeout)
-		}
+		// if(timeout) {
+		// 	timeoutId = setTimeout(() => {
+		// 		if(_observer) {
+		// 			_observer.disconnect()
+		// 		}
+		// 		reject(`waitFor timed out before finding its target (${timeout}ms)`)
+		// 	}, timeout)
+		// }
 		new MutationObserver((mutations, observer) => {
 			_observer = observer
 			for(const mutation of mutations) {
@@ -28,12 +28,13 @@ export default function(target, test, removed=false, timeout=2000) {
 			NodeFilter.SHOW_ELEMENT
 		)
 		while(treeWalker.nextNode()) {
-			if(test(treeWalker.currentNode)) {
+			const testNode = test(treeWalker.currentNode)
+			if(testNode) {
 				clearTimeout(timeoutId)
 				if(_observer) {
 					_observer.disconnect()
 				}
-				resolve(treeWalker.currentNode)
+				resolve(testNode)
 				break
 			}
 		}

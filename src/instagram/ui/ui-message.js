@@ -11,47 +11,51 @@ export default class UIMessage extends UIComponent {
 		super(root)
 	}
 
-	#isUnsendButton(node) {
-		if(node.nodeType === Node.ELEMENT_NODE && node.querySelector("[style*=translate]")) {
-			const button = [...node.ownerDocument.querySelectorAll("div[role] [role]")].pop() // TODO SELECTOR_ACTIONS_MENU_UNSEND_SELECTOR
-			if(button) {
-				if(button.textContent.toLocaleLowerCase() === "unsend") {
-					return button
-				}
-			}
-		}
-	}
-
-	#isDialogButton(node) {
-		if(node.nodeType === Node.ELEMENT_NODE) {
-			return node.querySelector("[role=dialog] button")
-		}
-	}
 
 	async showActionsMenu() {
 		console.debug("showActionsMenu")
 		this.root?.firstChild.dispatchEvent(new MouseEvent("mousemove", { bubbles: true }))
 		this.root?.firstChild.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }))
 		this.root?.firstChild.dispatchEvent(new MouseEvent("mousenter", { bubbles: true }))
-		const actionButton = await waitFor(this.root.ownerDocument.body, () => document.querySelector("[aria-describedby] [role] [aria-label=Unsend], [aria-label=More]")) // TODO i18n
-		this.identifier.actionButton = actionButton
+		this.identifier.actionButton = await new Promise((resolve, reject) => {
+			setTimeout(() => {
+				const button = [...this.root.ownerDocument.querySelectorAll("[aria-describedby] [role] [aria-label=Unsend], [aria-label=More]")].pop()
+				if(button) {
+					resolve(button)
+				} else {
+					reject("Unable to find actionButton")
+				}
+			})
+		})
 	}
 
 	async openActionsMenu() {
 		console.debug("openActionsMenu", this.identifier.actionButton)
-		if(this.identifier.actionButton.click) {
-			this.identifier.actionButton.click()
-		} else{
-			this.identifier.actionButton.parentNode.click()
-		}
-		const unSendButton = await waitFor(this.root.ownerDocument.body, (node) => this.#isUnsendButton(node)) // TODO i18n
-		this.identifier.unSendButton = unSendButton
+		this.identifier.actionButton.parentNode.click()
+		this.identifier.unSendButton = await new Promise((resolve, reject) => {
+			setTimeout(() => {
+				if(this.root.ownerDocument.querySelector("[style*=translate]")) {
+					const button = [...this.root.ownerDocument.querySelectorAll("div[role] [role]")].pop() // TODO SELECTOR_ACTIONS_MENU_UNSEND_SELECTOR
+					if(button) {
+						if(button.textContent.toLocaleLowerCase() === "unsend") {
+							resolve(button)
+						} else {
+							reject("Unable to find unSendButton")
+						}
+					} else {
+						reject("Unable to find unSendButton")
+					}
+				} else {
+					reject("Unable to find unSendButton")
+				}
+			})
+		})
 	}
 
 	async clickUnsend() {
 		console.debug("clickUnsend", this.identifier.unSendButton)
 		this.identifier.unSendButton.click()
-		this.identifier.dialogButton = await waitFor(this.root.ownerDocument.body, (node) => this.#isDialogButton(node))
+		this.identifier.dialogButton = await waitFor(this.root.ownerDocument.body, (node) => node.querySelector("[role=dialog] button"))
 	}
 
 	async confirmUnsend() {

@@ -17,7 +17,7 @@ export default class UIMessagesWrapper extends UIComponent {
 		console.debug("loadEntireThread")
 		this.root.scrollTop = 0
 		try {
-			await waitFor(this.root.ownerDocument.body, node => this.#isLoader(node), true)
+			await waitFor(this.root.ownerDocument.body, node => this.#isLoader(node), true, 2000)
 			if(this.root.scrollTop !== 0) {
 				this.loadEntireThread()
 			}
