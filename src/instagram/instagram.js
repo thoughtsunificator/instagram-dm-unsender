@@ -48,7 +48,6 @@ export default class Instagram {
 					while(treeWalker.nextNode()) {
 						if(getComputedStyle(treeWalker.currentNode).overflowX === "hidden") {
 							messagesWrapperNode = treeWalker.currentNode
-							console.log(messagesWrapperNode)
 							break
 						}
 					}
