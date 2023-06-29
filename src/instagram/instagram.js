@@ -43,11 +43,12 @@ export default class Instagram {
 					const resultNodes = []
 					let parentNode = messageNodes[0].parentNode
 					while(parentNode !== null) {
-						if(parentNode.nodeType === Node.ELEMENT_NODE && ["hidden scroll", "hidden auto"].includes(getComputedStyle(parentNode).overflow)) {
+						if(parentNode.nodeType === Node.ELEMENT_NODE && parentNode.tagName === "DIV" && ["hidden scroll", "hidden auto"].includes(getComputedStyle(parentNode).overflow)) {
 							resultNodes.push(parentNode)
 						}
 						parentNode = parentNode.parentNode
 					}
+					console.debug(resultNodes)
 					const messagesWrapperNode = resultNodes[0]
 					console.debug(messagesWrapperNode)
 					if(messagesWrapperNode !== null) {
