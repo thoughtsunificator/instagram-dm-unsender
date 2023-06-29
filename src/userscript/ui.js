@@ -22,6 +22,7 @@ button.style.backgroundColor = "rgb(var(--ig-primary-button))"
 button.addEventListener("click", async () => {
 	console.log("dmUnsender button click")
 	button.disabled = true
+	dmUnsender.instagram.ui.uiMessagesWrapper.loadEntireThread()
 	const messages = dmUnsender.getMessages()
 	console.debug(messages)
 	await dmUnsender.unsendMessages(messages)

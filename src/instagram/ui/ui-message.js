@@ -11,15 +11,6 @@ export default class UIMessage extends UIComponent {
 		super(root)
 	}
 
-	#isActionMenuButton(node) {
-		if(node.nodeType === Node.ELEMENT_NODE) {
-			const svgNode = node.querySelector("[aria-describedby] [role] [aria-label=Unsend], [aria-label=More]")
-			if(svgNode) {
-				return svgNode.parentNode
-			}
-		}
-	}
-
 	#isUnsendButton(node) {
 		if(node.nodeType === Node.ELEMENT_NODE && node.querySelector("[style*=translate]")) {
 			const button = [...node.ownerDocument.querySelectorAll("div[role] [role]")].pop() // TODO SELECTOR_ACTIONS_MENU_UNSEND_SELECTOR
@@ -39,8 +30,10 @@ export default class UIMessage extends UIComponent {
 
 	async showActionsMenu() {
 		console.debug("showActionsMenu")
-		this.root.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }))
-		const actionButton = await waitFor(this.root.ownerDocument.body, (node) => this.#isActionMenuButton(node))
+		this.root?.firstChild.dispatchEvent(new MouseEvent("mousemove", { bubbles: true }))
+		this.root?.firstChild.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }))
+		this.root?.firstChild.dispatchEvent(new MouseEvent("mousenter", { bubbles: true }))
+		const actionButton = await waitFor(this.root.ownerDocument.body, () => document.querySelector("[aria-describedby] [role] [aria-label=Unsend], [aria-label=More]")) // TODO i18n
 		this.identifier.actionButton = actionButton
 	}
 

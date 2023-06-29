@@ -37,30 +37,15 @@ export default class Instagram {
 
 	#onNodeAdded(addedNode) {
 		if(addedNode.nodeType === Node.ELEMENT_NODE) {
-			const messageNodes = [...this.window.document.querySelectorAll("div[role] div[role=button] div[dir=auto], div[role] div[role=button] div > img, div[role] div[role=button] > svg, div[role] div[role=button] div > p > span")]
 			if(this.ui === null) {
-				if(addedNode.querySelector('div > textarea[dir=auto], div[aria-label="Message"]')) {
-					const treeWalker = this.window.document.createTreeWalker(
-						this.window.document.body,
-						NodeFilter.SHOW_ELEMENT,
-					)
-					const resultNodes = []
-					while(treeWalker.nextNode()) {
-						const containMessage = messageNodes.find(messageNode => treeWalker.currentNode.contains(messageNode))
-						if(containMessage && ["hidden auto", "hidden scroll"].includes(getComputedStyle(treeWalker.currentNode).overflow) && treeWalker.currentNode.tagName === "DIV") {
-							resultNodes.push(treeWalker.currentNode)
-						}
-					}
-					console.log(resultNodes)
-					const messagesWrapperNode = resultNodes[0]
-					if(messagesWrapperNode !== null) {
-						const uiMessagesWrapper = new UIMessagesWrapper(messagesWrapperNode)
-						this._ui = new UI(this.window, uiMessagesWrapper)
-						setTimeout(() => this.ui.uiMessagesWrapper.loadEntireThread(), 500)
-					}
+				const messagesWrapperNode = document.querySelector("div[role=grid]  > div > div > div > div") // TODO or non USA version
+				if(messagesWrapperNode !== null) {
+					const uiMessagesWrapper = new UIMessagesWrapper(messagesWrapperNode)
+					this._ui = new UI(this.window, uiMessagesWrapper)
 				}
 			}
 			if(this._ui !== null) {
+				const messageNodes = [...this.ui.uiMessagesWrapper.root.querySelectorAll("div[role] div[role=button] div[dir=auto], div[role] div[role=button] div > img, div[role] div[role=button] > svg, div[role] div[role=button] div > p > span")]
 				// TODO assign message type
 				for(const messageNode of messageNodes) {
 					if(messageNode.querySelector("div > span > img") == null && !this.messages.find(message => messageNode === message.ui.root || message.ui.root.contains(messageNode))) {
