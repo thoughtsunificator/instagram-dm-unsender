@@ -10,7 +10,7 @@
 // @supportURL				https://thoughtsunificator.me/
 // @contributionURL				https://thoughtsunificator.me/
 // @icon				https://www.instagram.com/favicon.ico
-// @version				0.4.29
+// @version				0.4.30
 // @updateURL				https://raw.githubusercontent.com/thoughtsunificator/instagram-dm-unsender/userscript/idmu.user.js
 // @downloadURL				https://raw.githubusercontent.com/thoughtsunificator/instagram-dm-unsender/userscript/idmu.user.js
 // @description				Simple script to unsend all DMs in a thread on instagram.com
@@ -91,11 +91,22 @@
 		}
 
 
-		async showActionsMenu() {
-			console.debug("showActionsMenu");
-			this.root?.firstChild.dispatchEvent(new MouseEvent("mousemove", { bubbles: true }));
-			this.root?.firstChild.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
-			this.root?.firstChild.dispatchEvent(new MouseEvent("mousenter", { bubbles: true }));
+		showActionsMenuButton() {
+			console.debug("showActionsMenuButton")
+			;[...this.root.ownerDocument.querySelectorAll("div")].forEach(node => node.dispatchEvent(new MouseEvent("mousemove", { bubbles: true })))
+			;[...this.root.ownerDocument.querySelectorAll("div")].forEach(node => node.dispatchEvent(new MouseEvent("mouseover", { bubbles: true })))
+			;[...this.root.ownerDocument.querySelectorAll("div")].forEach(node => node.dispatchEvent(new MouseEvent("mousenter", { bubbles: true })));
+		}
+
+		hideActionMenuButton() {
+			console.debug("hideActionMenuButton")
+			;[...this.root.ownerDocument.querySelectorAll("div")].forEach(node => node.dispatchEvent(new MouseEvent("mousemove", { bubbles: true })))
+			;[...this.root.ownerDocument.querySelectorAll("div")].forEach(node => node.dispatchEvent(new MouseEvent("mouseout", { bubbles: true })))
+			;[...this.root.ownerDocument.querySelectorAll("div")].forEach(node => node.dispatchEvent(new MouseEvent("mouseleave", { bubbles: true })));
+		}
+
+		async openActionsMenu() {
+			console.debug("openActionsMenu");
 			this.identifier.actionButton = await new Promise((resolve, reject) => {
 				setTimeout(() => {
 					const button = [...this.root.ownerDocument.querySelectorAll("[aria-describedby] [role] [aria-label=Unsend], [aria-label=More]")].pop();
@@ -106,11 +117,19 @@
 					reject("Unable to find actionButton");
 				});
 			});
+			console.debug(this.identifier.actionButton);
+			this.identifier.actionButton.parentNode.click();
 		}
 
-		async openActionsMenu() {
-			console.debug("openActionsMenu", this.identifier.actionButton);
-			this.identifier.actionButton.parentNode.click();
+		closeActionsMenu() {
+			console.debug("hideActionMenuButton");
+			if(this.identifier.actionButton) {
+				this.identifier.actionButton.parentNode.click();
+			}
+		}
+
+		async clickUnsend() {
+			console.debug("clickUnsend");
 			this.identifier.unSendButton = await new Promise((resolve, reject) => {
 				setTimeout(() => {
 					if(this.root.ownerDocument.querySelector("[style*=translate]")) {
@@ -125,10 +144,7 @@
 					}
 				});
 			});
-		}
-
-		async clickUnsend() {
-			console.debug("clickUnsend", this.identifier.unSendButton);
+			console.debug(this.identifier.unSendButton);
 			this.identifier.unSendButton.click();
 			this.identifier.dialogButton = await waitFor(this.root.ownerDocument.body, () => this.root.ownerDocument.querySelector("[role=dialog] button"));
 		}
@@ -136,7 +152,6 @@
 		async confirmUnsend() {
 			console.debug("confirmUnsend", this.identifier.dialogButton);
 			this.identifier.dialogButton.click();
-			await waitFor(this.root.ownerDocument.body, node => node.nodeType === Node.ELEMENT_NODE && node.contains(this.root) || node === this.root, true);
 		}
 
 	}
@@ -230,12 +245,15 @@
 
 		async unsend() {
 			try {
-				await this.ui.showActionsMenu();
+				await this.ui.showActionsMenuButton();
 				await this.ui.openActionsMenu();
 				await this.ui.clickUnsend();
 				await this.ui.confirmUnsend();
+				return true
 			} catch(ex) {
 				console.error(ex);
+				this.ui.hideActionMenuButton();
+				this.ui.closeActionMenuButton();
 				throw FailedWorkflowException({ error: "Failed to execute workflow for this message", task: this.task })
 			}
 		}
@@ -265,6 +283,7 @@
 			try {
 				await waitFor(this.root.ownerDocument.body, node => this.#isLoader(node), false, 10000);
 				if(this.root.scrollTop !== 0) {
+					await new Promise(resolve => setTimeout(resolve, 1000));
 					await this.loadEntireThread();
 				}
 			} catch(ex) {
@@ -290,7 +309,7 @@
 		*/
 		add(task) {
 			const promise = () => new Promise((resolve, reject) => {
-				task.run().then(resolve).catch(() => {
+				task.run().then(() => resolve(task)).catch(() => {
 					console.debug("Task failed");
 					reject({ error: "Task failed", task });
 				});
@@ -343,8 +362,9 @@
 		clearUnsendQueue() {
 			console.debug("clearUnsendQueue", this.unsendQueue.items);
 			if(this.unsendQueue.items.length >= 1) {
-				this.unsendQueue.clearQueue().then(() => {
-					console.debug(`Completed task will continue again in ${this.window.IDMU_MESSAGE_QUEUE_DELAY}ms`);
+				this.unsendQueue.clearQueue().then((task) => {
+					console.debug(`Completed Task ${task.id} will continue again in ${this.window.IDMU_MESSAGE_QUEUE_DELAY}ms`);
+					this.#removeMessage(task.message);
 					new Promise(resolve => setTimeout(resolve, this.window.IDMU_MESSAGE_QUEUE_DELAY)).then(() => this.clearUnsendQueue());
 				}).catch(({error, task}) => {
 					if(task.runCount < 3) {
@@ -396,38 +416,19 @@
 					const messageNodes = [...this.ui.uiMessagesWrapper.root.querySelectorAll("div[role] div[role=button] div[dir=auto], div[role] div[role=button] div > img, div[role] div[role=button] > svg, div[role] div[role=button] div > p > span")];
 					// TODO assign message type
 					for(const messageNode of messageNodes) {
-						if(!this.messages.find(message => messageNode === message.ui.root || message.ui.root.contains(messageNode))) {
+						if(window.innerWidth - messageNode.getBoundingClientRect().x < 200 && messageNode.querySelector("div > span > img") == null && !this.messages.find(message => messageNode === message.ui.root || message.ui.root.contains(messageNode))) {
 							this.#addMessage(messageNode);
 						}
 					}
 				}
 			}
 		}
-
-		#onNodeRemoved(removedNode) {
-			if(removedNode.nodeType === Node.ELEMENT_NODE) {
-				if(this.ui !== null) {
-					const message = this.messages.find(message => removedNode === message.ui.root || removedNode.contains(message.ui.root));
-					if(message) {
-						this.#removeMessage(message);
-					}
-				}
-			}
-		}
-
 		observe() {
 			this._mutationObserver = new MutationObserver((mutations) => {
 				for(const mutation of mutations) {
 					for(const addedNode of mutation.addedNodes) {
 						try {
 							this.#onNodeAdded(addedNode);
-						} catch(ex) {
-							console.error(ex);
-						}
-					}
-					for(const removedNode of mutation.removedNodes) {
-						try {
-							this.#onNodeRemoved(removedNode);
 						} catch(ex) {
 							console.error(ex);
 						}
@@ -477,11 +478,6 @@
 	unsendDMButton.addEventListener("click", async () => {
 		console.log("dmUnsender button click");
 		unsendDMButton.disabled = true;
-		try {
-			await dmUnsender.instagram.ui.uiMessagesWrapper.loadEntireThread();
-		} catch(ex) {
-			console.error(ex);
-		}
 		const messages = dmUnsender.getMessages();
 		console.debug(messages);
 		try {
@@ -497,16 +493,22 @@
 	loadDMsButton.textContent = "Load all DMs";
 	loadDMsButton.style.top = "20px";
 	loadDMsButton.style.right = "550px";
-	applyDefaultStyle(loadDMsButton);
+	applyDefaultStyle(loadDMsButton, "secondary");
 	loadDMsButton.addEventListener("click", async () => {
 		unsendDMButton.disabled = true;
-		await dmUnsender.instagram.ui.uiMessagesWrapper.loadEntireThread();
+		try {
+			await dmUnsender.instagram.ui.uiMessagesWrapper.loadEntireThread();
+			const messages = dmUnsender.getMessages();
+			console.debug(messages);
+		} catch(ex) {
+			console.error(ex);
+		}
 		unsendDMButton.disabled = false;
 	});
 	document.body.appendChild(loadDMsButton);
 
 
-	function applyDefaultStyle(node) {
+	function applyDefaultStyle(node, styleName="primary") {
 		node.style.position = "fixed";
 		node.style.zIndex = 9999;
 		node.style.fontSize = "var(--system-14-font-size)";
@@ -517,12 +519,12 @@
 		node.style.fontWeight = "bold";
 		node.style.cursor = "pointer";
 		node.style.lineHeight = "var(--system-14-line-height)";
-		node.style.backgroundColor = "rgb(var(--ig-primary-button))";
+		node.style.backgroundColor = `rgb(var(--ig-${styleName}-button))`;
 		node.addEventListener("mouseover", async () => {
-			node.style.backgroundColor = "rgb(var(--ig-primary-button-hover))";
+			node.style.backgroundColor = `rgb(var(--ig-${styleName}-button-hover))`;
 		});
 		node.addEventListener("mouseout", async () => {
-			node.style.backgroundColor = "rgb(var(--ig-primary-button))";
+			node.style.backgroundColor = `rgb(var(--ig-${styleName}-button))`;
 		});
 	}
 
