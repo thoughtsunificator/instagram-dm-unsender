@@ -9,7 +9,7 @@ export default class UIMessagesWrapper extends UIComponent {
 
 	#isLoader(node) {
 		if(node.nodeType === Node.ELEMENT_NODE) {
-			return node.querySelector("svg[aria-label*=Loading]")
+			return node
 		}
 	}
 

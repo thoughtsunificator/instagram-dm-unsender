@@ -44,13 +44,14 @@ export default class Instagram {
 						addedNode,
 						NodeFilter.SHOW_ELEMENT,
 					)
-					let messagesWrapperNode = null
+					const resultNodes = []
 					while(treeWalker.nextNode()) {
 						if(getComputedStyle(treeWalker.currentNode).overflowX === "hidden") {
-							messagesWrapperNode = treeWalker.currentNode
-							break
+							resultNodes.push(treeWalker.currentNode)
 						}
 					}
+					const messagesWrapperNode = resultNodes[0]
+					console.debug(messagesWrapperNode)
 					if(messagesWrapperNode !== null) {
 						const uiMessagesWrapper = new UIMessagesWrapper(messagesWrapperNode)
 						this._ui = new UI(this.window, uiMessagesWrapper)
