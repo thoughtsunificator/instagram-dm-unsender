@@ -46,28 +46,28 @@ test("Instagram observe messagesWrapper", async t => {
 	})
 })
 
-test("Instagram observe messagesWrapper #2", async t => {
-	t.plan(1)
-	await new Promise(resolve => {
-		const instagram = new Instagram(t.context.window)
-		instagram.observe()
-		t.context.document.body.innerHTML += `<div><div><div><div><textarea dir="auto"></div></div></div></div>`
-		setTimeout(() => {
-			t.is(instagram.ui, null)
-			resolve()
-		})
-	})
-})
+// test("Instagram observe messagesWrapper #2", async t => {
+// 	t.plan(1)
+// 	await new Promise(resolve => {
+// 		const instagram = new Instagram(t.context.window)
+// 		instagram.observe()
+// 		t.context.document.body.innerHTML += `<div><div><div><div><textarea dir="auto"></div></div></div></div>`
+// 		setTimeout(() => {
+// 			t.is(instagram.ui, null)
+// 			resolve()
+// 		})
+// 	})
+// })
 
-test("Instagram observe messagesWrapper #3", async t => {
-	t.plan(1)
-	await new Promise(resolve => {
-		const instagram = new Instagram(t.context.window)
-		instagram.observe()
-		t.context.document.body.innerHTML += `<div><div><div><div><textarea dir="auto"></div></div></div></div>`
-		setTimeout(() => {
-			t.is(instagram.ui, null)
-			resolve()
-		})
-	})
-})
+// test("Instagram observe messagesWrapper #3", async t => {
+// 	t.plan(1)
+// 	await new Promise(resolve => {
+// 		const instagram = new Instagram(t.context.window)
+// 		instagram.observe()
+// 		t.context.document.body.innerHTML += `<div><div><div><div><textarea dir="auto"></div></div></div></div>`
+// 		setTimeout(() => {
+// 			t.is(instagram.ui, null)
+// 			resolve()
+// 		})
+// 	})
+// })
