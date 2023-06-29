@@ -39,8 +39,8 @@ export default class Instagram {
 		if(addedNode.nodeType === Node.ELEMENT_NODE) {
 			if(this.ui === null) {
 				const messagesWrapperNode = this.window.document.querySelector("div[role=grid]  > div > div > div > div, section > div > div > div > div > div > div > div > div[style*=height] > div")
-				console.log(messagesWrapperNode)
 				if(messagesWrapperNode !== null) {
+					console.log(messagesWrapperNode)
 					const uiMessagesWrapper = new UIMessagesWrapper(messagesWrapperNode)
 					this._ui = new UI(this.window, uiMessagesWrapper)
 				}
