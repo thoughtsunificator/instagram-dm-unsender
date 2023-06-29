@@ -101,7 +101,7 @@ test("Queue retry=true", async t => {
 			},
 			delay: 0,
 			resolve: false
-		}), 0, true).catch(() => {
+		}), true).catch(() => {
 
 		})
 		queue.add(new TestTask({

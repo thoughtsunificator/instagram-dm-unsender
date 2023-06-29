@@ -48,6 +48,7 @@ export default class Instagram {
 					if(messagesWrapperNode !== null) {
 						const uiMessagesWrapper = new UIMessagesWrapper(messagesWrapperNode)
 						this._ui = new UI(this.window, uiMessagesWrapper)
+						setTimeout(() => this.ui.uiMessagesWrapper.loadEntireThread(), 500)
 					}
 				}
 			}
@@ -56,7 +57,6 @@ export default class Instagram {
 				for(const messageNode of messageNodes) {
 					if(messageNode.querySelector("div > span > img") == null && !this.messages.find(message => messageNode === message.ui.root || message.ui.root.contains(messageNode))) {
 						this.#addMessage(messageNode)
-						setTimeout(() => this.ui.uiMessagesWrapper.loadEntireThread(), 500)
 
 					}
 				}

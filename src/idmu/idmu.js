@@ -22,13 +22,15 @@ export default class IDMU {
 		if(!this.#isMessageQueued(message)) {
 			console.debug("Queuing message", message)
 			try {
-				await this.unsendQueue.add(new MessageUnsendTask(message), this.instagram.window.IDMU_MESSAGE_QUEUE_DELAY, true, 2000)
+				await this.unsendQueue.add(new MessageUnsendTask(message), true, 2000)
 			} catch(ex) {
 				console.error(ex)
 			}
 		}
 		if(this.instagram.messages.length >= 1) {
-			this.#unSendMessage(this.instagram.messages[0])
+			setTimeout(() => {
+				this.#unSendMessage(this.instagram.messages[0])
+			}, this.instagram.window.IDMU_MESSAGE_QUEUE_DELAY)
 		}
 	}
 
