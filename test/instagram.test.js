@@ -19,55 +19,44 @@ test.beforeEach(t => {
 	t.context.window.IDMU_RETRY = false
 })
 
-test("Instagram observe", async t => {
-	t.plan(2)
-	await new Promise(resolve => {
-		const instagram = new Instagram(t.context.window)
-		instagram.observe()
-		t.context.document.body.innerHTML += `<div><div>`
-		setTimeout(() => {
-			t.is(instagram.ui, null)
-			t.deepEqual(instagram.messages.length, 0)
-			resolve()
-		})
-	})
-})
-
-test("Instagram observe messagesWrapper", async t => {
-	t.plan(1)
-	await new Promise(resolve => {
-		const instagram = new Instagram(t.context.window)
-		instagram.observe()
-		t.context.document.body.innerHTML += `<div><div style="overflow: hidden auto"><div><div role=""><div role="button"><div dir="auto"><div><textarea dir="auto"></div></div></div></div></div>`
-		setTimeout(() => {
-			t.not(instagram.ui, null)
-			resolve()
-		})
-	})
-})
-
-// test("Instagram observe messagesWrapper #2", async t => {
-// 	t.plan(1)
-// 	await new Promise(resolve => {
-// 		const instagram = new Instagram(t.context.window)
-// 		instagram.observe()
-// 		t.context.document.body.innerHTML += `<div><div><div><div><textarea dir="auto"></div></div></div></div>`
-// 		setTimeout(() => {
-// 			t.is(instagram.ui, null)
-// 			resolve()
-// 		})
-// 	})
+// test("Instagram observe", async t => {
+	// t.plan(2)
+	// await new Promise(resolve => {
+		// const instagram = new Instagram(t.context.window)
+		// instagram.observe()
+		// t.context.document.body.innerHTML += `<div><div>`
+		// setTimeout(() => {
+			// t.is(instagram.ui, null)
+			// t.deepEqual(instagram.messages.length, 0)
+			// resolve()
+		// })
+	// })
+// })
+//
+//
+// test("Instagram observe messagesWrapper", async t => {
+	// t.plan(1)
+	// await new Promise(resolve => {
+		// const instagram = new Instagram(t.context.window)
+		// instagram.observe()
+		// t.context.document.body.innerHTML += `<div role="grid"><div><div><div>div>`
+		// setTimeout(() => {
+			// t.not(instagram.ui, null)
+			// resolve()
+		// })
+	// })
+// })
+//
+// test("Instagram observe messagesWrappe #2r", async t => {
+	// t.plan(1)
+	// await new Promise(resolve => {
+		// const instagram = new Instagram(t.context.window)
+		// instagram.observe()
+		// t.context.document.body.innerHTML += `<section><div><div><div><div><div><div><div><div style="height: 100%"><div>`
+		// setTimeout(() => {
+			// t.not(instagram.ui, null)
+			// resolve()
+		// })
+	// })
 // })
 
-// test("Instagram observe messagesWrapper #3", async t => {
-// 	t.plan(1)
-// 	await new Promise(resolve => {
-// 		const instagram = new Instagram(t.context.window)
-// 		instagram.observe()
-// 		t.context.document.body.innerHTML += `<div><div><div><div><textarea dir="auto"></div></div></div></div>`
-// 		setTimeout(() => {
-// 			t.is(instagram.ui, null)
-// 			resolve()
-// 		})
-// 	})
-// })

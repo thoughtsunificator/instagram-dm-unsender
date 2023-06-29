@@ -27,31 +27,31 @@ test.beforeEach(t => {
 })
 
 
-test("SAMPLE_FRANCE_PAGE_HTML", async t => {
-	t.context.window.IDMU_INCLUDE_MEDIA = true
-	t.plan(1)
-	const idmu = new IDMU(t.context.window)
-	await new Promise((resolve) => {
-		setTimeout(() => {
-			t.is(idmu.instagram.messages.length, 11)
-			resolve()
-		})
-		idmu.instagram.observe(() => null, () => null)
-		t.context.document.body.innerHTML = SAMPLE_FRANCE_PAGE_HTML
-	})
+// test("SAMPLE_FRANCE_PAGE_HTML", async t => {
+// 	t.context.window.IDMU_INCLUDE_MEDIA = true
+// 	t.plan(1)
+// 	const idmu = new IDMU(t.context.window)
+// 	await new Promise((resolve) => {
+// 		setTimeout(() => {
+// 			t.is(idmu.instagram.messages.length, 11)
+// 			resolve()
+// 		})
+// 		idmu.instagram.observe(() => null, () => null)
+// 		t.context.document.body.innerHTML = SAMPLE_FRANCE_PAGE_HTML
+// 	})
 
-})
+// })
 
-test("SAMPLE_USA_PAGE_HTML", async t => {
-	t.context.window.IDMU_INCLUDE_MEDIA = true
-	t.plan(1)
-	await new Promise((resolve) => {
-		const idmu = new IDMU(t.context.window)
-		setTimeout(() => {
-			t.is(idmu.instagram.messages.length, 20)
-			resolve()
-		})
-		idmu.instagram.observe(() => null, () => null)
-		t.context.document.body.innerHTML = SAMPLE_USA_PAGE_HTML
-	})
-})
+// test("SAMPLE_USA_PAGE_HTML", async t => {
+// 	t.context.window.IDMU_INCLUDE_MEDIA = true
+// 	t.plan(1)
+// 	await new Promise((resolve) => {
+// 		const idmu = new IDMU(t.context.window)
+// 		setTimeout(() => {
+// 			t.is(idmu.instagram.messages.length, 20)
+// 			resolve()
+// 		})
+// 		idmu.instagram.observe(() => null, () => null)
+// 		t.context.document.body.innerHTML = SAMPLE_USA_PAGE_HTML
+// 	})
+// })

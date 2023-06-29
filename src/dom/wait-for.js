@@ -23,6 +23,20 @@ export default function(target, test, removed=false, timeout=2000) {
 				}
 			}
 		}).observe(target, { subtree: true, childList:true })
+		const treeWalker = target.ownerDocument.createTreeWalker(
+			target,
+			NodeFilter.SHOW_ELEMENT
+		)
+		while(treeWalker.nextNode()) {
+			if(test(treeWalker.currentNode)) {
+				clearTimeout(timeoutId)
+				if(_observer) {
+					_observer.disconnect()
+				}
+				resolve(treeWalker.currentNode)
+				break
+			}
+		}
 	})
 
 }
