@@ -66,16 +66,7 @@ export default class Instagram {
 		}
 		const nodes = [...this.ui.uiMessagesWrapper.root.querySelector("div + div + div > div").childNodes]
 		for(const node of nodes) {
-			node.dispatchEvent(new MouseEvent("mousemove", { bubbles: true }))
-			node.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }))
-			node.dispatchEvent(new MouseEvent("mousenter", { bubbles: true }))
-			await new Promise(resolve => setTimeout(() => {
-				const more = node.querySelector("div > [aria-label=More]")
-				if(more && (window.innerWidth - more.getBoundingClientRect().right) < 400) {
-					this.#addMessage(node)
-				}
-				resolve()
-			}))
+			this.#addMessage(node)
 		}
 	}
 
