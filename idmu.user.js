@@ -10,7 +10,7 @@
 // @supportURL				https://thoughtsunificator.me/
 // @contributionURL				https://thoughtsunificator.me/
 // @icon				https://www.instagram.com/favicon.ico
-// @version				0.4.30
+// @version				0.4.31
 // @updateURL				https://raw.githubusercontent.com/thoughtsunificator/instagram-dm-unsender/userscript/idmu.user.js
 // @downloadURL				https://raw.githubusercontent.com/thoughtsunificator/instagram-dm-unsender/userscript/idmu.user.js
 // @description				Simple script to unsend all DMs in a thread on instagram.com
@@ -92,24 +92,26 @@
 
 
 		showActionsMenuButton() {
-			console.debug("showActionsMenuButton")
-			;[...this.root.ownerDocument.querySelectorAll("div")].forEach(node => node.dispatchEvent(new MouseEvent("mousemove", { bubbles: true })))
-			;[...this.root.ownerDocument.querySelectorAll("div")].forEach(node => node.dispatchEvent(new MouseEvent("mouseover", { bubbles: true })))
-			;[...this.root.ownerDocument.querySelectorAll("div")].forEach(node => node.dispatchEvent(new MouseEvent("mousenter", { bubbles: true })));
+			console.debug("showActionsMenuButton");
+			this.root.dispatchEvent(new MouseEvent("mousemove", { bubbles: true }));
+			this.root.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
+			this.root.dispatchEvent(new MouseEvent("mousenter", { bubbles: true }));
 		}
 
 		hideActionMenuButton() {
-			console.debug("hideActionMenuButton")
-			;[...this.root.ownerDocument.querySelectorAll("div")].forEach(node => node.dispatchEvent(new MouseEvent("mousemove", { bubbles: true })))
-			;[...this.root.ownerDocument.querySelectorAll("div")].forEach(node => node.dispatchEvent(new MouseEvent("mouseout", { bubbles: true })))
-			;[...this.root.ownerDocument.querySelectorAll("div")].forEach(node => node.dispatchEvent(new MouseEvent("mouseleave", { bubbles: true })));
+			console.debug("hideActionMenuButton");
+			this.root.dispatchEvent(new MouseEvent("mousemove", { bubbles: true }));
+			this.root.dispatchEvent(new MouseEvent("mouseout", { bubbles: true }));
+			this.root.dispatchEvent(new MouseEvent("mouseleave", { bubbles: true }));
 		}
+
 
 		async openActionsMenu() {
 			console.debug("openActionsMenu");
+			// console.log(this.root.ownerDocument.querySelector("[aria-describedby] [role] [aria-label=Unsend], [aria-label=More]"))
 			this.identifier.actionButton = await new Promise((resolve, reject) => {
 				setTimeout(() => {
-					const button = [...this.root.ownerDocument.querySelectorAll("[aria-describedby] [role] [aria-label=Unsend], [aria-label=More]")].pop();
+					const button = this.root.querySelector("[aria-label=More]");
 					if(button) {
 						resolve(button);
 						return
@@ -118,13 +120,13 @@
 				});
 			});
 			console.debug(this.identifier.actionButton);
-			this.identifier.actionButton.parentNode.click();
+			this.identifier.actionButton.click();
 		}
 
 		closeActionsMenu() {
 			console.debug("hideActionMenuButton");
 			if(this.identifier.actionButton) {
-				this.identifier.actionButton.parentNode.click();
+				this.identifier.actionButton.click();
 			}
 		}
 
@@ -179,10 +181,6 @@
 			const uiMessage = new UIMessage(root);
 			this.uiMessages.push(uiMessage);
 			return uiMessage
-		}
-
-		removeMessage(uiMessage) {
-			this.uiMessages.splice(this.uiMessages.indexOf(uiMessage), 1);
 		}
 
 	}
@@ -364,7 +362,6 @@
 			if(this.unsendQueue.items.length >= 1) {
 				this.unsendQueue.clearQueue().then((task) => {
 					console.debug(`Completed Task ${task.id} will continue again in ${this.window.IDMU_MESSAGE_QUEUE_DELAY}ms`);
-					this.#removeMessage(task.message);
 					new Promise(resolve => setTimeout(resolve, this.window.IDMU_MESSAGE_QUEUE_DELAY)).then(() => this.clearUnsendQueue());
 				}).catch(({error, task}) => {
 					if(task.runCount < 3) {
@@ -379,11 +376,6 @@
 			}
 		}
 
-		stopUnsendQueue() {
-			console.debug("stopUnsendQueue", this.unsendQueue.items);
-			this.unsendQueue.stop();
-		}
-
 		#addMessage(messageNode) {
 			const uiMessage = this.ui.addUIMessage(messageNode);
 			const message = new Message(uiMessage);
@@ -396,46 +388,26 @@
 			return message
 		}
 
-		#removeMessage(message) {
-			this.messages.splice(this.messages.indexOf(message), 1);
-			this.ui.removeMessage(message.ui);
-			this.unsendQueue.removeTask(message.task);
-		}
-
-		#onNodeAdded(addedNode) {
-			if(addedNode.nodeType === Node.ELEMENT_NODE) {
-				if(this.ui === null) {
-					const messagesWrapperNode = this.window.document.querySelector("div[role=grid]  > div > div > div > div, section > div > div > div > div > div > div > div > div[style*=height] > div");
-					if(messagesWrapperNode !== null) {
-						console.log(messagesWrapperNode);
-						const uiMessagesWrapper = new UIMessagesWrapper(messagesWrapperNode);
-						this._ui = new UI(this.window, uiMessagesWrapper);
-					}
-				}
-				if(this.ui !== null) {
-					const messageNodes = [...this.ui.uiMessagesWrapper.root.querySelectorAll("div[role] div[role=button] div[dir=auto], div[role] div[role=button] div > img, div[role] div[role=button] > svg, div[role] div[role=button] div > p > span")];
-					// TODO assign message type
-					for(const messageNode of messageNodes) {
-						if(window.innerWidth - messageNode.getBoundingClientRect().x < 200 && messageNode.querySelector("div > span > img") == null && !this.messages.find(message => messageNode === message.ui.root || message.ui.root.contains(messageNode))) {
-							this.#addMessage(messageNode);
-						}
-					}
-				}
+		async buildUI() {
+			const messagesWrapperNode = this.window.document.querySelector("div[role=grid]  > div > div > div > div, section > div > div > div > div > div > div > div > div[style*=height] > div");
+			if(messagesWrapperNode !== null) {
+				console.log(messagesWrapperNode);
+				const uiMessagesWrapper = new UIMessagesWrapper(messagesWrapperNode);
+				this._ui = new UI(this.window, uiMessagesWrapper);
 			}
-		}
-		observe() {
-			this._mutationObserver = new MutationObserver((mutations) => {
-				for(const mutation of mutations) {
-					for(const addedNode of mutation.addedNodes) {
-						try {
-							this.#onNodeAdded(addedNode);
-						} catch(ex) {
-							console.error(ex);
-						}
+			const nodes = [...this.ui.uiMessagesWrapper.root.querySelector("div + div + div > div").childNodes];
+			for(const node of nodes) {
+				node.dispatchEvent(new MouseEvent("mousemove", { bubbles: true }));
+				node.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
+				node.dispatchEvent(new MouseEvent("mousenter", { bubbles: true }));
+				await new Promise(resolve => setTimeout(() => {
+					const more = node.querySelector("div > [aria-label=More]");
+					if(more && (window.innerWidth - more.getBoundingClientRect().right) < 400) {
+						this.#addMessage(node);
 					}
-				}
-			});
-			this._mutationObserver.observe(this.window.document.body, { subtree: true, childList: true, attributes: true });
+					resolve();
+				}));
+			}
 		}
 
 	}
@@ -452,11 +424,6 @@
 
 		async unsendMessages() {
 			console.debug("User asked for messages unsending");
-			try {
-				this.instagram.stopUnsendQueue();
-			} catch(ex) {
-				console.error(ex);
-			}
 			return this.instagram.clearUnsendQueue()
 		}
 
@@ -467,8 +434,6 @@
 	}
 
 	const dmUnsender = new IDMU(window);
-	dmUnsender.instagram.observe();
-	console.log("dmUnsender observing...");
 
 	const unsendDMButton = document.createElement("button");
 	unsendDMButton.textContent = "Unsend all DMs";
@@ -476,6 +441,11 @@
 	unsendDMButton.style.right = "430px";
 	applyDefaultStyle(unsendDMButton);
 	unsendDMButton.addEventListener("click", async () => {
+		try {
+			await dmUnsender.instagram.buildUI();
+		} catch(ex) {
+			console.error(ex);
+		}
 		console.log("dmUnsender button click");
 		unsendDMButton.disabled = true;
 		const messages = dmUnsender.getMessages();
@@ -495,6 +465,11 @@
 	loadDMsButton.style.right = "550px";
 	applyDefaultStyle(loadDMsButton, "secondary");
 	loadDMsButton.addEventListener("click", async () => {
+		try {
+			await dmUnsender.instagram.buildUI();
+		} catch(ex) {
+			console.error(ex);
+		}
 		unsendDMButton.disabled = true;
 		try {
 			await dmUnsender.instagram.ui.uiMessagesWrapper.loadEntireThread();
