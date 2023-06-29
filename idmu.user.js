@@ -10,7 +10,7 @@
 // @supportURL				https://thoughtsunificator.me/
 // @contributionURL				https://thoughtsunificator.me/
 // @icon				https://www.instagram.com/favicon.ico
-// @version				0.4.23
+// @version				0.4.24
 // @updateURL				https://raw.githubusercontent.com/thoughtsunificator/instagram-dm-unsender/userscript/idmu.user.js
 // @downloadURL				https://raw.githubusercontent.com/thoughtsunificator/instagram-dm-unsender/userscript/idmu.user.js
 // @description				Simple script to unsend all DMs in a thread on instagram.com
@@ -68,18 +68,18 @@
 		}
 	}
 
-	function waitFor(target, test, removed=false, timeout=2000) {
+	function waitFor(target, test, removed=false, timeout=100) {
 		return new Promise((resolve, reject) => {
 			let _observer;
 			let timeoutId;
-			if(timeout) {
-				timeoutId = setTimeout(() => {
-					if(_observer) {
-						_observer.disconnect();
-					}
-					reject(`waitFor timed out before finding its target (${timeout}ms)`);
-				}, timeout);
-			}
+			// if(timeout) {
+			// 	timeoutId = setTimeout(() => {
+			// 		if(_observer) {
+			// 			_observer.disconnect()
+			// 		}
+			// 		reject(`waitFor timed out before finding its target (${timeout}ms)`)
+			// 	}, timeout)
+			// }
 			new MutationObserver((mutations, observer) => {
 				_observer = observer;
 				for(const mutation of mutations) {
@@ -98,12 +98,13 @@
 				NodeFilter.SHOW_ELEMENT
 			);
 			while(treeWalker.nextNode()) {
-				if(test(treeWalker.currentNode)) {
+				const testNode = test(treeWalker.currentNode);
+				if(testNode) {
 					clearTimeout(timeoutId);
 					if(_observer) {
 						_observer.disconnect();
 					}
-					resolve(treeWalker.currentNode);
+					resolve(testNode);
 					break
 				}
 			}
@@ -121,47 +122,51 @@
 			super(root);
 		}
 
-		#isUnsendButton(node) {
-			if(node.nodeType === Node.ELEMENT_NODE && node.querySelector("[style*=translate]")) {
-				const button = [...node.ownerDocument.querySelectorAll("div[role] [role]")].pop(); // TODO SELECTOR_ACTIONS_MENU_UNSEND_SELECTOR
-				if(button) {
-					if(button.textContent.toLocaleLowerCase() === "unsend") {
-						return button
-					}
-				}
-			}
-		}
-
-		#isDialogButton(node) {
-			if(node.nodeType === Node.ELEMENT_NODE) {
-				return node.querySelector("[role=dialog] button")
-			}
-		}
 
 		async showActionsMenu() {
 			console.debug("showActionsMenu");
 			this.root?.firstChild.dispatchEvent(new MouseEvent("mousemove", { bubbles: true }));
 			this.root?.firstChild.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
 			this.root?.firstChild.dispatchEvent(new MouseEvent("mousenter", { bubbles: true }));
-			const actionButton = await waitFor(this.root.ownerDocument.body, () => document.querySelector("[aria-describedby] [role] [aria-label=Unsend], [aria-label=More]")); // TODO i18n
-			this.identifier.actionButton = actionButton;
+			this.identifier.actionButton = await new Promise((resolve, reject) => {
+				setTimeout(() => {
+					const button = [...this.root.ownerDocument.querySelectorAll("[aria-describedby] [role] [aria-label=Unsend], [aria-label=More]")].pop();
+					if(button) {
+						resolve(button);
+					} else {
+						reject("Unable to find actionButton");
+					}
+				});
+			});
 		}
 
 		async openActionsMenu() {
 			console.debug("openActionsMenu", this.identifier.actionButton);
-			if(this.identifier.actionButton.click) {
-				this.identifier.actionButton.click();
-			} else {
-				this.identifier.actionButton.parentNode.click();
-			}
-			const unSendButton = await waitFor(this.root.ownerDocument.body, (node) => this.#isUnsendButton(node)); // TODO i18n
-			this.identifier.unSendButton = unSendButton;
+			this.identifier.actionButton.parentNode.click();
+			this.identifier.unSendButton = await new Promise((resolve, reject) => {
+				setTimeout(() => {
+					if(this.root.ownerDocument.querySelector("[style*=translate]")) {
+						const button = [...this.root.ownerDocument.querySelectorAll("div[role] [role]")].pop(); // TODO SELECTOR_ACTIONS_MENU_UNSEND_SELECTOR
+						if(button) {
+							if(button.textContent.toLocaleLowerCase() === "unsend") {
+								resolve(button);
+							} else {
+								reject("Unable to find unSendButton");
+							}
+						} else {
+							reject("Unable to find unSendButton");
+						}
+					} else {
+						reject("Unable to find unSendButton");
+					}
+				});
+			});
 		}
 
 		async clickUnsend() {
 			console.debug("clickUnsend", this.identifier.unSendButton);
 			this.identifier.unSendButton.click();
-			this.identifier.dialogButton = await waitFor(this.root.ownerDocument.body, (node) => this.#isDialogButton(node));
+			this.identifier.dialogButton = await waitFor(this.root.ownerDocument.body, (node) => node.querySelector("[role=dialog] button"));
 		}
 
 		async confirmUnsend() {
@@ -238,7 +243,7 @@
 			console.debug("loadEntireThread");
 			this.root.scrollTop = 0;
 			try {
-				await waitFor(this.root.ownerDocument.body, node => this.#isLoader(node), true);
+				await waitFor(this.root.ownerDocument.body, node => this.#isLoader(node), true, 2000);
 				if(this.root.scrollTop !== 0) {
 					this.loadEntireThread();
 				}
