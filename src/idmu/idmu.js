@@ -27,11 +27,11 @@ export default class IDMU {
 				console.error(ex)
 			}
 		}
-		if(this.instagram.messages.length >= 1) {
-			setTimeout(() => {
+		setTimeout(() => {
+			if(this.instagram.messages.length >= 1) {
 				this.#unSendMessage(this.instagram.messages[0])
-			}, this.instagram.window.IDMU_MESSAGE_QUEUE_DELAY)
-		}
+			}
+		}, this.instagram.window.IDMU_MESSAGE_QUEUE_DELAY)
 	}
 
 	async unsendMessages() {// TODO doesn't work for new messages
