@@ -8,7 +8,7 @@ export default class UIMessagesWrapper extends UIComponent {
 	}
 
 	#isLoader(node) {
-		if(node.nodeType === Node.ELEMENT_NODE) {
+		if(node.nodeType === Node.ELEMENT_NODE && this.root.contains(node) && this.root.scrollTop !== 0) {
 			return node
 		}
 	}
@@ -17,7 +17,7 @@ export default class UIMessagesWrapper extends UIComponent {
 		console.debug("loadEntireThread")
 		this.root.scrollTop = 0
 		try {
-			await waitFor(this.root.ownerDocument.body, node => this.#isLoader(node), true, 2000)
+			await waitFor(this.root.ownerDocument.body, node => this.#isLoader(node), false, 2000)
 			if(this.root.scrollTop !== 0) {
 				this.loadEntireThread()
 			}

@@ -22,10 +22,18 @@ button.style.backgroundColor = "rgb(var(--ig-primary-button))"
 button.addEventListener("click", async () => {
 	console.log("dmUnsender button click")
 	button.disabled = true
-	dmUnsender.instagram.ui.uiMessagesWrapper.loadEntireThread()
+	try {
+		await dmUnsender.instagram.ui.uiMessagesWrapper.loadEntireThread()
+	} catch(ex) {
+		console.error(ex)
+	}
 	const messages = dmUnsender.getMessages()
 	console.debug(messages)
-	await dmUnsender.unsendMessages(messages)
+	try {
+		await dmUnsender.unsendMessages(messages)
+	} catch(ex) {
+		console.error(ex)
+	}
 	button.disabled = false
 })
 button.addEventListener("mouseover", async () => {

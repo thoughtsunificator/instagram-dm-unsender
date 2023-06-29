@@ -10,22 +10,33 @@ export default class Queue {
 
 	/**
 	*
-	* @param {UnseTaskndTask} task
-	* @returns {Promise}
+	* @param {Task} task
 	*/
-	add(task, retry, retryDelay=0) {
+	add(task) {
 		const promise = () => new Promise((resolve, reject) => {
 			task.run().then(resolve).catch(() => {
-				if(item.retry) {
-					setTimeout(() => this.add(item.task, item.retry, item.retryDelay), item.retryDelay)
-				} else {
-					reject()
-				}
+				console.debug("Task failed")
+				reject({ error: "Task failed", task })
 			})
 		})
-		const item = { task, retry, retryDelay, promise }
+		const item = { task, promise }
 		this.items.push(item)
-		return this.clearQueue()
+		return item
+	}
+
+	removeTask(task) {
+		this.items.splice(this.items.indexOf(task), 1)
+		task.stop()
+	}
+
+	get length() {
+		return this.items.length
+	}
+
+	stop() {
+		for(const item of this.items.slice()) {
+			item.task.stop()
+		}
 	}
 
 }

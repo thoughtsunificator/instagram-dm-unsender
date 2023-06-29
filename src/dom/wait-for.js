@@ -1,15 +1,15 @@
-export default function(target, test, removed=false, timeout=100) {
+export default function(target, test, removed=false, timeout=500) {
 	return new Promise((resolve, reject) => {
 		let _observer
 		let timeoutId
-		// if(timeout) {
-		// 	timeoutId = setTimeout(() => {
-		// 		if(_observer) {
-		// 			_observer.disconnect()
-		// 		}
-		// 		reject(`waitFor timed out before finding its target (${timeout}ms)`)
-		// 	}, timeout)
-		// }
+		if(timeout) {
+			timeoutId = setTimeout(() => {
+				if(_observer) {
+					_observer.disconnect()
+				}
+				reject(`waitFor timed out before finding its target (${timeout}ms)`)
+			}, timeout)
+		}
 		new MutationObserver((mutations, observer) => {
 			_observer = observer
 			for(const mutation of mutations) {

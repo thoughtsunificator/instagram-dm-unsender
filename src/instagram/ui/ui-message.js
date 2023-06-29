@@ -22,9 +22,9 @@ export default class UIMessage extends UIComponent {
 				const button = [...this.root.ownerDocument.querySelectorAll("[aria-describedby] [role] [aria-label=Unsend], [aria-label=More]")].pop()
 				if(button) {
 					resolve(button)
-				} else {
-					reject("Unable to find actionButton")
+					return
 				}
+				reject("Unable to find actionButton")
 			})
 		})
 	}
@@ -35,18 +35,14 @@ export default class UIMessage extends UIComponent {
 		this.identifier.unSendButton = await new Promise((resolve, reject) => {
 			setTimeout(() => {
 				if(this.root.ownerDocument.querySelector("[style*=translate]")) {
-					const button = [...this.root.ownerDocument.querySelectorAll("div[role] [role]")].pop() // TODO SELECTOR_ACTIONS_MENU_UNSEND_SELECTOR
+					const button = [...this.root.ownerDocument.querySelectorAll("div[role] [role]")].pop()
 					if(button) {
 						if(button.textContent.toLocaleLowerCase() === "unsend") {
 							resolve(button)
-						} else {
-							reject("Unable to find unSendButton")
+							return
 						}
-					} else {
 						reject("Unable to find unSendButton")
 					}
-				} else {
-					reject("Unable to find unSendButton")
 				}
 			})
 		})
@@ -55,7 +51,7 @@ export default class UIMessage extends UIComponent {
 	async clickUnsend() {
 		console.debug("clickUnsend", this.identifier.unSendButton)
 		this.identifier.unSendButton.click()
-		this.identifier.dialogButton = await waitFor(this.root.ownerDocument.body, (node) => node.querySelector("[role=dialog] button"))
+		this.identifier.dialogButton = await waitFor(this.root.ownerDocument.body, () => this.root.ownerDocument.querySelector("[role=dialog] button"))
 	}
 
 	async confirmUnsend() {

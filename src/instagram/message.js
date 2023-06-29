@@ -1,8 +1,21 @@
+import { MessageUnsendTask } from "../idmu/task.js"
+
+
+class FailedWorkflowException extends Error {}
+
 export default class Message {
 
 	constructor(ui) {
-		this.ui = ui
-		this.task = null
+		this._ui = ui
+		this._task = null
+	}
+
+	get ui() {
+		return this._ui
+	}
+
+	get task() {
+		return this._task
 	}
 
 	async unsend() {
@@ -13,6 +26,13 @@ export default class Message {
 			await this.ui.confirmUnsend()
 		} catch(ex) {
 			console.error(ex)
+			throw FailedWorkflowException({ error: "Failed to execute workflow for this message", task: this.task })
 		}
 	}
+
+	createTask(id) {
+		this._task = new MessageUnsendTask(id, this)
+		return this.task
+	}
+
 }
