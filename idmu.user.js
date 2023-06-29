@@ -10,7 +10,7 @@
 // @supportURL				https://thoughtsunificator.me/
 // @contributionURL				https://thoughtsunificator.me/
 // @icon				https://www.instagram.com/favicon.ico
-// @version				0.4.9
+// @version				0.4.10
 // @updateURL				https://raw.githubusercontent.com/thoughtsunificator/instagram-dm-unsender/userscript/idmu.user.js
 // @downloadURL				https://raw.githubusercontent.com/thoughtsunificator/instagram-dm-unsender/userscript/idmu.user.js
 // @description				Simple script to unsend all DMs in a thread on instagram.com
@@ -402,11 +402,11 @@
 					console.error(ex);
 				}
 			}
-			if(this.instagram.messages.length >= 1) {
-				setTimeout(() => {
+			setTimeout(() => {
+				if(this.instagram.messages.length >= 1) {
 					this.#unSendMessage(this.instagram.messages[0]);
-				}, this.instagram.window.IDMU_MESSAGE_QUEUE_DELAY);
-			}
+				}
+			}, this.instagram.window.IDMU_MESSAGE_QUEUE_DELAY);
 		}
 
 		async unsendMessages() {// TODO doesn't work for new messages
