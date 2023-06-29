@@ -10,7 +10,7 @@
 // @supportURL				https://thoughtsunificator.me/
 // @contributionURL				https://thoughtsunificator.me/
 // @icon				https://www.instagram.com/favicon.ico
-// @version				0.4.19
+// @version				0.4.22
 // @updateURL				https://raw.githubusercontent.com/thoughtsunificator/instagram-dm-unsender/userscript/idmu.user.js
 // @downloadURL				https://raw.githubusercontent.com/thoughtsunificator/instagram-dm-unsender/userscript/idmu.user.js
 // @description				Simple script to unsend all DMs in a thread on instagram.com
@@ -84,9 +84,10 @@
 				_observer = observer;
 				for(const mutation of mutations) {
 					const nodes = removed ? mutation.removedNodes : mutation.addedNodes;
-					for(const addedNode of [...nodes]) {
-						const testNode = test(addedNode);
+					for(const node of [...nodes]) {
+						const testNode = test(node);
 						if(testNode) {
+							clearTimeout(timeoutId);
 							resolve(testNode);
 						}
 					}
@@ -120,15 +121,6 @@
 			super(root);
 		}
 
-		#isActionMenuButton(node) {
-			if(node.nodeType === Node.ELEMENT_NODE) {
-				const svgNode = node.querySelector("[aria-describedby] [role] [aria-label=Unsend], [aria-label=More]");
-				if(svgNode) {
-					return svgNode.parentNode
-				}
-			}
-		}
-
 		#isUnsendButton(node) {
 			if(node.nodeType === Node.ELEMENT_NODE && node.querySelector("[style*=translate]")) {
 				const button = [...node.ownerDocument.querySelectorAll("div[role] [role]")].pop(); // TODO SELECTOR_ACTIONS_MENU_UNSEND_SELECTOR
@@ -148,8 +140,10 @@
 
 		async showActionsMenu() {
 			console.debug("showActionsMenu");
-			this.root.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
-			const actionButton = await waitFor(this.root.ownerDocument.body, (node) => this.#isActionMenuButton(node));
+			this.root?.firstChild.dispatchEvent(new MouseEvent("mousemove", { bubbles: true }));
+			this.root?.firstChild.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
+			this.root?.firstChild.dispatchEvent(new MouseEvent("mousenter", { bubbles: true }));
+			const actionButton = await waitFor(this.root.ownerDocument.body, () => document.querySelector("[aria-describedby] [role] [aria-label=Unsend], [aria-label=More]")); // TODO i18n
 			this.identifier.actionButton = actionButton;
 		}
 
@@ -290,30 +284,16 @@
 
 		#onNodeAdded(addedNode) {
 			if(addedNode.nodeType === Node.ELEMENT_NODE) {
-				const messageNodes = [...this.window.document.querySelectorAll("div[role] div[role=button] div[dir=auto], div[role] div[role=button] div > img, div[role] div[role=button] > svg, div[role] div[role=button] div > p > span")];
 				if(this.ui === null) {
-					if(addedNode.querySelector('div > textarea[dir=auto], div[aria-label="Message"]')) {
-						const treeWalker = this.window.document.createTreeWalker(
-							this.window.document.body,
-							NodeFilter.SHOW_ELEMENT,
-						);
-						const resultNodes = [];
-						while(treeWalker.nextNode()) {
-							const containMessage = messageNodes.find(messageNode => treeWalker.currentNode.contains(messageNode));
-							if(containMessage && ["hidden auto", "hidden scroll"].includes(getComputedStyle(treeWalker.currentNode).overflow) && treeWalker.currentNode.tagName === "DIV") {
-								resultNodes.push(treeWalker.currentNode);
-							}
-						}
-						console.log(resultNodes);
-						const messagesWrapperNode = resultNodes[0];
-						if(messagesWrapperNode !== null) {
-							const uiMessagesWrapper = new UIMessagesWrapper(messagesWrapperNode);
-							this._ui = new UI(this.window, uiMessagesWrapper);
-							setTimeout(() => this.ui.uiMessagesWrapper.loadEntireThread(), 500);
-						}
+					const messagesWrapperNode = this.window.document.querySelector("div[role=grid]  > div > div > div > div, section > div > div > div > div > div > div > div > div[style*=height] > div");
+					console.log(messagesWrapperNode);
+					if(messagesWrapperNode !== null) {
+						const uiMessagesWrapper = new UIMessagesWrapper(messagesWrapperNode);
+						this._ui = new UI(this.window, uiMessagesWrapper);
 					}
 				}
 				if(this._ui !== null) {
+					const messageNodes = [...this.ui.uiMessagesWrapper.root.querySelectorAll("div[role] div[role=button] div[dir=auto], div[role] div[role=button] div > img, div[role] div[role=button] > svg, div[role] div[role=button] div > p > span")];
 					// TODO assign message type
 					for(const messageNode of messageNodes) {
 						if(messageNode.querySelector("div > span > img") == null && !this.messages.find(message => messageNode === message.ui.root || message.ui.root.contains(messageNode))) {
@@ -422,7 +402,9 @@
 		}
 
 		async unsendMessages() {// TODO doesn't work for new messages
-			this.#unSendMessage(this.instagram.messages[0]);
+			if(this.instagram.messages.length >= 1) {
+				this.#unSendMessage(this.instagram.messages[0]);
+			}
 		}
 
 		getMessages() {
@@ -453,6 +435,7 @@
 	button.addEventListener("click", async () => {
 		console.log("dmUnsender button click");
 		button.disabled = true;
+		dmUnsender.instagram.ui.uiMessagesWrapper.loadEntireThread();
 		const messages = dmUnsender.getMessages();
 		console.debug(messages);
 		await dmUnsender.unsendMessages(messages);
