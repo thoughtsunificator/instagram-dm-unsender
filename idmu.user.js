@@ -10,7 +10,7 @@
 // @supportURL				https://thoughtsunificator.me/
 // @contributionURL				https://thoughtsunificator.me/
 // @icon				https://www.instagram.com/favicon.ico
-// @version				0.4.31
+// @version				0.4.32
 // @updateURL				https://raw.githubusercontent.com/thoughtsunificator/instagram-dm-unsender/userscript/idmu.user.js
 // @downloadURL				https://raw.githubusercontent.com/thoughtsunificator/instagram-dm-unsender/userscript/idmu.user.js
 // @description				Simple script to unsend all DMs in a thread on instagram.com
@@ -397,16 +397,7 @@
 			}
 			const nodes = [...this.ui.uiMessagesWrapper.root.querySelector("div + div + div > div").childNodes];
 			for(const node of nodes) {
-				node.dispatchEvent(new MouseEvent("mousemove", { bubbles: true }));
-				node.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
-				node.dispatchEvent(new MouseEvent("mousenter", { bubbles: true }));
-				await new Promise(resolve => setTimeout(() => {
-					const more = node.querySelector("div > [aria-label=More]");
-					if(more && (window.innerWidth - more.getBoundingClientRect().right) < 400) {
-						this.#addMessage(node);
-					}
-					resolve();
-				}));
+				this.#addMessage(node);
 			}
 		}
 
