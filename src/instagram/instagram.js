@@ -39,11 +39,18 @@ export default class Instagram {
 		if(addedNode.nodeType === Node.ELEMENT_NODE) {
 			const messageNodes = this.window.document.querySelectorAll("div[role] div[role=button] div[dir=auto], div[role] div[role=button] div > img, div[role] div[role=button] > svg, div[role] div[role=button] div > p > span")
 			if(this.ui === null) {
-				const hintNode = addedNode.querySelector('div > textarea[dir=auto], div[aria-label="Message"]')
-				if(hintNode) {
-					let messagesWrapperNode = hintNode.parentNode.parentNode.parentNode.parentNode.parentNode?.parentNode.firstElementChild.firstElementChild.firstElementChild
-					if(messagesWrapperNode.getAttribute("arial-label") != null) {
-						messagesWrapperNode = messagesWrapperNode.firstElementChild.firstElementChild.firstElementChild.firstElementChild
+				if(addedNode.querySelector('div > textarea[dir=auto], div[aria-label="Message"]')) {
+					const treeWalker = this.window.document.createTreeWalker(
+						addedNode,
+						NodeFilter.SHOW_ELEMENT,
+					)
+					let messagesWrapperNode = null
+					while(treeWalker.nextNode()) {
+						if(getComputedStyle(treeWalker.currentNode).overflowX === "hidden") {
+							messagesWrapperNode = treeWalker.currentNode
+							console.log(messagesWrapperNode)
+							break
+						}
 					}
 					if(messagesWrapperNode !== null) {
 						const uiMessagesWrapper = new UIMessagesWrapper(messagesWrapperNode)
@@ -57,7 +64,6 @@ export default class Instagram {
 				for(const messageNode of messageNodes) {
 					if(messageNode.querySelector("div > span > img") == null && !this.messages.find(message => messageNode === message.ui.root || message.ui.root.contains(messageNode))) {
 						this.#addMessage(messageNode)
-
 					}
 				}
 			}

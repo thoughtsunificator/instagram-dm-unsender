@@ -46,7 +46,11 @@ export default class UIMessage extends UIComponent {
 
 	async openActionsMenu() {
 		console.debug("openActionsMenu", this.identifier.actionButton)
-		this.identifier.actionButton.click()
+		if(this.identifier.actionButton.click) {
+			this.identifier.actionButton.click()
+		} else{
+			this.identifier.actionButton.parentNode.click()
+		}
 		const unSendButton = await waitFor(this.root.ownerDocument.body, (node) => this.#isUnsendButton(node)) // TODO i18n
 		this.identifier.unSendButton = unSendButton
 	}
