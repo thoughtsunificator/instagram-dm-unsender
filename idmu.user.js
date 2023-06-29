@@ -10,7 +10,7 @@
 // @supportURL				https://thoughtsunificator.me/
 // @contributionURL				https://thoughtsunificator.me/
 // @icon				https://www.instagram.com/favicon.ico
-// @version				0.4.10
+// @version				0.4.13
 // @updateURL				https://raw.githubusercontent.com/thoughtsunificator/instagram-dm-unsender/userscript/idmu.user.js
 // @downloadURL				https://raw.githubusercontent.com/thoughtsunificator/instagram-dm-unsender/userscript/idmu.user.js
 // @description				Simple script to unsend all DMs in a thread on instagram.com
@@ -155,7 +155,11 @@
 
 		async openActionsMenu() {
 			console.debug("openActionsMenu", this.identifier.actionButton);
-			this.identifier.actionButton.click();
+			if(this.identifier.actionButton.click) {
+				this.identifier.actionButton.click();
+			} else {
+				this.identifier.actionButton.parentNode.click();
+			}
 			const unSendButton = await waitFor(this.root.ownerDocument.body, (node) => this.#isUnsendButton(node)); // TODO i18n
 			this.identifier.unSendButton = unSendButton;
 		}
@@ -288,11 +292,17 @@
 			if(addedNode.nodeType === Node.ELEMENT_NODE) {
 				const messageNodes = this.window.document.querySelectorAll("div[role] div[role=button] div[dir=auto], div[role] div[role=button] div > img, div[role] div[role=button] > svg, div[role] div[role=button] div > p > span");
 				if(this.ui === null) {
-					const hintNode = addedNode.querySelector('div > textarea[dir=auto], div[aria-label="Message"]');
-					if(hintNode) {
-						let messagesWrapperNode = hintNode.parentNode.parentNode.parentNode.parentNode.parentNode?.parentNode.firstElementChild.firstElementChild.firstElementChild;
-						if(messagesWrapperNode.getAttribute("arial-label") != null) {
-							messagesWrapperNode = messagesWrapperNode.firstElementChild.firstElementChild.firstElementChild.firstElementChild;
+					if(addedNode.querySelector('div > textarea[dir=auto], div[aria-label="Message"]')) {
+						const treeWalker = this.window.document.createTreeWalker(
+							addedNode,
+							NodeFilter.SHOW_ELEMENT,
+						);
+						let messagesWrapperNode = null;
+						while(treeWalker.nextNode()) {
+							if(getComputedStyle(treeWalker.currentNode).overflowX === "hidden") {
+								messagesWrapperNode = treeWalker.currentNode;
+								break
+							}
 						}
 						if(messagesWrapperNode !== null) {
 							const uiMessagesWrapper = new UIMessagesWrapper(messagesWrapperNode);
@@ -306,7 +316,6 @@
 					for(const messageNode of messageNodes) {
 						if(messageNode.querySelector("div > span > img") == null && !this.messages.find(message => messageNode === message.ui.root || message.ui.root.contains(messageNode))) {
 							this.#addMessage(messageNode);
-
 						}
 					}
 				}
@@ -407,6 +416,7 @@
 					this.#unSendMessage(this.instagram.messages[0]);
 				}
 			}, this.instagram.window.IDMU_MESSAGE_QUEUE_DELAY);
+
 		}
 
 		async unsendMessages() {// TODO doesn't work for new messages
