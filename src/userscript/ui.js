@@ -6,8 +6,8 @@ console.log("dmUnsender observing...")
 
 const unsendDMButton = document.createElement("button")
 unsendDMButton.textContent = "Unsend all DMs"
-unsendDMButton.style.top = "10px"
-unsendDMButton.style.right = "10px"
+unsendDMButton.style.top = "20px"
+unsendDMButton.style.right = "230px"
 applyDefaultStyle(unsendDMButton)
 unsendDMButton.addEventListener("click", async () => {
 	console.log("dmUnsender button click")
@@ -30,8 +30,8 @@ document.body.appendChild(unsendDMButton)
 
 const loadDMsButton = document.createElement("button")
 loadDMsButton.textContent = "Load all DMs"
-loadDMsButton.style.top = "50px"
-loadDMsButton.style.right = "10px"
+loadDMsButton.style.top = "20px"
+loadDMsButton.style.right = "350px"
 applyDefaultStyle(loadDMsButton)
 loadDMsButton.addEventListener("click", async () => {
 	unsendDMButton.disabled = true
