@@ -5,7 +5,9 @@ import Instagram from "../src/instagram/instagram.js"
 
 global.MutationObserver = new JSDOM().window.MutationObserver
 global.Node = new JSDOM().window.Node
+global.NodeFilter = new JSDOM().window.NodeFilter
 global.MouseEvent = new JSDOM().window.MouseEvent
+global.getComputedStyle = new JSDOM().window.getComputedStyle
 
 test.beforeEach(t => {
 	const virtualDOM = new JSDOM().window
@@ -36,7 +38,7 @@ test("Instagram observe messagesWrapper", async t => {
 	await new Promise(resolve => {
 		const instagram = new Instagram(t.context.window)
 		instagram.observe()
-		t.context.document.body.innerHTML += `<div><div><div><div><div><textarea dir="auto"></div></div></div></div></div>`
+		t.context.document.body.innerHTML += `<div><div style="overflow-x: hidden"><div><div><div><textarea dir="auto"></div></div></div></div></div>`
 		setTimeout(() => {
 			t.not(instagram.ui, null)
 			resolve()

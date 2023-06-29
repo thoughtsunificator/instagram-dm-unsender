@@ -5,9 +5,12 @@ import SAMPLE_FRANCE_PAGE_HTML from "./sample/france/page.js"
 import SAMPLE_USA_PAGE_HTML from "./sample/usa/page.js"
 
 import IDMU from "../src/idmu/idmu.js"
-import UIMessageStub from "./ui/ui-message.js"
-import Instagram from "../src/instagram/instagram.js"
 
+
+
+global.NodeFilter = new JSDOM().window.NodeFilter
+global.MouseEvent = new JSDOM().window.MouseEvent
+global.getComputedStyle = new JSDOM().window.getComputedStyle
 global.MutationObserver = new JSDOM().window.MutationObserver
 global.Node = new JSDOM().window.Node
 global.MouseEvent = new JSDOM().window.MouseEvent
