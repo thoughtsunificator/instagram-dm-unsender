@@ -10,7 +10,7 @@
 // @supportURL				https://thoughtsunificator.me/
 // @contributionURL				https://thoughtsunificator.me/
 // @icon				https://www.instagram.com/favicon.ico
-// @version				0.4.26
+// @version				0.4.27
 // @updateURL				https://raw.githubusercontent.com/thoughtsunificator/instagram-dm-unsender/userscript/idmu.user.js
 // @downloadURL				https://raw.githubusercontent.com/thoughtsunificator/instagram-dm-unsender/userscript/idmu.user.js
 // @description				Simple script to unsend all DMs in a thread on instagram.com
@@ -36,11 +36,11 @@
 		}
 	}
 
-	function waitFor(target, test, removed=false, timeout=500) {
+	function waitFor(target, test, removed=false, timeout=2000) {
 		return new Promise((resolve, reject) => {
 			let _observer;
 			let timeoutId;
-			if(timeout) {
+			if(timeout !== -1) {
 				timeoutId = setTimeout(() => {
 					if(_observer) {
 						_observer.disconnect();
@@ -263,9 +263,9 @@
 			console.debug("loadEntireThread");
 			this.root.scrollTop = 0;
 			try {
-				await waitFor(this.root.ownerDocument.body, node => this.#isLoader(node), false, 2000);
+				await waitFor(this.root.ownerDocument.body, node => this.#isLoader(node), false, 10000);
 				if(this.root.scrollTop !== 0) {
-					this.loadEntireThread();
+					await this.loadEntireThread();
 				}
 			} catch(ex) {
 				console.error(ex);
@@ -469,24 +469,14 @@
 	dmUnsender.instagram.observe();
 	console.log("dmUnsender observing...");
 
-	const button = document.createElement("button");
-	button.textContent = "Unsend all DMs";
-	button.style.position = "fixed";
-	button.style.top = "10px";
-	button.style.right = "10px";
-	button.style.zIndex = 9999;
-	button.style.fontSize = "var(--system-14-font-size)";
-	button.style.color = "white";
-	button.style.border = "0px";
-	button.style.borderRadius = "8px";
-	button.style.padding = "8px";
-	button.style.fontWeight = "bold";
-	button.style.cursor = "pointer";
-	button.style.lineHeight = "var(--system-14-line-height)";
-	button.style.backgroundColor = "rgb(var(--ig-primary-button))";
-	button.addEventListener("click", async () => {
+	const unsendDMButton = document.createElement("button");
+	unsendDMButton.textContent = "Unsend all DMs";
+	unsendDMButton.style.top = "10px";
+	unsendDMButton.style.right = "10px";
+	applyDefaultStyle(unsendDMButton);
+	unsendDMButton.addEventListener("click", async () => {
 		console.log("dmUnsender button click");
-		button.disabled = true;
+		unsendDMButton.disabled = true;
 		try {
 			await dmUnsender.instagram.ui.uiMessagesWrapper.loadEntireThread();
 		} catch(ex) {
@@ -499,14 +489,41 @@
 		} catch(ex) {
 			console.error(ex);
 		}
-		button.disabled = false;
+		unsendDMButton.disabled = false;
 	});
-	button.addEventListener("mouseover", async () => {
-		button.style.backgroundColor = "rgb(var(--ig-primary-button-hover))";
+	document.body.appendChild(unsendDMButton);
+
+	const loadDMsButton = document.createElement("button");
+	loadDMsButton.textContent = "Load all DMs";
+	loadDMsButton.style.top = "50px";
+	loadDMsButton.style.right = "10px";
+	applyDefaultStyle(loadDMsButton);
+	loadDMsButton.addEventListener("click", async () => {
+		unsendDMButton.disabled = true;
+		await dmUnsender.instagram.ui.uiMessagesWrapper.loadEntireThread();
+		unsendDMButton.disabled = false;
 	});
-	button.addEventListener("mouseout", async () => {
-		button.style.backgroundColor = "rgb(var(--ig-primary-button))";
-	});
-	document.body.appendChild(button);
+	document.body.appendChild(loadDMsButton);
+
+
+	function applyDefaultStyle(node) {
+		node.style.position = "fixed";
+		node.style.zIndex = 9999;
+		node.style.fontSize = "var(--system-14-font-size)";
+		node.style.color = "white";
+		node.style.border = "0px";
+		node.style.borderRadius = "8px";
+		node.style.padding = "8px";
+		node.style.fontWeight = "bold";
+		node.style.cursor = "pointer";
+		node.style.lineHeight = "var(--system-14-line-height)";
+		node.style.backgroundColor = "rgb(var(--ig-primary-button))";
+		node.addEventListener("mouseover", async () => {
+			node.style.backgroundColor = "rgb(var(--ig-primary-button-hover))";
+		});
+		node.addEventListener("mouseout", async () => {
+			node.style.backgroundColor = "rgb(var(--ig-primary-button))";
+		});
+	}
 
 })();
