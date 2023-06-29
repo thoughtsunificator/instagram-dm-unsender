@@ -1,8 +1,8 @@
-export default function(target, test, removed=false, timeout=500) {
+export default function(target, test, removed=false, timeout=2000) {
 	return new Promise((resolve, reject) => {
 		let _observer
 		let timeoutId
-		if(timeout) {
+		if(timeout !== -1) {
 			timeoutId = setTimeout(() => {
 				if(_observer) {
 					_observer.disconnect()
