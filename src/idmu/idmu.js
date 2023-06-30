@@ -23,12 +23,11 @@ export default class IDMU {
 		for(const item of queue.items.slice()) {
 			try {
 				await item.promise()
+				console.debug(`Completed Task ${item.task.id} will continue again in ${this.window.IDMU_MESSAGE_QUEUE_DELAY}ms`)
+				await new Promise(resolve => setTimeout(resolve, this.window.IDMU_MESSAGE_QUEUE_DELAY))
 			} catch(result) {
 				console.error(result)
 			}
-			console.debug("Queue.next")
-			console.debug(`Completed Task ${item.task.id} will continue again in ${this.window.IDMU_MESSAGE_QUEUE_DELAY}ms`)
-			await new Promise(resolve => setTimeout(resolve, this.window.IDMU_MESSAGE_QUEUE_DELAY))
 		}
 	}
 
