@@ -3,8 +3,8 @@ export default class UIStub {
 	*
 	* @param {UIComponent} ui
 	*/
-	constructor(ui) {
-		this.ui = ui
+	constructor(uiComponent) {
+		this.uiComponent = uiComponent
 	}
 	/**
 	 * @abstract

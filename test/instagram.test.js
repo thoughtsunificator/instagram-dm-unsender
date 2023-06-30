@@ -1,7 +1,7 @@
 import test from "ava"
 import { JSDOM } from "jsdom"
 
-import Instagram from "../src/instagram/instagram.js"
+import UPI from "../src/upi/upi.js"
 
 global.MutationObserver = new JSDOM().window.MutationObserver
 global.Node = new JSDOM().window.Node
@@ -32,7 +32,7 @@ test("Test", t => {
 		// instagram.observe()
 		// t.context.document.body.innerHTML += `<div><div>`
 		// setTimeout(() => {
-			// t.is(instagram.ui, null)
+			// t.is(instagram.uiComponent, null)
 			// t.deepEqual(instagram.messages.length, 0)
 			// resolve()
 		// })
@@ -47,7 +47,7 @@ test("Test", t => {
 		// instagram.observe()
 		// t.context.document.body.innerHTML += `<div role="grid"><div><div><div>div>`
 		// setTimeout(() => {
-			// t.not(instagram.ui, null)
+			// t.not(instagram.uiComponent, null)
 			// resolve()
 		// })
 	// })
@@ -60,7 +60,7 @@ test("Test", t => {
 		// instagram.observe()
 		// t.context.document.body.innerHTML += `<section><div><div><div><div><div><div><div><div style="height: 100%"><div>`
 		// setTimeout(() => {
-			// t.not(instagram.ui, null)
+			// t.not(instagram.uiComponent, null)
 			// resolve()
 		// })
 	// })

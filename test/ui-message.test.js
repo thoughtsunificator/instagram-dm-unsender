@@ -4,7 +4,7 @@ import { JSDOM } from "jsdom"
 import SAMPLE_FRANCE_PAGE_HTML from "./sample/france/page.js"
 
 import UIMessageStub from "./ui/ui-message.js"
-import UIMessage from "../src/instagram/ui/ui-message.js"
+import UIMessage from "../src/ui/ui-message.js"
 
 global.MutationObserver = new JSDOM().window.MutationObserver
 global.Node = new JSDOM().window.Node

@@ -18,21 +18,10 @@ export class Task {
 	}
 }
 
-export class MessageUnsendTask extends Task {
-	/**
-	 *
-	 * @param {data} message
-	 */
-	constructor(id, message) {
+export class CancelableTask extends Task {
+	constructor(id) {
 		super(id)
-		this.message = message
-		this.runCount = 0
+		this.rejects = []
 	}
-	run() {
-		const unsend = this.message.unsend()
-		this.runCount++
-		return unsend
-	}
-	stop() {
-	}
+
 }

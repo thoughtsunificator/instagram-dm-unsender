@@ -5,121 +5,60 @@ import { Task } from "../src/idmu/task.js"
 
 
 class TestTask extends Task {
-	constructor(data) {
+	constructor(callback) {
 		super()
-		this.data = data
+		this.callback = callback
 	}
 	run() {
-		return new Promise((resolve, reject) => {
-			setTimeout(() => {
-				if(this.data.resolve) {
-					this.data.callback()
-					resolve()
-				} else {
-					this.data.resolve = true
-					reject()
-				}
-			}, this.data.delay)
-		})
+		return new Promise(this.callback)
 	}
 }
-
-test("Test", t => {
-	t.pass()
+test("Queue add", async t => {
+	const queue = new Queue()
+	const tasks = [
+		new TestTask({
+		}),
+		new TestTask({
+		}),
+		new TestTask({
+		}),
+		new TestTask({
+		}),
+	]
+	t.is(queue.length, 0)
+	for(const task of tasks) {
+		queue.add(task)
+	}
+	t.is(queue.length, 4)
+	t.deepEqual(queue.items.map(item => item.task), tasks)
 })
 
-// test("Queue tasks", async t => {
-// 	const queue = new Queue()
-// 	const ids = []
-// 	queue.add(new TestTask({
-// 		callback: () => ids.push(1),
-// 		delay: 0,
-// 		resolve: true
-// 	}))
-// 	queue.add(new TestTask({
-// 		callback: () => ids.push(2),
-// 		delay: 0,
-// 		resolve: true
-// 	}))
-// 	queue.add(new TestTask({
-// 		callback: () => ids.push(3),
-// 		delay: 0,
-// 		resolve: true
-// 	}))
-// 	await queue.add(new TestTask({
-// 		callback: () => ids.push(4),
-// 		delay: 0,
-// 		resolve: true
-// 	}))
-// 	t.deepEqual(ids, [1,2,3,4])
-// })
-
-// test("Queue retry=false", async t => {
-// 	const queue = new Queue()
-// 	const ids = []
-// 	queue.add(new TestTask({
-// 		callback: () => ids.push(1),
-// 		delay: 0,
-// 		resolve: true
-// 	}))
-// 	queue.add(new TestTask({
-// 		callback: () => ids.push(2),
-// 		delay: 0,
-// 		resolve: true
-// 	}))
-// 	queue.add(new TestTask({
-// 		callback: () => ids.push(3),
-// 		delay: 0,
-// 		resolve: false
-// 	})).catch(() => {
-
-// 	})
-// 	await queue.add(new TestTask({
-// 		callback: () => ids.push(4),
-// 		delay: 0,
-// 		resolve: true
-// 	}))
-// 	t.deepEqual(ids, [1,2,4])
-// })
-
-
-// test("Queue retry=true", async t => {
-// 	return new Promise((resolve) => {
-// 		const queue = new Queue()
-// 		const ids = []
-// 		queue.add(new TestTask({
-// 			callback: () => ids.push(1),
-// 			delay: 0,
-// 			resolve: true
-// 		}))
-// 		queue.add(new TestTask({
-// 			callback: () => ids.push(2),
-// 			delay: 0,
-// 			resolve: true
-// 		}))
-// 		queue.add(new TestTask({
-// 			callback: () => {
-// 				ids.push(3)
-// 				t.deepEqual(ids, [1,2,4,5,3])
-// 				resolve()
-// 			},
-// 			delay: 0,
-// 			resolve: false
-// 		}), true).catch(() => {
-
-// 		})
-// 		queue.add(new TestTask({
-// 			callback: () => ids.push(4),
-// 			delay: 0,
-// 			resolve: true
-// 		}))
-// 		queue.add(new TestTask({
-// 			callback: () => ids.push(5),
-// 			delay: 0,
-// 			resolve: true
-// 		}))
-
-// 	})
-// })
-
-
+test("Queue clearQueue", async t => {
+	const queue = new Queue()
+	const ids = []
+	const tasks = [
+		new TestTask((resolve) => {
+			ids.push(1)
+			resolve()
+		}),
+		new TestTask((resolve) => {
+			ids.push(2)
+			resolve()
+		}),
+		new TestTask((resolve) => {
+			ids.push(3)
+			resolve()
+		}),
+		new TestTask((resolve) => {
+			ids.push(4)
+			resolve()
+		})
+	]
+	for(const task of tasks) {
+		queue.add(task)
+	}
+	for(const task of tasks) {
+		await queue.clearQueue()
+	}
+	t.deepEqual(ids, [1,2,3,4])
+})

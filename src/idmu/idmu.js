@@ -1,5 +1,4 @@
-
-import Instagram from "../instagram/instagram.js"
+import UPI from "../upi/upi.js"
 
 export default class IDMU {
 
@@ -8,16 +7,32 @@ export default class IDMU {
 	 * @param {Window} window
 	 */
 	constructor(window) {
-		this.instagram = new Instagram(window)
+		this.window = window
+		this.upi = null
 	}
 
-	async unsendMessages() {
+	async unsendThreadMessages() {
 		console.debug("User asked for messages unsending")
-		return this.instagram.clearUnsendQueue()
+		return this.#getUPI().unsendThreadMessages()
+	}
+
+	async loadThreadMessages() {
+		return this.#getUPI().loadThreadMessages()
 	}
 
 	getMessages() {
-		return this.instagram.messages
+		return this.#getUPI().messages
+	}
+
+	/**
+	 *
+	 * @returns {UPI}
+	 */
+	#getUPI() {
+		if(this.upi === null) {
+			this.upi = UPI.create(this.window)
+		}
+		return this.upi
 	}
 
 }

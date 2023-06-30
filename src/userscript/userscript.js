@@ -9,4 +9,38 @@
 //      - Click the "Unsend" button inside the modal
 // There is no concurrency, message are unsent one after another by using a queue.
 
-import "./ui.js"
+import { createUIElement } from "./ui/ui.js"
+import IDMU from "../idmu/idmu.js"
+
+const { uiElement, unsendThreadMessagesButton, loadThreadMessagesButton } = createUIElement()
+
+const idmu = new IDMU(window)
+
+unsendThreadMessagesButton.addEventListener("click", async (event) => {
+	console.log("unsendThreadMessagesButton click")
+	event.target.disabled = true
+	try {
+		const messages = idmu.getMessages()
+		console.debug(messages)
+		await idmu.unsendThreadMessages(messages)
+	} catch(ex) {
+		console.error(ex)
+	}
+	event.target.disabled = false
+})
+
+loadThreadMessagesButton.addEventListener("click", async (event) => {
+	console.log("loadThreadMessagesButton click")
+	event.target.disabled = true
+	try {
+		await idmu.loadThreadMessages()
+		const messages = idmu.getMessages()
+		console.debug(messages)
+	} catch(ex) {
+		console.error(ex)
+	}
+	event.target.disabled = false
+})
+
+
+document.body.appendChild(uiElement)

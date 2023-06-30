@@ -1,16 +1,7 @@
-import waitFor from "../../dom/wait-for.js"
+import waitFor from "../dom/wait-for.js"
 import UIComponent from "./ui-component.js"
 
 export default class UIMessage extends UIComponent {
-
-	/**
-	*
-	* @param {Node} root
-	*/
-	constructor(root) {
-		super(root)
-	}
-
 
 	showActionsMenuButton() {
 		console.debug("showActionsMenuButton")
