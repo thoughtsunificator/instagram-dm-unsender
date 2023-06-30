@@ -46,9 +46,7 @@ export default class UIMessage extends UIComponent {
 
 	closeActionsMenu() {
 		console.debug("hideActionMenuButton")
-		if(this.identifier.actionButton) {
-			this.identifier.actionButton.click()
-		}
+		this.root.click()
 	}
 
 	async clickUnsend() {
