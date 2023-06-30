@@ -36,7 +36,7 @@ test("Test", t => {
 // 	const idmu = new IDMU(t.context.window)
 // 	await new Promise((resolve) => {
 // 		setTimeout(() => {
-// 			t.is(idmu.instagram.messages.length, 11)
+// 			t.is(idmu.getUIPIMessages().length, 11)
 // 			resolve()
 // 		})
 // 		idmu.instagram.observe(() => null, () => null)
@@ -51,7 +51,7 @@ test("Test", t => {
 // 	await new Promise((resolve) => {
 // 		const idmu = new IDMU(t.context.window)
 // 		setTimeout(() => {
-// 			t.is(idmu.instagram.messages.length, 20)
+// 			t.is(idmu.getUIPIMessages().length, 20)
 // 			resolve()
 // 		})
 // 		idmu.instagram.observe(() => null, () => null)

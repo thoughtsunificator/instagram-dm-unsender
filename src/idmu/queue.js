@@ -1,11 +1,9 @@
 export default class Queue {
+
+	items
+
 	constructor() {
 		this.items = []
-	}
-
-	clearQueue() {
-		const item = this.items.shift()
-		return item.promise()
 	}
 
 	/**
@@ -24,6 +22,10 @@ export default class Queue {
 		return item
 	}
 
+	hasItems() {
+		return this.items.length >= 1
+	}
+
 	removeTask(task) {
 		this.items.splice(this.items.indexOf(task), 1)
 		task.stop()
@@ -31,12 +33,6 @@ export default class Queue {
 
 	get length() {
 		return this.items.length
-	}
-
-	stop() {
-		for(const item of this.items.slice()) {
-			item.task.stop()
-		}
 	}
 
 }

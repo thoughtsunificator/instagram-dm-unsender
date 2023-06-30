@@ -10,7 +10,6 @@ export default async function loadMoreMessageStrategy(uiComponent) {
 		}, false, 10000)
 		if(uiComponent.root.scrollTop !== 0) {
 			await new Promise(resolve => setTimeout(resolve, 2000))
-			await loadMoreMessageStrategy(uiComponent)
 		}
 	} catch(ex) {
 		console.error(ex)

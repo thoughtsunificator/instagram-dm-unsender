@@ -7,7 +7,7 @@ export function createUIElement() {
 	const menuElement = createMenuElement()
 
 	const unsendThreadMessagesButton = createMenuButtonElement("Unsend all DMs")
-	const loadThreadMessagesButton = createMenuButtonElement("Load all DMs", "secondary")
+	const loadThreadMessagesButton = createMenuButtonElement("Load DMs", "secondary")
 
 
 	menuElement.appendChild(unsendThreadMessagesButton)

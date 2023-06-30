@@ -3,7 +3,7 @@ import loadMoreMessageStrategy from "./strategy/load-more-messages-strategy.js"
 
 export default class UIMessagesWrapper extends UIComponent {
 
-	async loadMoreMessages() {
+	async fetchAndRenderThreadNextMessagePage() {
 		console.debug("loadMoreMessages")
 		await loadMoreMessageStrategy(this)
 	}

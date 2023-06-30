@@ -20,9 +20,9 @@ unsendThreadMessagesButton.addEventListener("click", async (event) => {
 	console.log("unsendThreadMessagesButton click")
 	event.target.disabled = true
 	try {
-		const messages = idmu.getMessages()
-		console.debug(messages)
-		await idmu.unsendThreadMessages(messages)
+		const uipiMessages = idmu.getUIPIMessages()
+		console.debug(uipiMessages)
+		await idmu.unsendThreadMessages()
 	} catch(ex) {
 		console.error(ex)
 	}
@@ -33,9 +33,12 @@ loadThreadMessagesButton.addEventListener("click", async (event) => {
 	console.log("loadThreadMessagesButton click")
 	event.target.disabled = true
 	try {
-		await idmu.loadThreadMessages()
-		const messages = idmu.getMessages()
-		console.debug(messages)
+		const pagesCount = parseInt(window.prompt("How many pages should we load (default: 5): "))
+		for(let i =0 ; i < pagesCount;i ++) {
+			await idmu.fetchAndRenderThreadNextMessagePage()
+		}
+		const uipiMessages = idmu.getUIPIMessages()
+		console.debug(uipiMessages)
 	} catch(ex) {
 		console.error(ex)
 	}
