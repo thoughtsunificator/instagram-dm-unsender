@@ -10,7 +10,7 @@
 // @supportURL				https://thoughtsunificator.me/
 // @contributionURL				https://thoughtsunificator.me/
 // @icon				https://www.instagram.com/favicon.ico
-// @version				0.4.37
+// @version				0.4.38
 // @updateURL				https://raw.githubusercontent.com/thoughtsunificator/instagram-dm-unsender/userscript/idmu.user.js
 // @downloadURL				https://raw.githubusercontent.com/thoughtsunificator/instagram-dm-unsender/userscript/idmu.user.js
 // @description				Simple script to unsend all DMs in a thread on instagram.com
@@ -259,6 +259,9 @@
 			this.root.dispatchEvent(new MouseEvent("mousemove", { bubbles: true }));
 			this.root.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
 			this.root.dispatchEvent(new MouseEvent("mousenter", { bubbles: true }));
+			this.root.addEventListener("mousemove", e => e.preventDefault());
+			this.root.addEventListener("mouseover", e => e.preventDefault());
+			this.root.addEventListener("mousenter", e => e.preventDefault());
 		}
 
 		hideActionMenuButton() {
@@ -266,6 +269,9 @@
 			this.root.dispatchEvent(new MouseEvent("mousemove", { bubbles: true }));
 			this.root.dispatchEvent(new MouseEvent("mouseout", { bubbles: true }));
 			this.root.dispatchEvent(new MouseEvent("mouseleave", { bubbles: true }));
+			// this.root.addEventListener("mousemove", e => e.preventDefault())
+			// this.root.addEventListener("mouseover", e => e.preventDefault())
+			// this.root.addEventListener("mousenter", e => e.preventDefault())
 		}
 
 
@@ -487,9 +493,8 @@
 
 	const idmu = new IDMU(window);
 
-	unsendThreadMessagesButton.addEventListener("click", async (event) => {
+	unsendThreadMessagesButton.addEventListener("click", async () => {
 		console.log("unsendThreadMessagesButton click");
-		event.target.disabled = true;
 		try {
 			const uipiMessages = idmu.getUIPIMessages();
 			console.debug(uipiMessages);
@@ -497,14 +502,12 @@
 		} catch(ex) {
 			console.error(ex);
 		}
-		event.target.disabled = false;
 	});
 
-	loadThreadMessagesButton.addEventListener("click", async (event) => {
+	loadThreadMessagesButton.addEventListener("click", async () => {
 		console.log("loadThreadMessagesButton click");
-		event.target.disabled = true;
 		try {
-			const pagesCount = parseInt(window.prompt("How many pages should we load (default: 5): "));
+			const pagesCount = parseInt(window.prompt("How many pages should we load ? ", 5));
 			for(let i =0 ; i < pagesCount;i ++) {
 				await idmu.fetchAndRenderThreadNextMessagePage();
 			}
@@ -513,7 +516,6 @@
 		} catch(ex) {
 			console.error(ex);
 		}
-		event.target.disabled = false;
 	});
 
 
