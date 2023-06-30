@@ -29,6 +29,120 @@
 (function () {
 	'use strict';
 
+	const BUTTON_STYLE = {
+		"PRIMARY": "primary",
+		"SECONDARY": "secondary",
+	};
+
+
+	function applyButtonStyle(node, styleName=BUTTON_STYLE.PRIMARY) {
+		node.style.zIndex = 9999;
+		node.style.fontSize = "var(--system-14-font-size)";
+		node.style.color = "white";
+		node.style.border = "0px";
+		node.style.borderRadius = "8px";
+		node.style.padding = "8px";
+		node.style.fontWeight = "bold";
+		node.style.cursor = "pointer";
+		node.style.lineHeight = "var(--system-14-line-height)";
+		node.style.backgroundColor = `rgb(var(--ig-${styleName}-button))`;
+		node.addEventListener("mouseover", async () => {
+			node.style.backgroundColor = `rgb(var(--ig-${styleName}-button-hover))`;
+		});
+		node.addEventListener("mouseout", async () => {
+			node.style.backgroundColor = `rgb(var(--ig-${styleName}-button))`;
+		});
+	}
+
+	function createMenuButtonElement(text, styleName) {
+
+		const buttonElement = document.createElement("button");
+		buttonElement.textContent = text;
+		applyButtonStyle(buttonElement, styleName);
+		return buttonElement
+	}
+
+	function createMenuElement() {
+		const menuElement = document.createElement("div");
+		menuElement.style.top = "20px";
+		menuElement.style.right = "430px";
+		menuElement.style.position = "fixed";
+		menuElement.style.display = "flex";
+		menuElement.style.gap = "10px";
+		return menuElement
+	}
+
+	function createUIElement() {
+		const uiElement = document.createElement("div");
+		const menuElement = createMenuElement();
+
+		const unsendThreadMessagesButton = createMenuButtonElement("Unsend all DMs");
+		const loadThreadMessagesButton = createMenuButtonElement("Load all DMs", "secondary");
+
+
+		menuElement.appendChild(unsendThreadMessagesButton);
+		menuElement.appendChild(loadThreadMessagesButton);
+
+		uiElement.appendChild(menuElement);
+		return { uiElement, menuElement, unsendThreadMessagesButton, loadThreadMessagesButton }
+	}
+
+	class Queue {
+		constructor() {
+			this.items = [];
+		}
+
+		clearQueue() {
+			const item = this.items.shift();
+			return item.promise()
+		}
+
+		/**
+		*
+		* @param {Task} task
+		*/
+		add(task) {
+			const promise = () => new Promise((resolve, reject) => {
+				task.run().then(() => resolve(task)).catch(() => {
+					console.debug("Task failed");
+					reject({ error: "Task failed", task });
+				});
+			});
+			const item = { task, promise };
+			this.items.push(item);
+			return item
+		}
+
+		removeTask(task) {
+			this.items.splice(this.items.indexOf(task), 1);
+			task.stop();
+		}
+
+		get length() {
+			return this.items.length
+		}
+
+		stop() {
+			for(const item of this.items.slice()) {
+				item.task.stop();
+			}
+		}
+
+	}
+
+	class UPIComponent {
+		constructor(uiComponent) {
+			this._uiComponent = uiComponent;
+		}
+		get uiComponent() {
+			return this._uiComponent
+		}
+	}
+
+	function findMessagesWrapperStrategy(window) {
+		return window.document.querySelector("div[role=grid]  > div > div > div > div, section > div > div > div > div > div > div > div > div[style*=height] > div")
+	}
+
 	class UIComponent {
 		constructor(root, identifier={}) {
 			this.root = root;
@@ -80,16 +194,109 @@
 
 	}
 
-	class UIMessage extends UIComponent {
+	async function loadMoreMessageStrategy(uiComponent) {
+		uiComponent.root.scrollTop = 0;
+		try {
+			await waitFor(uiComponent.root.ownerDocument.body, node => {
+				if(node.nodeType === Node.ELEMENT_NODE && uiComponent.root.contains(node) && uiComponent.root.scrollTop !== 0) {
+					return node
+				}
+			}, false, 10000);
+			if(uiComponent.root.scrollTop !== 0) {
+				await new Promise(resolve => setTimeout(resolve, 2000));
+				await loadMoreMessageStrategy(uiComponent);
+			}
+		} catch(ex) {
+			console.error(ex);
+		}
+	}
 
-		/**
-		*
-		* @param {Node} root
-		*/
-		constructor(root) {
-			super(root);
+	class UIMessagesWrapper extends UIComponent {
+
+		async loadMoreMessages() {
+			console.debug("loadMoreMessages");
+			await loadMoreMessageStrategy(this);
 		}
 
+	}
+
+	function findMessagesStrategy(window) {
+		return [...window.document.querySelector("div + div + div > div").childNodes]
+	}
+
+	class Task {
+		constructor(id) {
+			this.id = id;
+		}
+
+		/**
+		* @abstract
+		* @returns {Promise}
+		*/
+		run() {
+			throw new Error("run method not implemented")
+		}
+		/**
+		* @abstract
+		*/
+		stop() {
+			throw new Error("stop method not implemented")
+		}
+	}
+
+	class FailedWorkflowException extends Error {}
+
+	class UPIMessage extends UPIComponent {
+
+		#task
+
+		constructor(uiComponent) {
+			super(uiComponent);
+			this.#task = null;
+		}
+
+		async unsend() {
+			try {
+				await this.uiComponent.showActionsMenuButton();
+				await this.uiComponent.openActionsMenu();
+				await this.uiComponent.clickUnsend();
+				await this.uiComponent.confirmUnsend();
+				return true
+			} catch(ex) {
+				console.error(ex);
+				this.uiComponent.hideActionMenuButton();
+				this.uiComponent.closeActionMenuButton();
+				throw FailedWorkflowException({ error: "Failed to execute workflow for this message", task: this.#task })
+			}
+		}
+
+		createTask(id) {
+			this.#task = new UPIMessageUnsendTask(id, this);
+			return this.#task
+		}
+
+	}
+
+	class UPIMessageUnsendTask extends Task {
+		/**
+		 *
+		 * @param {data} message
+		 */
+		constructor(id, message) {
+			super(id);
+			this.message = message;
+			this.runCount = 0;
+		}
+		run() {
+			const unsend = this.message.unsend();
+			this.runCount++;
+			return unsend
+		}
+		stop() {
+		}
+	}
+
+	class UIMessage extends UIComponent {
 
 		showActionsMenuButton() {
 			console.debug("showActionsMenuButton");
@@ -157,239 +364,83 @@
 	}
 
 	class UI extends UIComponent {
-		/**
-		*
-		* @param {Node} root
-		* @param {UIMessagesWrapper} uiMessagesWrapper
-		*/
-		constructor(root, uiMessagesWrapper) {
-			super(root);
-			this._uiMessagesWrapper = uiMessagesWrapper;
-			this._uiMessages = [];
-		}
-		get uiMessagesWrapper() {
-			return this._uiMessagesWrapper
+
+		async loadMoreMessages() {
+			console.debug("loadMoreMessages");
+			await this.identifier.uiMessagesWrapper.loadMoreMessages();
 		}
 
-		get uiMessages() {
-			return this._uiMessages
-		}
-
-		addUIMessage(root) {
-			const uiMessage = new UIMessage(root);
-			this.uiMessages.push(uiMessage);
-			return uiMessage
-		}
-
-	}
-
-	class Task {
-		constructor(id) {
-			this.id = id;
-		}
-
-		/**
-		* @abstract
-		* @returns {Promise}
-		*/
-		run() {
-			throw new Error("run method not implemented")
-		}
-		/**
-		* @abstract
-		*/
-		stop() {
-			throw new Error("stop method not implemented")
-		}
-	}
-
-	class MessageUnsendTask extends Task {
-		/**
-		 *
-		 * @param {data} message
-		 */
-		constructor(id, message) {
-			super(id);
-			this.message = message;
-			this.runCount = 0;
-		}
-		run() {
-			const unsend = this.message.unsend();
-			this.runCount++;
-			return unsend
-		}
-		stop() {
-		}
-	}
-
-	class FailedWorkflowException extends Error {}
-
-	class Message {
-
-		constructor(ui) {
-			this._ui = ui;
-			this._task = null;
-		}
-
-		get ui() {
-			return this._ui
-		}
-
-		get task() {
-			return this._task
-		}
-
-		async unsend() {
-			try {
-				await this.ui.showActionsMenuButton();
-				await this.ui.openActionsMenu();
-				await this.ui.clickUnsend();
-				await this.ui.confirmUnsend();
-				return true
-			} catch(ex) {
-				console.error(ex);
-				this.ui.hideActionMenuButton();
-				this.ui.closeActionMenuButton();
-				throw FailedWorkflowException({ error: "Failed to execute workflow for this message", task: this.task })
+		async createUPIMessages() {
+			const upiMessages = [];
+			const messageElements = findMessagesStrategy(this.root);
+			for(const messageElement of messageElements) {
+				const uiMessage = new UIMessage(messageElement);
+				upiMessages.push(new UPIMessage(uiMessage));
 			}
-		}
-
-		createTask(id) {
-			this._task = new MessageUnsendTask(id, this);
-			return this.task
+			return upiMessages
 		}
 
 	}
 
-	class UIMessagesWrapper extends UIComponent {
+	class UPI extends UPIComponent {
 
-		constructor(root) {
-			super(root);
+		#unsendQueue
+		#taskId = 1
+
+		constructor(uiComponent) {
+			super(uiComponent);
+			this.#unsendQueue = new Queue();
+			this._upiMessages = [];
 		}
 
-		#isLoader(node) {
-			if(node.nodeType === Node.ELEMENT_NODE && this.root.contains(node) && this.root.scrollTop !== 0) {
-				return node
+		static create(window) {
+			console.debug("UPI.create");
+			const messagesWrapperElement = findMessagesWrapperStrategy(window);
+			let upi;
+			if(messagesWrapperElement !== null) {
+				console.debug("Found messagesWrapperElement");
+				console.log(messagesWrapperElement);
+				const ui = new UI(window);
+				ui.identifier.uiMessagesWrapper = new UIMessagesWrapper(messagesWrapperElement);
+				upi = new UPI(ui);
+			} else {
+				throw new Error("Unable to find messagesWrapperElement")
 			}
+			return upi
 		}
 
-		async loadEntireThread() {
-			console.debug("loadEntireThread");
-			this.root.scrollTop = 0;
-			try {
-				await waitFor(this.root.ownerDocument.body, node => this.#isLoader(node), false, 10000);
-				if(this.root.scrollTop !== 0) {
-					await new Promise(resolve => setTimeout(resolve, 1000));
-					await this.loadEntireThread();
-				}
-			} catch(ex) {
-				console.error(ex);
+
+		async unsendThreadMessages() {
+			console.debug("unsendThreadMessages");
+			for(const upiMessage of await this.uiComponent.createUPIMessages()) {
+				this.upiMessages.push(upiMessage);
+				const task = upiMessage.createTask(this.#taskId);
+				console.debug(`Queuing message (Task ID: ${task.id}`, upiMessage);
+				this.#unsendQueue.add(task);
+				console.debug(`${this.#unsendQueue.length} item(s) pending in queue`);
+				this.taskId++;
 			}
+			this.#unsendQueuedMessages();
 		}
 
-	}
-
-	class Queue {
-		constructor() {
-			this.items = [];
+		async loadThreadMessages() {
+			await this.uiComponent.loadMoreMessages();
 		}
 
-		clearQueue() {
-			const item = this.items.shift();
-			return item.promise()
+		get upiMessages() {
+			return this._upiMessages.slice()
 		}
 
-		/**
-		*
-		* @param {Task} task
-		*/
-		add(task) {
-			const promise = () => new Promise((resolve, reject) => {
-				task.run().then(() => resolve(task)).catch(() => {
-					console.debug("Task failed");
-					reject({ error: "Task failed", task });
-				});
-			});
-			const item = { task, promise };
-			this.items.push(item);
-			return item
-		}
-
-		removeTask(task) {
-			this.items.splice(this.items.indexOf(task), 1);
-			task.stop();
-		}
-
-		get length() {
-			return this.items.length
-		}
-
-		stop() {
-			for(const item of this.items.slice()) {
-				item.task.stop();
-			}
-		}
-
-	}
-
-	class Instagram {
-
-		constructor(window) {
-			this._window = window;
-			this._messages = [];
-			this._ui = null;
-			this._mutationObserver = null;
-			this.unsendQueue = new Queue();
-			this.taskId = 1;
-		}
-
-		get messages() {
-			return this._messages
-		}
-
-		get ui() {
-			return this._ui
-		}
-
-		get window() {
-			return this._window
-		}
-
-		clearUnsendQueue() {
-			console.debug("clearUnsendQueue", this.unsendQueue.items);
-			if(this.unsendQueue.items.length >= 1) {
-				this.unsendQueue.clearQueue().then((task) => {
-					console.debug(`Completed Task ${task.id} will continue again in ${this.window.IDMU_MESSAGE_QUEUE_DELAY}ms`);
-					new Promise(resolve => setTimeout(resolve, this.window.IDMU_MESSAGE_QUEUE_DELAY)).then(() => this.clearUnsendQueue());
+		#unsendQueuedMessages() {
+			console.debug("unsendQueuedMessages", this.#unsendQueue.items);
+			if(this.#unsendQueue.items.length >= 1) {
+				this.#unsendQueue.clearQueue().then((task) => {
+					console.debug(`Completed Task ${task.id} will continue again in ${this.uiComponent.IDMU_MESSAGE_QUEUE_DELAY}ms`);
+					new Promise(resolve => setTimeout(resolve, this.uiComponent.IDMU_MESSAGE_QUEUE_DELAY)).then(() => this.#unsendQueuedMessages());
 				}).catch(({error, task}) => {
 					console.error(error, `Task ${task.id}`);
-					this.clearUnsendQueue();
+					this.#unsendQueuedMessages();
 				});
-			}
-		}
-
-		#addMessage(messageNode) {
-			const uiMessage = this.ui.addUIMessage(messageNode);
-			const message = new Message(uiMessage);
-			this.messages.push(message);
-			const task = message.createTask(this.taskId);
-			console.debug(`Queuing message (Task ID: ${task.id}`, message);
-			this.unsendQueue.add(task);
-			console.debug(`${this.unsendQueue.length} item(s) pending in queue`);
-			this.taskId++;
-			return message
-		}
-
-		async buildUI() {
-			const messagesWrapperNode = this.window.document.querySelector("div[role=grid]  > div > div > div > div, section > div > div > div > div > div > div > div > div[style*=height] > div");
-			if(messagesWrapperNode !== null) {
-				console.log(messagesWrapperNode);
-				const uiMessagesWrapper = new UIMessagesWrapper(messagesWrapperNode);
-				this._ui = new UI(this.window, uiMessagesWrapper);
-			}
-			const nodes = [...this.ui.uiMessagesWrapper.root.querySelector("div + div + div > div").childNodes];
-			for(const node of nodes) {
-				this.#addMessage(node);
 			}
 		}
 
@@ -402,88 +453,79 @@
 		 * @param {Window} window
 		 */
 		constructor(window) {
-			this.instagram = new Instagram(window);
+			this.window = window;
+			this.upi = null;
 		}
 
-		async unsendMessages() {
+		async unsendThreadMessages() {
 			console.debug("User asked for messages unsending");
-			return this.instagram.clearUnsendQueue()
+			return this.#getUPI().unsendThreadMessages()
+		}
+
+		async loadThreadMessages() {
+			return this.#getUPI().loadThreadMessages()
 		}
 
 		getMessages() {
-			return this.instagram.messages
+			return this.#getUPI().messages
+		}
+
+		/**
+		 *
+		 * @returns {UPI}
+		 */
+		#getUPI() {
+			if(this.upi === null) {
+				this.upi = UPI.create(this.window);
+			}
+			return this.upi
 		}
 
 	}
 
-	const dmUnsender = new IDMU(window);
+	// This script automates the process of unsending DM's on instagram.com
+	// This script is meant to be run on the page that lists the message threads
+	// The workflow works as follow:
+	// - Create a list of all messages by querying on the [role=listbox] selector
+	//  - For each message another workflow begins:
+	//      - Over the message node so that the three dots button appears
+	//      - Click the three dots button to open the message actions
+	//      - Click the "Unsend" action button, a modal will open with a dialog that asks user to confirm the intent
+	//      - Click the "Unsend" button inside the modal
+	// There is no concurrency, message are unsent one after another by using a queue.
 
-	const unsendDMButton = document.createElement("button");
-	unsendDMButton.textContent = "Unsend all DMs";
-	unsendDMButton.style.top = "20px";
-	unsendDMButton.style.right = "430px";
-	applyDefaultStyle(unsendDMButton);
-	unsendDMButton.addEventListener("click", async () => {
+
+	const { uiElement, unsendThreadMessagesButton, loadThreadMessagesButton } = createUIElement();
+
+	const idmu = new IDMU(window);
+
+	unsendThreadMessagesButton.addEventListener("click", async (event) => {
+		console.log("unsendThreadMessagesButton click");
+		event.target.disabled = true;
 		try {
-			await dmUnsender.instagram.buildUI();
+			const messages = idmu.getMessages();
+			console.debug(messages);
+			await idmu.unsendThreadMessages(messages);
 		} catch(ex) {
 			console.error(ex);
 		}
-		console.log("dmUnsender button click");
-		unsendDMButton.disabled = true;
-		const messages = dmUnsender.getMessages();
-		console.debug(messages);
-		try {
-			await dmUnsender.unsendMessages(messages);
-		} catch(ex) {
-			console.error(ex);
-		}
-		unsendDMButton.disabled = false;
+		event.target.disabled = false;
 	});
-	document.body.appendChild(unsendDMButton);
 
-	const loadDMsButton = document.createElement("button");
-	loadDMsButton.textContent = "Load all DMs";
-	loadDMsButton.style.top = "20px";
-	loadDMsButton.style.right = "550px";
-	applyDefaultStyle(loadDMsButton, "secondary");
-	loadDMsButton.addEventListener("click", async () => {
+	loadThreadMessagesButton.addEventListener("click", async (event) => {
+		console.log("loadThreadMessagesButton click");
+		event.target.disabled = true;
 		try {
-			await dmUnsender.instagram.buildUI();
-		} catch(ex) {
-			console.error(ex);
-		}
-		unsendDMButton.disabled = true;
-		try {
-			await dmUnsender.instagram.ui.uiMessagesWrapper.loadEntireThread();
-			const messages = dmUnsender.getMessages();
+			await idmu.loadThreadMessages();
+			const messages = idmu.getMessages();
 			console.debug(messages);
 		} catch(ex) {
 			console.error(ex);
 		}
-		unsendDMButton.disabled = false;
+		event.target.disabled = false;
 	});
-	document.body.appendChild(loadDMsButton);
 
 
-	function applyDefaultStyle(node, styleName="primary") {
-		node.style.position = "fixed";
-		node.style.zIndex = 9999;
-		node.style.fontSize = "var(--system-14-font-size)";
-		node.style.color = "white";
-		node.style.border = "0px";
-		node.style.borderRadius = "8px";
-		node.style.padding = "8px";
-		node.style.fontWeight = "bold";
-		node.style.cursor = "pointer";
-		node.style.lineHeight = "var(--system-14-line-height)";
-		node.style.backgroundColor = `rgb(var(--ig-${styleName}-button))`;
-		node.addEventListener("mouseover", async () => {
-			node.style.backgroundColor = `rgb(var(--ig-${styleName}-button-hover))`;
-		});
-		node.addEventListener("mouseout", async () => {
-			node.style.backgroundColor = `rgb(var(--ig-${styleName}-button))`;
-		});
-	}
+	document.body.appendChild(uiElement);
 
 })();
