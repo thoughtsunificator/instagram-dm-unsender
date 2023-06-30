@@ -8,6 +8,9 @@ export default class UIMessage extends UIComponent {
 		this.root.dispatchEvent(new MouseEvent("mousemove", { bubbles: true }))
 		this.root.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }))
 		this.root.dispatchEvent(new MouseEvent("mousenter", { bubbles: true }))
+		this.root.addEventListener("mousemove", e => e.preventDefault())
+		this.root.addEventListener("mouseover", e => e.preventDefault())
+		this.root.addEventListener("mousenter", e => e.preventDefault())
 	}
 
 	hideActionMenuButton() {
@@ -15,6 +18,9 @@ export default class UIMessage extends UIComponent {
 		this.root.dispatchEvent(new MouseEvent("mousemove", { bubbles: true }))
 		this.root.dispatchEvent(new MouseEvent("mouseout", { bubbles: true }))
 		this.root.dispatchEvent(new MouseEvent("mouseleave", { bubbles: true }))
+		// this.root.addEventListener("mousemove", e => e.preventDefault())
+		// this.root.addEventListener("mouseover", e => e.preventDefault())
+		// this.root.addEventListener("mousenter", e => e.preventDefault())
 	}
 
 

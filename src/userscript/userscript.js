@@ -16,9 +16,8 @@ const { uiElement, unsendThreadMessagesButton, loadThreadMessagesButton } = crea
 
 const idmu = new IDMU(window)
 
-unsendThreadMessagesButton.addEventListener("click", async (event) => {
+unsendThreadMessagesButton.addEventListener("click", async () => {
 	console.log("unsendThreadMessagesButton click")
-	event.target.disabled = true
 	try {
 		const uipiMessages = idmu.getUIPIMessages()
 		console.debug(uipiMessages)
@@ -26,14 +25,12 @@ unsendThreadMessagesButton.addEventListener("click", async (event) => {
 	} catch(ex) {
 		console.error(ex)
 	}
-	event.target.disabled = false
 })
 
-loadThreadMessagesButton.addEventListener("click", async (event) => {
+loadThreadMessagesButton.addEventListener("click", async () => {
 	console.log("loadThreadMessagesButton click")
-	event.target.disabled = true
 	try {
-		const pagesCount = parseInt(window.prompt("How many pages should we load (default: 5): "))
+		const pagesCount = parseInt(window.prompt("How many pages should we load ? ", 5))
 		for(let i =0 ; i < pagesCount;i ++) {
 			await idmu.fetchAndRenderThreadNextMessagePage()
 		}
@@ -42,7 +39,6 @@ loadThreadMessagesButton.addEventListener("click", async (event) => {
 	} catch(ex) {
 		console.error(ex)
 	}
-	event.target.disabled = false
 })
 
 
