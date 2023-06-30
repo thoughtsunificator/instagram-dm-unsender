@@ -5,7 +5,7 @@ import rollupWindowEnv from "@thoughtsunificator/rollup-plugin-window-env"
 import pkg from "./package.json" assert { type: "json" }
 
 export default {
-	input: "./src/userscript/userscript.js",
+	input: "./src/runtime/userscript.js",
 	output: {
 		file: "./dist/idmu.user.js",
 		format: "iife"
