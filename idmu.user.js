@@ -10,7 +10,7 @@
 // @supportURL				https://thoughtsunificator.me/
 // @contributionURL				https://thoughtsunificator.me/
 // @icon				https://www.instagram.com/favicon.ico
-// @version				0.4.35
+// @version				0.4.36
 // @updateURL				https://raw.githubusercontent.com/thoughtsunificator/instagram-dm-unsender/userscript/idmu.user.js
 // @downloadURL				https://raw.githubusercontent.com/thoughtsunificator/instagram-dm-unsender/userscript/idmu.user.js
 // @description				Simple script to unsend all DMs in a thread on instagram.com
@@ -77,7 +77,7 @@
 		const menuElement = createMenuElement();
 
 		const unsendThreadMessagesButton = createMenuButtonElement("Unsend all DMs");
-		const loadThreadMessagesButton = createMenuButtonElement("Load all DMs", "secondary");
+		const loadThreadMessagesButton = createMenuButtonElement("Load DMs", "secondary");
 
 
 		menuElement.appendChild(unsendThreadMessagesButton);
@@ -87,50 +87,7 @@
 		return { uiElement, menuElement, unsendThreadMessagesButton, loadThreadMessagesButton }
 	}
 
-	class Queue {
-		constructor() {
-			this.items = [];
-		}
-
-		clearQueue() {
-			const item = this.items.shift();
-			return item.promise()
-		}
-
-		/**
-		*
-		* @param {Task} task
-		*/
-		add(task) {
-			const promise = () => new Promise((resolve, reject) => {
-				task.run().then(() => resolve(task)).catch(() => {
-					console.debug("Task failed");
-					reject({ error: "Task failed", task });
-				});
-			});
-			const item = { task, promise };
-			this.items.push(item);
-			return item
-		}
-
-		removeTask(task) {
-			this.items.splice(this.items.indexOf(task), 1);
-			task.stop();
-		}
-
-		get length() {
-			return this.items.length
-		}
-
-		stop() {
-			for(const item of this.items.slice()) {
-				item.task.stop();
-			}
-		}
-
-	}
-
-	class UPIComponent {
+	class UIPIComponent {
 		constructor(uiComponent) {
 			this._uiComponent = uiComponent;
 		}
@@ -204,7 +161,6 @@
 			}, false, 10000);
 			if(uiComponent.root.scrollTop !== 0) {
 				await new Promise(resolve => setTimeout(resolve, 2000));
-				await loadMoreMessageStrategy(uiComponent);
 			}
 		} catch(ex) {
 			console.error(ex);
@@ -213,15 +169,15 @@
 
 	class UIMessagesWrapper extends UIComponent {
 
-		async loadMoreMessages() {
+		async fetchAndRenderThreadNextMessagePage() {
 			console.debug("loadMoreMessages");
 			await loadMoreMessageStrategy(this);
 		}
 
 	}
 
-	function findMessagesStrategy(window) {
-		return [...window.document.querySelector("div + div + div > div").childNodes]
+	function findMessagesStrategy(uiMessagesWrapper) {
+		return [...uiMessagesWrapper.root.querySelector("div + div + div > div").childNodes]
 	}
 
 	class Task {
@@ -246,7 +202,7 @@
 
 	class FailedWorkflowException extends Error {}
 
-	class UPIMessage extends UPIComponent {
+	class UIPIMessage extends UIPIComponent {
 
 		#task
 
@@ -271,13 +227,13 @@
 		}
 
 		createTask(id) {
-			this.#task = new UPIMessageUnsendTask(id, this);
+			this.#task = new UIPIMessageUnsendTask(id, this);
 			return this.#task
 		}
 
 	}
 
-	class UPIMessageUnsendTask extends Task {
+	class UIPIMessageUnsendTask extends Task {
 		/**
 		 *
 		 * @param {data} message
@@ -365,83 +321,101 @@
 
 	class UI extends UIComponent {
 
-		async loadMoreMessages() {
-			console.debug("loadMoreMessages");
-			await this.identifier.uiMessagesWrapper.loadMoreMessages();
+		async fetchAndRenderThreadNextMessagePage() {
+			await this.identifier.uiMessagesWrapper.fetchAndRenderThreadNextMessagePage();
 		}
 
-		async createUPIMessages() {
-			const upiMessages = [];
-			const messageElements = findMessagesStrategy(this.root);
+		createUIPIMessages() {
+			const uipiMessages = [];
+			const messageElements = findMessagesStrategy(this.identifier.uiMessagesWrapper);
+			console.debug("findMessagesStrategy", messageElements);
 			for(const messageElement of messageElements) {
 				const uiMessage = new UIMessage(messageElement);
-				upiMessages.push(new UPIMessage(uiMessage));
+				uipiMessages.push(new UIPIMessage(uiMessage));
 			}
-			return upiMessages
+			return uipiMessages
 		}
 
 	}
 
-	class UPI extends UPIComponent {
+	class UIPI extends UIPIComponent {
 
-		#unsendQueue
-		#taskId = 1
 
 		constructor(uiComponent) {
 			super(uiComponent);
-			this.#unsendQueue = new Queue();
-			this._upiMessages = [];
+			this._uipiMessages = [];
 		}
 
 		static create(window) {
-			console.debug("UPI.create");
+			console.debug("UIPI.create");
 			const messagesWrapperElement = findMessagesWrapperStrategy(window);
-			let upi;
+			let uipi;
 			if(messagesWrapperElement !== null) {
 				console.debug("Found messagesWrapperElement");
 				console.log(messagesWrapperElement);
 				const ui = new UI(window);
 				ui.identifier.uiMessagesWrapper = new UIMessagesWrapper(messagesWrapperElement);
-				upi = new UPI(ui);
+				uipi = new UIPI(ui);
 			} else {
 				throw new Error("Unable to find messagesWrapperElement")
 			}
-			return upi
+			return uipi
 		}
 
+		async fetchAndRenderThreadNextMessagePage() {
+			console.debug("fetchAndRenderThreadNextMessagePage");
+			await this.uiComponent.fetchAndRenderThreadNextMessagePage();
+		}
 
-		async unsendThreadMessages() {
-			console.debug("unsendThreadMessages");
-			for(const upiMessage of await this.uiComponent.createUPIMessages()) {
-				this.upiMessages.push(upiMessage);
-				const task = upiMessage.createTask(this.#taskId);
-				console.debug(`Queuing message (Task ID: ${task.id}`, upiMessage);
-				this.#unsendQueue.add(task);
-				console.debug(`${this.#unsendQueue.length} item(s) pending in queue`);
+		async createUIPIMessages() {
+			console.debug("createUIPIMessages");
+			for(const uipiMessage of this.uiComponent.createUIPIMessages()) {
+				this.uipiMessages.push(uipiMessage);
 				this.taskId++;
 			}
-			this.#unsendQueuedMessages();
 		}
 
-		async loadThreadMessages() {
-			await this.uiComponent.loadMoreMessages();
+		get uipiMessages() {
+			return this._uipiMessages
 		}
 
-		get upiMessages() {
-			return this._upiMessages.slice()
+	}
+
+	class Queue {
+
+		items
+
+		constructor() {
+			this.items = [];
 		}
 
-		#unsendQueuedMessages() {
-			console.debug("unsendQueuedMessages", this.#unsendQueue.items);
-			if(this.#unsendQueue.items.length >= 1) {
-				this.#unsendQueue.clearQueue().then((task) => {
-					console.debug(`Completed Task ${task.id} will continue again in ${this.uiComponent.IDMU_MESSAGE_QUEUE_DELAY}ms`);
-					new Promise(resolve => setTimeout(resolve, this.uiComponent.IDMU_MESSAGE_QUEUE_DELAY)).then(() => this.#unsendQueuedMessages());
-				}).catch(({error, task}) => {
-					console.error(error, `Task ${task.id}`);
-					this.#unsendQueuedMessages();
+		/**
+		*
+		* @param {Task} task
+		*/
+		add(task) {
+			const promise = () => new Promise((resolve, reject) => {
+				task.run().then(() => resolve(task)).catch(() => {
+					console.debug("Task failed");
+					reject({ error: "Task failed", task });
 				});
-			}
+			});
+			const item = { task, promise };
+			this.items.push(item);
+			return item
+		}
+
+		hasItems() {
+			return this.items.length >= 1
+		}
+
+		removeTask(task) {
+			this.items.splice(this.items.indexOf(task), 1);
+			task.stop();
+		}
+
+		get length() {
+			return this.items.length
 		}
 
 	}
@@ -454,31 +428,46 @@
 		 */
 		constructor(window) {
 			this.window = window;
-			this.upi = null;
+			this.uipi = null;
 		}
 
 		async unsendThreadMessages() {
 			console.debug("User asked for messages unsending");
-			return this.#getUPI().unsendThreadMessages()
+			await this.#getUIPI().createUIPIMessages();
+			const queue = new Queue();
+			console.log(this.#getUIPI().uipiMessages);
+			for(const uipiMessage of this.#getUIPI().uipiMessages) {
+				queue.add(uipiMessage.createTask(queue.length + 1));
+			}
+			for(const item of queue.items.slice()) {
+				try {
+					await item.promise();
+				} catch(result) {
+					console.error(result);
+				}
+				console.debug("Queue.next");
+				console.debug(`Completed Task ${item.task.id} will continue again in ${this.window.IDMU_MESSAGE_QUEUE_DELAY}ms`);
+				await new Promise(resolve => setTimeout(resolve, this.window.IDMU_MESSAGE_QUEUE_DELAY));
+			}
 		}
 
-		async loadThreadMessages() {
-			return this.#getUPI().loadThreadMessages()
+		async fetchAndRenderThreadNextMessagePage() {
+			await this.#getUIPI().fetchAndRenderThreadNextMessagePage();
 		}
 
-		getMessages() {
-			return this.#getUPI().messages
+		getUIPIMessages() {
+			return this.#getUIPI().uipiMessages
 		}
 
 		/**
 		 *
-		 * @returns {UPI}
+		 * @returns {UIPI}
 		 */
-		#getUPI() {
-			if(this.upi === null) {
-				this.upi = UPI.create(this.window);
+		#getUIPI() {
+			if(this.uipi === null) {
+				this.uipi = UIPI.create(this.window);
 			}
-			return this.upi
+			return this.uipi
 		}
 
 	}
@@ -503,9 +492,9 @@
 		console.log("unsendThreadMessagesButton click");
 		event.target.disabled = true;
 		try {
-			const messages = idmu.getMessages();
-			console.debug(messages);
-			await idmu.unsendThreadMessages(messages);
+			const uipiMessages = idmu.getUIPIMessages();
+			console.debug(uipiMessages);
+			await idmu.unsendThreadMessages();
 		} catch(ex) {
 			console.error(ex);
 		}
@@ -516,9 +505,12 @@
 		console.log("loadThreadMessagesButton click");
 		event.target.disabled = true;
 		try {
-			await idmu.loadThreadMessages();
-			const messages = idmu.getMessages();
-			console.debug(messages);
+			const pagesCount = parseInt(window.prompt("How many pages should we load (default: 5): "));
+			for(let i =0 ; i < pagesCount;i ++) {
+				await idmu.fetchAndRenderThreadNextMessagePage();
+			}
+			const uipiMessages = idmu.getUIPIMessages();
+			console.debug(uipiMessages);
 		} catch(ex) {
 			console.error(ex);
 		}
