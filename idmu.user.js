@@ -180,35 +180,12 @@
 		return [...uiMessagesWrapper.root.querySelector("div + div + div > div").childNodes]
 	}
 
-	class Task {
-		constructor(id) {
-			this.id = id;
-		}
-
-		/**
-		* @abstract
-		* @returns {Promise}
-		*/
-		run() {
-			throw new Error("run method not implemented")
-		}
-		/**
-		* @abstract
-		*/
-		stop() {
-			throw new Error("stop method not implemented")
-		}
-	}
-
 	class FailedWorkflowException extends Error {}
 
 	class UIPIMessage extends UIPIComponent {
 
-		#task
-
 		constructor(uiComponent) {
 			super(uiComponent);
-			this.#task = null;
 		}
 
 		async unsend() {
@@ -222,34 +199,10 @@
 				console.error(ex);
 				this.uiComponent.hideActionMenuButton();
 				this.uiComponent.closeActionMenuButton();
-				throw FailedWorkflowException({ error: "Failed to execute workflow for this message", task: this.#task })
+				throw FailedWorkflowException({ error: "Failed to execute workflow for this message" })
 			}
 		}
 
-		createTask(id) {
-			this.#task = new UIPIMessageUnsendTask(id, this);
-			return this.#task
-		}
-
-	}
-
-	class UIPIMessageUnsendTask extends Task {
-		/**
-		 *
-		 * @param {data} message
-		 */
-		constructor(id, message) {
-			super(id);
-			this.message = message;
-			this.runCount = 0;
-		}
-		run() {
-			const unsend = this.message.unsend();
-			this.runCount++;
-			return unsend
-		}
-		stop() {
-		}
 	}
 
 	class UIMessage extends UIComponent {
@@ -269,15 +222,11 @@
 			this.root.dispatchEvent(new MouseEvent("mousemove", { bubbles: true }));
 			this.root.dispatchEvent(new MouseEvent("mouseout", { bubbles: true }));
 			this.root.dispatchEvent(new MouseEvent("mouseleave", { bubbles: true }));
-			// this.root.addEventListener("mousemove", e => e.preventDefault())
-			// this.root.addEventListener("mouseover", e => e.preventDefault())
-			// this.root.addEventListener("mousenter", e => e.preventDefault())
 		}
 
 
 		async openActionsMenu() {
 			console.debug("openActionsMenu");
-			// console.log(this.root.ownerDocument.querySelector("[aria-describedby] [role] [aria-label=Unsend], [aria-label=More]"))
 			this.identifier.actionButton = await new Promise((resolve, reject) => {
 				setTimeout(() => {
 					const button = this.root.querySelector("[aria-label=More]");
@@ -437,31 +386,14 @@
 			this.uipi = null;
 		}
 
-		async unsendThreadMessages() {
+		async createUIPIMessages() {
 			console.debug("User asked for messages unsending");
 			await this.#getUIPI().createUIPIMessages();
-			const queue = new Queue();
-			console.log(this.#getUIPI().uipiMessages);
-			for(const uipiMessage of this.#getUIPI().uipiMessages) {
-				queue.add(uipiMessage.createTask(queue.length + 1));
-			}
-			for(const item of queue.items.slice()) {
-				try {
-					await item.promise();
-					console.debug(`Completed Task ${item.task.id} will continue again in ${this.window.IDMU_MESSAGE_QUEUE_DELAY}ms`);
-					await new Promise(resolve => setTimeout(resolve, this.window.IDMU_MESSAGE_QUEUE_DELAY));
-				} catch(result) {
-					console.error(result);
-				}
-			}
+			return this.#getUIPI().uipiMessages
 		}
 
 		async fetchAndRenderThreadNextMessagePage() {
 			await this.#getUIPI().fetchAndRenderThreadNextMessagePage();
-		}
-
-		getUIPIMessages() {
-			return this.#getUIPI().uipiMessages
 		}
 
 		/**
@@ -475,6 +407,46 @@
 			return this.uipi
 		}
 
+	}
+
+	class Task {
+		constructor(id) {
+			this.id = id;
+		}
+
+		/**
+		* @abstract
+		* @returns {Promise}
+		*/
+		run() {
+			throw new Error("run method not implemented")
+		}
+		/**
+		* @abstract
+		*/
+		stop() {
+			throw new Error("stop method not implemented")
+		}
+	}
+
+
+	class UIPIMessageUnsendTask extends Task {
+		/**
+		 *
+		 * @param {data} message
+		 */
+		constructor(id, message) {
+			super(id);
+			this.message = message;
+			this.runCount = 0;
+		}
+		run() {
+			const unsend = this.message.unsend();
+			this.runCount++;
+			return unsend
+		}
+		stop() {
+		}
 	}
 
 	// This script automates the process of unsending DM's on instagram.com
@@ -493,26 +465,49 @@
 
 	const idmu = new IDMU(window);
 
-	unsendThreadMessagesButton.addEventListener("click", async () => {
-		console.log("unsendThreadMessagesButton click");
+	async function batchLoadStrategy(batchSize=1) {
+		console.debug("batchLoadStrategy", batchSize);
+		for(let i =0; i < batchSize;i++) {
+			await unsendThreadMessages();
+			await idmu.fetchAndRenderThreadNextMessagePage();
+		}
+		alert("IDMU: Finished");
+	}
+
+	async function unsendThreadMessages() {
 		try {
-			const uipiMessages = idmu.getUIPIMessages();
-			console.debug(uipiMessages);
-			await idmu.unsendThreadMessages();
+			const queue = new Queue();
+			for(const uipiMessage of await idmu.createUIPIMessages()) {
+				queue.add(new UIPIMessageUnsendTask(queue.length + 1, uipiMessage));
+			}
+			for(const item of queue.items.slice()) {
+				try {
+					await item.promise();
+					console.debug(`Completed Task ${item.task.id} will continue again in ${window.IDMU_MESSAGE_QUEUE_DELAY}ms`);
+					await new Promise(resolve => setTimeout(resolve, window.IDMU_MESSAGE_QUEUE_DELAY));
+				} catch(result) {
+					console.error(result);
+				}
+			}
 		} catch(ex) {
 			console.error(ex);
 		}
+	}
+
+
+	unsendThreadMessagesButton.addEventListener("click", async () => {
+		console.log("unsendThreadMessagesButton click");
+		batchLoadStrategy(localStorage.getItem("IDMU_BATCH_SIZE") || 1);
 	});
 
 	loadThreadMessagesButton.addEventListener("click", async () => {
 		console.log("loadThreadMessagesButton click");
 		try {
-			const pagesCount = parseInt(window.prompt("How many pages should we load ? ", 5));
-			for(let i =0 ; i < pagesCount;i ++) {
-				await idmu.fetchAndRenderThreadNextMessagePage();
+			const batchSize = parseInt(window.prompt("How many pages should we load ? ", localStorage.getItem("IDMU_BATCH_SIZE") || 5 ));
+			if(parseInt(batchSize)) {
+				localStorage.setItem("IDMU_BATCH_SIZE", parseInt(batchSize));
 			}
-			const uipiMessages = idmu.getUIPIMessages();
-			console.debug(uipiMessages);
+			console.debug(`Setting IDMU_BATCH_SIZE to ${batchSize}`);
 		} catch(ex) {
 			console.error(ex);
 		}
