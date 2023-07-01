@@ -181,11 +181,7 @@
 			node.dispatchEvent(new MouseEvent("mousemove", { bubbles: true }));
 			node.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
 			node.dispatchEvent(new MouseEvent("mousenter", { bubbles: true }));
-			const unsendButton = await new Promise(resolve => {
-				setTimeout(() => {
-					resolve(node.querySelector("[aria-label=More]"));
-				});
-			});
+			const unsendButton = await new Promise(resolve => setTimeout(() => resolve(node.querySelector("[aria-label=More]"))));
 			if(unsendButton) {
 				messageElements.push(node);
 			}
@@ -362,34 +358,6 @@
 
 	}
 
-	class Queue {
-
-		constructor() {
-			this.items = [];
-		}
-
-		/**
-		*
-		* @param {Task} task
-		*/
-		add(task) {
-			const promise = () => new Promise((resolve, reject) => {
-				task.run().then(() => resolve(task)).catch(() => {
-					console.debug("Task failed");
-					reject({ error: "Task failed", task });
-				});
-			});
-			const item = { task, promise };
-			this.items.push(item);
-			return item
-		}
-
-		get length() {
-			return this.items.length
-		}
-
-	}
-
 	class IDMU {
 
 		/**
@@ -428,6 +396,34 @@
 				this.uipi = UIPI.create(this.window);
 			}
 			return this.uipi
+		}
+
+	}
+
+	class Queue {
+
+		constructor() {
+			this.items = [];
+		}
+
+		/**
+		*
+		* @param {Task} task
+		*/
+		add(task) {
+			const promise = () => new Promise((resolve, reject) => {
+				task.run().then(() => resolve(task)).catch(() => {
+					console.debug("Task failed");
+					reject({ error: "Task failed", task });
+				});
+			});
+			const item = { task, promise };
+			this.items.push(item);
+			return item
+		}
+
+		get length() {
+			return this.items.length
 		}
 
 	}
