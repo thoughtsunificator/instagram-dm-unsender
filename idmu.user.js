@@ -132,21 +132,6 @@
 					}
 				}
 			}).observe(target, { subtree: true, childList:true });
-			const treeWalker = target.ownerDocument.createTreeWalker(
-				target,
-				NodeFilter.SHOW_ELEMENT
-			);
-			while(treeWalker.nextNode()) {
-				const testNode = test(treeWalker.currentNode);
-				if(testNode) {
-					clearTimeout(timeoutId);
-					if(_observer) {
-						_observer.disconnect();
-					}
-					resolve(testNode);
-					break
-				}
-			}
 		})
 
 	}
@@ -162,7 +147,6 @@
 			if(uiComponent.root.scrollTop !== 0) {
 				await new Promise(resolve => setTimeout(resolve, 2000));
 			} else {
-				console.debug("fetchAndRenderThreadNextMessagePage is done");
 				return true
 			}
 		} catch(ex) {
@@ -190,8 +174,23 @@
 
 	}
 
-	function findMessagesStrategy(uiMessagesWrapper) {
-		return [...uiMessagesWrapper.root.querySelector("div + div + div > div").childNodes]
+	async function findMessagesStrategy(uiMessagesWrapper) {
+		const messageElements = [];
+		const nodes = [...uiMessagesWrapper.root.querySelector("div + div + div > div").childNodes];
+		for(const node of nodes) {
+			node.dispatchEvent(new MouseEvent("mousemove", { bubbles: true }));
+			node.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
+			node.dispatchEvent(new MouseEvent("mousenter", { bubbles: true }));
+			const unsendButton = await new Promise(resolve => {
+				setTimeout(() => {
+					resolve(node.querySelector("[aria-label=More]"));
+				});
+			});
+			if(unsendButton) {
+				messageElements.push(node);
+			}
+		}
+		return messageElements
 	}
 
 	class FailedWorkflowException extends Error {}
@@ -291,9 +290,9 @@
 			return await this.identifier.uiMessagesWrapper.fetchAndRenderThreadNextMessagePage()
 		}
 
-		createUIPIMessages() {
+		async createUIPIMessages() {
 			const uipiMessages = [];
-			const messageElements = findMessagesStrategy(this.identifier.uiMessagesWrapper);
+			const messageElements = await findMessagesStrategy(this.identifier.uiMessagesWrapper);
 			console.debug("findMessagesStrategy", messageElements);
 			for(const messageElement of messageElements) {
 				const uiMessage = new UIMessage(messageElement);
@@ -351,7 +350,7 @@
 
 		async createUIPIMessages() {
 			console.debug("createUIPIMessages");
-			for(const uipiMessage of this.uiComponent.createUIPIMessages()) {
+			for(const uipiMessage of await this.uiComponent.createUIPIMessages()) {
 				this.uipiMessages.push(uipiMessage);
 				this.taskId++;
 			}
