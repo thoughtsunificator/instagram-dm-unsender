@@ -161,9 +161,13 @@
 			}, false, 10000);
 			if(uiComponent.root.scrollTop !== 0) {
 				await new Promise(resolve => setTimeout(resolve, 2000));
+			} else {
+				console.debug("fetchAndRenderThreadNextMessagePage is done");
+				return true
 			}
 		} catch(ex) {
 			console.error(ex);
+			return true
 		}
 	}
 
@@ -171,7 +175,7 @@
 
 		async fetchAndRenderThreadNextMessagePage() {
 			console.debug("loadMoreMessages");
-			await loadMoreMessageStrategy(this);
+			return loadMoreMessageStrategy(this)
 		}
 
 	}
@@ -277,7 +281,7 @@
 	class UI extends UIComponent {
 
 		async fetchAndRenderThreadNextMessagePage() {
-			await this.identifier.uiMessagesWrapper.fetchAndRenderThreadNextMessagePage();
+			return await this.identifier.uiMessagesWrapper.fetchAndRenderThreadNextMessagePage()
 		}
 
 		createUIPIMessages() {
@@ -319,7 +323,7 @@
 
 		async fetchAndRenderThreadNextMessagePage() {
 			console.debug("fetchAndRenderThreadNextMessagePage");
-			await this.uiComponent.fetchAndRenderThreadNextMessagePage();
+			return this.uiComponent.fetchAndRenderThreadNextMessagePage()
 		}
 
 		async createUIPIMessages() {
@@ -393,7 +397,7 @@
 		}
 
 		async fetchAndRenderThreadNextMessagePage() {
-			await this.#getUIPI().fetchAndRenderThreadNextMessagePage();
+			return this.#getUIPI().fetchAndRenderThreadNextMessagePage()
 		}
 
 		/**
@@ -465,14 +469,27 @@
 
 	const idmu = new IDMU(window);
 
-
-	async function unsendThreadMessagesBatchStrategy(batchSize=1) {
-		console.debug("unsendThreadMessagesBatchStrategy", batchSize);
-		for(let i =0; i < batchSize;i++) {
-			await unsendThreadMessages();
-			await idmu.fetchAndRenderThreadNextMessagePage();
+	class UnsendThreadMessagesBatchStrategy {
+		#batchSize
+		constructor(batchSize) {
+			this.#batchSize = batchSize;
 		}
-		alert("IDMU: Finished");
+		async run() {
+			console.debug("UnsendThreadMessagesBatchStrategy.run()", this.#batchSize);
+			let done = false;
+			for(let i =0; i < this.#batchSize;i++) {
+				done = await idmu.fetchAndRenderThreadNextMessagePage();
+				await new Promise(resolve => setTimeout(resolve, 1000));
+				console.log("UnsendThreadMessagesBatchStrategy done", done);
+				if(done) {
+					break
+				}
+			}
+			await unsendThreadMessages();
+			if(!done) {
+				await this.run();
+			}
+		}
 	}
 
 	async function unsendThreadMessages() {
@@ -498,7 +515,8 @@
 
 	unsendThreadMessagesButton.addEventListener("click", async () => {
 		console.log("unsendThreadMessagesButton click");
-		unsendThreadMessagesBatchStrategy(localStorage.getItem("IDMU_BATCH_SIZE") || 1);
+		await new UnsendThreadMessagesBatchStrategy(localStorage.getItem("IDMU_BATCH_SIZE") || 1).run();
+		alert("IDMU: Finished");
 	});
 
 	loadThreadMessagesButton.addEventListener("click", async () => {
