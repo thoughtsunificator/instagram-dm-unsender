@@ -107,86 +107,36 @@
 		}
 	}
 
-	function waitFor(target, test, removed=false, timeout=2000) {
-		return new Promise((resolve, reject) => {
-			let _observer;
-			let timeoutId;
-			if(timeout !== -1) {
-				timeoutId = setTimeout(() => {
-					if(_observer) {
-						_observer.disconnect();
-					}
-					reject(`waitFor timed out before finding its target (${timeout}ms)`);
-				}, timeout);
-			}
-			new MutationObserver((mutations, observer) => {
-				_observer = observer;
-				for(const mutation of mutations) {
-					const nodes = removed ? mutation.removedNodes : mutation.addedNodes;
-					for(const node of [...nodes]) {
-						const testNode = test(node);
-						if(testNode) {
-							clearTimeout(timeoutId);
-							resolve(testNode);
-						}
-					}
-				}
-			}).observe(target, { subtree: true, childList:true });
-		})
-
-	}
-
 	async function loadMoreMessageStrategy(uiComponent) {
 		uiComponent.root.scrollTop = 0;
-		try {
-			await waitFor(uiComponent.root.ownerDocument.body, node => {
-				if(node.nodeType === Node.ELEMENT_NODE && uiComponent.root.contains(node) && uiComponent.root.scrollTop !== 0) {
-					return node
+		await new Promise((resolve) => {
+			new MutationObserver((mutations, observer) => {
+				if(uiComponent.root.scrollTop !== 0) {
+					observer.disconnect();
+					resolve(false);
 				}
-			}, false, 10000);
-			if(uiComponent.root.scrollTop !== 0) {
-				await new Promise(resolve => setTimeout(resolve, 2000));
-			} else {
-				return true
-			}
-		} catch(ex) {
-			console.error(ex);
-			return true
-		}
+			}).observe(uiComponent.root.ownerDocument.body, { subtree: true, childList:true });
+		});
 	}
 
 	class UIMessagesWrapper extends UIComponent {
 
 		disablePointerEvents() {
-			console.debug("disablePointerEvents");
 			this.root.style.pointerEvents = "none";
 		}
 
 		enablePointerEvents() {
-			console.debug("enablePointerEvents");
 			this.root.style.pointerEvents = "";
 		}
 
 		async fetchAndRenderThreadNextMessagePage() {
-			console.debug("loadMoreMessages");
 			return loadMoreMessageStrategy(this)
 		}
 
 	}
 
 	async function findMessagesStrategy(uiMessagesWrapper) {
-		const messageElements = [];
-		const nodes = [...uiMessagesWrapper.root.querySelector("div + div + div > div").childNodes];
-		for(const node of nodes) {
-			node.dispatchEvent(new MouseEvent("mousemove", { bubbles: true }));
-			node.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
-			node.dispatchEvent(new MouseEvent("mousenter", { bubbles: true }));
-			const unsendButton = await new Promise(resolve => setTimeout(() => resolve(node.querySelector("[aria-label=More]"))));
-			if(unsendButton) {
-				messageElements.push(node);
-			}
-		}
-		return messageElements
+		return [...uiMessagesWrapper.root.querySelector("div + div + div > div").childNodes]
 	}
 
 	class FailedWorkflowException extends Error {}
@@ -217,14 +167,13 @@
 	class UIMessage extends UIComponent {
 
 		showActionsMenuButton() {
-			console.debug("showActionsMenuButton");
+			console.debug("Workflow step 1 : showActionsMenuButton");
 			this.root.dispatchEvent(new MouseEvent("mousemove", { bubbles: true }));
 			this.root.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
 			this.root.dispatchEvent(new MouseEvent("mousenter", { bubbles: true }));
 		}
 
 		hideActionMenuButton() {
-			console.debug("hideActionMenuButton");
 			this.root.dispatchEvent(new MouseEvent("mousemove", { bubbles: true }));
 			this.root.dispatchEvent(new MouseEvent("mouseout", { bubbles: true }));
 			this.root.dispatchEvent(new MouseEvent("mouseleave", { bubbles: true }));
@@ -232,7 +181,7 @@
 
 
 		async openActionsMenu() {
-			console.debug("openActionsMenu");
+			console.debug("Workflow step 2 : openActionsMenu");
 			this.identifier.actionButton = await new Promise((resolve, reject) => {
 				setTimeout(() => {
 					const button = this.root.querySelector("[aria-label=More]");
@@ -243,17 +192,15 @@
 					reject("Unable to find actionButton");
 				});
 			});
-			console.debug(this.identifier.actionButton);
 			this.identifier.actionButton.click();
 		}
 
 		closeActionsMenu() {
-			console.debug("hideActionMenuButton");
 			this.root.click();
 		}
 
 		async clickUnsend() {
-			console.debug("clickUnsend");
+			console.debug("Workflow step 3 : clickUnsend");
 			this.identifier.unSendButton = await new Promise((resolve, reject) => {
 				setTimeout(() => {
 					if(this.root.ownerDocument.querySelector("[style*=translate]")) {
@@ -268,13 +215,23 @@
 					}
 				});
 			});
-			console.debug(this.identifier.unSendButton);
 			this.identifier.unSendButton.click();
-			this.identifier.dialogButton = await waitFor(this.root.ownerDocument.body, () => this.root.ownerDocument.querySelector("[role=dialog] button"));
+			this.identifier.dialogButton =  await Promise.race([
+				new Promise((resolve, reject) => setTimeout(() => reject("Unable to find dialogButton"), 2000)),
+				await new Promise((resolve) => {
+					new MutationObserver((mutations, observer) => {
+						const dialogButton = this.root.ownerDocument.querySelector("[role=dialog] button");
+						if(dialogButton) {
+							observer.disconnect();
+							resolve(dialogButton);
+						}
+					}).observe(this.root.ownerDocument.body, { subtree: true, childList:true });
+				})
+			]);
 		}
 
 		async confirmUnsend() {
-			console.debug("confirmUnsend", this.identifier.dialogButton);
+			console.debug("Workflow final step : confirmUnsend", this.identifier.dialogButton);
 			this.identifier.dialogButton.click();
 		}
 
@@ -332,7 +289,6 @@
 		}
 
 		async fetchAndRenderThreadNextMessagePage() {
-			console.debug("fetchAndRenderThreadNextMessagePage");
 			return this.uiComponent.fetchAndRenderThreadNextMessagePage()
 		}
 
@@ -493,37 +449,38 @@
 			console.debug("UnsendThreadMessagesBatchStrategy.run()", this.#batchSize);
 			let done = false;
 			for(let i =0; i < this.#batchSize;i++) {
-				done = await idmu.fetchAndRenderThreadNextMessagePage();
-				await new Promise(resolve => setTimeout(resolve, 1000));
-				console.log("UnsendThreadMessagesBatchStrategy done", done);
+				done = await Promise.race([
+					new Promise(resolve => setTimeout(() => resolve(true), 10000)),
+					idmu.fetchAndRenderThreadNextMessagePage()
+				]);
 				if(done) {
 					break
+				} else {
+					await new Promise(resolve => setTimeout(resolve, 1000));
 				}
 			}
-			await unsendThreadMessages();
-			if(!done) {
+			try {
+				const queue = new Queue();
+				for(const uipiMessage of await idmu.createUIPIMessages()) {
+					queue.add(new UIPIMessageUnsendTask(queue.length + 1, uipiMessage));
+				}
+				for(const item of queue.items.slice()) {
+					try {
+						await item.promise();
+						console.debug(`Completed Task ${item.task.id} will continue again in ${window.IDMU_MESSAGE_QUEUE_DELAY}ms`);
+						await new Promise(resolve => setTimeout(resolve, window.IDMU_MESSAGE_QUEUE_DELAY));
+					} catch(result) {
+						console.error(result);
+					}
+				}
+			} catch(ex) {
+				console.error(ex);
+			}
+			if(done) {
+				console.debug("UnsendThreadMessagesBatchStrategy done", done);
+			} else {
 				await this.run();
 			}
-		}
-	}
-
-	async function unsendThreadMessages() {
-		try {
-			const queue = new Queue();
-			for(const uipiMessage of await idmu.createUIPIMessages()) {
-				queue.add(new UIPIMessageUnsendTask(queue.length + 1, uipiMessage));
-			}
-			for(const item of queue.items.slice()) {
-				try {
-					await item.promise();
-					console.debug(`Completed Task ${item.task.id} will continue again in ${window.IDMU_MESSAGE_QUEUE_DELAY}ms`);
-					await new Promise(resolve => setTimeout(resolve, window.IDMU_MESSAGE_QUEUE_DELAY));
-				} catch(result) {
-					console.error(result);
-				}
-			}
-		} catch(ex) {
-			console.error(ex);
 		}
 	}
 
