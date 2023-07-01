@@ -173,6 +173,16 @@
 
 	class UIMessagesWrapper extends UIComponent {
 
+		disablePointerEvents() {
+			console.debug("disablePointerEvents");
+			this.root.style.pointerEvents = "none";
+		}
+
+		enablePointerEvents() {
+			console.debug("enablePointerEvents");
+			this.root.style.pointerEvents = "";
+		}
+
 		async fetchAndRenderThreadNextMessagePage() {
 			console.debug("loadMoreMessages");
 			return loadMoreMessageStrategy(this)
@@ -216,9 +226,6 @@
 			this.root.dispatchEvent(new MouseEvent("mousemove", { bubbles: true }));
 			this.root.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
 			this.root.dispatchEvent(new MouseEvent("mousenter", { bubbles: true }));
-			this.root.addEventListener("mousemove", e => e.preventDefault());
-			this.root.addEventListener("mouseover", e => e.preventDefault());
-			this.root.addEventListener("mousenter", e => e.preventDefault());
 		}
 
 		hideActionMenuButton() {
@@ -295,6 +302,14 @@
 			return uipiMessages
 		}
 
+		disablePointerEvents() {
+			this.identifier.uiMessagesWrapper.disablePointerEvents();
+		}
+
+		enablePointerEvents() {
+			this.identifier.uiMessagesWrapper.enablePointerEvents();
+		}
+
 	}
 
 	class UIPI extends UIPIComponent {
@@ -324,6 +339,14 @@
 		async fetchAndRenderThreadNextMessagePage() {
 			console.debug("fetchAndRenderThreadNextMessagePage");
 			return this.uiComponent.fetchAndRenderThreadNextMessagePage()
+		}
+
+		disablePointerEvents() {
+			this.uiComponent.identifier.uiMessagesWrapper.disablePointerEvents();
+		}
+
+		enablePointerEvents() {
+			this.uiComponent.identifier.uiMessagesWrapper.enablePointerEvents();
 		}
 
 		async createUIPIMessages() {
@@ -398,6 +421,14 @@
 
 		async fetchAndRenderThreadNextMessagePage() {
 			return this.#getUIPI().fetchAndRenderThreadNextMessagePage()
+		}
+
+		disablePointerEvents() {
+			this.#getUIPI().disablePointerEvents();
+		}
+
+		enablePointerEvents() {
+			this.#getUIPI().enablePointerEvents();
 		}
 
 		/**
@@ -515,7 +546,9 @@
 
 	unsendThreadMessagesButton.addEventListener("click", async () => {
 		console.log("unsendThreadMessagesButton click");
+		idmu.disablePointerEvents();
 		await new UnsendThreadMessagesBatchStrategy(localStorage.getItem("IDMU_BATCH_SIZE") || 1).run();
+		idmu.enablePointerEvents();
 		alert("IDMU: Finished");
 	});
 
