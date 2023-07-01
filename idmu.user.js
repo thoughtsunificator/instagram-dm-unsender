@@ -365,8 +365,6 @@
 
 	class Queue {
 
-		items
-
 		constructor() {
 			this.items = [];
 		}
@@ -385,15 +383,6 @@
 			const item = { task, promise };
 			this.items.push(item);
 			return item
-		}
-
-		hasItems() {
-			return this.items.length >= 1
-		}
-
-		removeTask(task) {
-			this.items.splice(this.items.indexOf(task), 1);
-			task.stop();
 		}
 
 		get length() {
