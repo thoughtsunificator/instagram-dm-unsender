@@ -1,0 +1,26 @@
+{
+  "name": "idmu",
+  "version": "0.4.43",
+  "description": "idmu (instagram-dm-unsender) is a simple script to unsend all DMs in a thread on instagram.com",
+  "short_name": " idmu",
+  "type": "module",
+  "scripts": {
+    "test": "ava",
+		"test-coverage": "c8 ava",
+    "start": "rollup --config rollup.userscript.config.js --environment BUILD:development --watch",
+    "build": "rollup --config rollup.userscript.config.js --environment BUILD:production",
+    "eslint": "eslint src/**"
+  },
+  "author": "Romain Lebesle <oss@thoughtsunificator.me> (https://thoughtsunificator.me)",
+  "license": "MIT",
+  "devDependencies": {
+    "@rollup/plugin-eslint": "^9.0.4",
+    "@rollup/plugin-node-resolve": "^15.1.0",
+    "@thoughtsunificator/rollup-plugin-window-env": "^1.0.10",
+    "ava": "^5.3.1",
+    "c8": "^8.0.0",
+    "eslint": "^8.43.0",
+    "jsdom": "^22.1.0",
+    "rollup": "^3.25.3"
+  }
+}
