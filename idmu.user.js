@@ -465,8 +465,9 @@
 
 	const idmu = new IDMU(window);
 
-	async function batchLoadStrategy(batchSize=1) {
-		console.debug("batchLoadStrategy", batchSize);
+
+	async function unsendThreadMessagesBatchStrategy(batchSize=1) {
+		console.debug("unsendThreadMessagesBatchStrategy", batchSize);
 		for(let i =0; i < batchSize;i++) {
 			await unsendThreadMessages();
 			await idmu.fetchAndRenderThreadNextMessagePage();
@@ -497,7 +498,7 @@
 
 	unsendThreadMessagesButton.addEventListener("click", async () => {
 		console.log("unsendThreadMessagesButton click");
-		batchLoadStrategy(localStorage.getItem("IDMU_BATCH_SIZE") || 1);
+		unsendThreadMessagesBatchStrategy(localStorage.getItem("IDMU_BATCH_SIZE") || 1);
 	});
 
 	loadThreadMessagesButton.addEventListener("click", async () => {
