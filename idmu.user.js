@@ -10,7 +10,7 @@
 // @supportURL				https://thoughtsunificator.me/
 // @contributionURL				https://thoughtsunificator.me/
 // @icon				https://www.instagram.com/favicon.ico
-// @version				0.4.42
+// @version				0.4.43
 // @updateURL				https://raw.githubusercontent.com/thoughtsunificator/instagram-dm-unsender/userscript/idmu.user.js
 // @downloadURL				https://raw.githubusercontent.com/thoughtsunificator/instagram-dm-unsender/userscript/idmu.user.js
 // @description				Simple script to unsend all DMs in a thread on instagram.com
@@ -136,7 +136,7 @@
 	}
 
 	async function findMessagesStrategy(uiMessagesWrapper) {
-		return [...uiMessagesWrapper.root.querySelector("div + div + div > div").childNodes]
+		return [...uiMessagesWrapper.root.querySelector("div + div + div > div:not([data-idmu-processed])").childNodes]
 	}
 
 	class FailedWorkflowException extends Error {}
@@ -148,6 +148,7 @@
 		}
 
 		async unsend() {
+			this.uiComponent.root.setAttribute("data-idmu-processed", "");
 			try {
 				await this.uiComponent.showActionsMenuButton();
 				await this.uiComponent.openActionsMenu();
