@@ -152,7 +152,7 @@
 			try {
 				await this.uiComponent.showActionsMenuButton();
 				await this.uiComponent.openActionsMenu();
-				await this.uiComponent.clickUnsend();
+				await this.uiComponent.openConfirmUnsendModal();
 				await this.uiComponent.confirmUnsend();
 				return true
 			} catch(ex) {
@@ -167,22 +167,11 @@
 
 	class UIMessage extends UIComponent {
 
-		showActionsMenuButton() {
+		async showActionsMenuButton() {
 			console.debug("Workflow step 1 : showActionsMenuButton");
 			this.root.dispatchEvent(new MouseEvent("mousemove", { bubbles: true }));
 			this.root.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
 			this.root.dispatchEvent(new MouseEvent("mousenter", { bubbles: true }));
-		}
-
-		hideActionMenuButton() {
-			this.root.dispatchEvent(new MouseEvent("mousemove", { bubbles: true }));
-			this.root.dispatchEvent(new MouseEvent("mouseout", { bubbles: true }));
-			this.root.dispatchEvent(new MouseEvent("mouseleave", { bubbles: true }));
-		}
-
-
-		async openActionsMenu() {
-			console.debug("Workflow step 2 : openActionsMenu");
 			this.identifier.actionButton = await new Promise((resolve, reject) => {
 				setTimeout(() => {
 					const button = this.root.querySelector("[aria-label=More]");
@@ -193,6 +182,17 @@
 					reject("Unable to find actionButton");
 				});
 			});
+		}
+
+		hideActionMenuButton() {
+			this.root.dispatchEvent(new MouseEvent("mousemove", { bubbles: true }));
+			this.root.dispatchEvent(new MouseEvent("mouseout", { bubbles: true }));
+			this.root.dispatchEvent(new MouseEvent("mouseleave", { bubbles: true }));
+		}
+
+
+		async openActionsMenu() {
+			console.debug("Workflow step 2 : openActionsMenu", this.identifier.actionButton);
 			this.identifier.actionButton.click();
 		}
 
@@ -200,8 +200,8 @@
 			this.root.click();
 		}
 
-		async clickUnsend() {
-			console.debug("Workflow step 3 : clickUnsend");
+		async openConfirmUnsendModal() {
+			console.debug("Workflow step 3 : openConfirmUnsendModal");
 			this.identifier.unSendButton = await new Promise((resolve, reject) => {
 				setTimeout(() => {
 					if(this.root.ownerDocument.querySelector("[style*=translate]")) {
@@ -397,14 +397,7 @@
 		run() {
 			throw new Error("run method not implemented")
 		}
-		/**
-		* @abstract
-		*/
-		stop() {
-			throw new Error("stop method not implemented")
-		}
 	}
-
 
 	class UIPIMessageUnsendTask extends Task {
 		/**
@@ -414,14 +407,10 @@
 		constructor(id, message) {
 			super(id);
 			this.message = message;
-			this.runCount = 0;
 		}
 		run() {
 			const unsend = this.message.unsend();
-			this.runCount++;
 			return unsend
-		}
-		stop() {
 		}
 	}
 
