@@ -97,7 +97,7 @@
 	}
 
 	function findMessagesWrapperStrategy(window) {
-		return window.document.querySelector("div[role=grid]  > div > div > div > div, section > div > div > div > div > div > div > div > div[style*=height] > div")
+		return window.document.querySelector("div[role=grid] > div > div > div > div")
 	}
 
 	class UIComponent {
@@ -107,16 +107,16 @@
 		}
 	}
 
-	async function loadMoreMessageStrategy(uiComponent) {
-		uiComponent.root.scrollTop = 0;
-		await new Promise((resolve) => {
+	async function loadMoreMessageStrategy(root) {
+		root.scrollTop = 0;
+		return new Promise((resolve) => {
 			new MutationObserver((mutations, observer) => {
-				if(uiComponent.root.scrollTop !== 0) {
+				if(root.scrollTop !== 0) {
 					observer.disconnect();
 					resolve(false);
 				}
-			}).observe(uiComponent.root.ownerDocument.body, { subtree: true, childList:true });
-		});
+			}).observe(root.ownerDocument.body, { subtree: true, childList:true });
+		})
 	}
 
 	class UIMessagesWrapper extends UIComponent {
@@ -130,13 +130,14 @@
 		}
 
 		async fetchAndRenderThreadNextMessagePage() {
-			return loadMoreMessageStrategy(this)
+			console.debug("test");
+			return loadMoreMessageStrategy(this.root)
 		}
 
 	}
 
-	async function findMessagesStrategy(uiMessagesWrapper) {
-		return [...uiMessagesWrapper.root.querySelector("div + div + div > div:not([data-idmu-processed])").childNodes]
+	async function findMessagesStrategy(root) {
+		return [...root.querySelector("div + div + div > div:not([data-idmu-processed])").children]
 	}
 
 	class FailedWorkflowException extends Error {}
@@ -150,10 +151,10 @@
 		async unsend() {
 			this.uiComponent.root.setAttribute("data-idmu-processed", "");
 			try {
-				await this.uiComponent.showActionsMenuButton();
-				await this.uiComponent.openActionsMenu();
-				await this.uiComponent.openConfirmUnsendModal();
-				await this.uiComponent.confirmUnsend();
+				const actionButton = await this.uiComponent.showActionsMenuButton();
+				this.uiComponent.openActionsMenu(actionButton);
+				const dialogButton = await this.uiComponent.openConfirmUnsendModal();
+				await this.uiComponent.confirmUnsend(dialogButton);
 				return true
 			} catch(ex) {
 				console.error(ex);
@@ -172,16 +173,16 @@
 			this.root.dispatchEvent(new MouseEvent("mousemove", { bubbles: true }));
 			this.root.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
 			this.root.dispatchEvent(new MouseEvent("mousenter", { bubbles: true }));
-			this.identifier.actionButton = await new Promise((resolve, reject) => {
+			return new Promise((resolve, reject) => {
 				setTimeout(() => {
-					const button = this.root.querySelector("[aria-label=More]");
+					const button = this.root.querySelector("[aria-label]");
 					if(button) {
 						resolve(button);
-						return
+					} else {
+						reject(new Error("Unable to find actionButton"));
 					}
-					reject("Unable to find actionButton");
 				});
-			});
+			})
 		}
 
 		hideActionMenuButton() {
@@ -191,9 +192,9 @@
 		}
 
 
-		async openActionsMenu() {
-			console.debug("Workflow step 2 : openActionsMenu", this.identifier.actionButton);
-			this.identifier.actionButton.click();
+		openActionsMenu(actionButton) {
+			console.debug("Workflow step 2 : openActionsMenu", actionButton);
+			actionButton.click();
 		}
 
 		closeActionsMenu() {
@@ -202,38 +203,41 @@
 
 		async openConfirmUnsendModal() {
 			console.debug("Workflow step 3 : openConfirmUnsendModal");
-			this.identifier.unSendButton = await new Promise((resolve, reject) => {
+			const unSendButton = await new Promise((resolve, reject) => {
 				setTimeout(() => {
-					if(this.root.ownerDocument.querySelector("[style*=translate]")) {
-						const button = [...this.root.ownerDocument.querySelectorAll("div[role] [role]")].pop();
-						if(button) {
-							if(button.textContent.toLocaleLowerCase() === "unsend") {
-								resolve(button);
-								return
-							}
-							reject("Unable to find unSendButton");
-						}
+					const button = [...this.root.ownerDocument.querySelectorAll("[role=dialog] [role=menu] [role=menuitem]")].filter(node => node.textContent.toLocaleLowerCase() === "unsend").pop();
+					if(button) {
+						resolve(button);
+					} else {
+						reject(new Error("Unable to find unSendButton"));
 					}
 				});
 			});
-			this.identifier.unSendButton.click();
-			this.identifier.dialogButton =  await Promise.race([
-				new Promise((resolve, reject) => setTimeout(() => reject("Unable to find dialogButton"), 2000)),
-				await new Promise((resolve) => {
-					new MutationObserver((mutations, observer) => {
-						const dialogButton = this.root.ownerDocument.querySelector("[role=dialog] button");
-						if(dialogButton) {
-							observer.disconnect();
-							resolve(dialogButton);
-						}
-					}).observe(this.root.ownerDocument.body, { subtree: true, childList:true });
+			unSendButton.click();
+			return await Promise.race([
+				new Promise((resolve, reject) => setTimeout(() => reject(new Error("Unable to find dialogButton")), 2000)),
+				new Promise((resolve) => {
+					const getDialogButton = () => this.root.ownerDocument.querySelector("[role=dialog] button");
+					let dialogButton = getDialogButton();
+					if(dialogButton) {
+						resolve(dialogButton);
+					} else {
+						new MutationObserver((mutations, observer) => {
+							console.log(this.root.ownerDocument.body.outerHTML);
+							dialogButton = getDialogButton();
+							if(dialogButton) {
+								observer.disconnect();
+								resolve(dialogButton);
+							}
+						}).observe(this.root.ownerDocument.body, { subtree: true, childList:true });
+					}
 				})
-			]);
+			])
 		}
 
-		async confirmUnsend() {
-			console.debug("Workflow final step : confirmUnsend", this.identifier.dialogButton);
-			this.identifier.dialogButton.click();
+		async confirmUnsend(dialogButton) {
+			console.debug("Workflow final step : confirmUnsend", dialogButton);
+			dialogButton.click();
 		}
 
 	}
@@ -246,7 +250,7 @@
 
 		async createUIPIMessages() {
 			const uipiMessages = [];
-			const messageElements = await findMessagesStrategy(this.identifier.uiMessagesWrapper);
+			const messageElements = await findMessagesStrategy(this.identifier.uiMessagesWrapper.root);
 			console.debug("findMessagesStrategy", messageElements);
 			for(const messageElement of messageElements) {
 				const uiMessage = new UIMessage(messageElement);
@@ -305,7 +309,6 @@
 			console.debug("createUIPIMessages");
 			for(const uipiMessage of await this.uiComponent.createUIPIMessages()) {
 				this.uipiMessages.push(uipiMessage);
-				this.taskId++;
 			}
 		}
 
@@ -371,7 +374,7 @@
 			const promise = () => new Promise((resolve, reject) => {
 				task.run().then(() => resolve(task)).catch(() => {
 					console.debug("Task failed");
-					reject({ error: "Task failed", task });
+					reject(new Error("Task failed"));
 				});
 			});
 			const item = { task, promise };
@@ -414,25 +417,11 @@
 		}
 	}
 
-	// This script automates the process of unsending DM's on instagram.com
-	// This script is meant to be run on the page that lists the message threads
-	// The workflow works as follow:
-	// - Create a list of all messages by querying on the [role=listbox] selector
-	//  - For each message another workflow begins:
-	//      - Over the message node so that the three dots button appears
-	//      - Click the three dots button to open the message actions
-	//      - Click the "Unsend" action button, a modal will open with a dialog that asks user to confirm the intent
-	//      - Click the "Unsend" button inside the modal
-	// There is no concurrency, message are unsent one after another by using a queue.
-
-
-	const { uiElement, unsendThreadMessagesButton, loadThreadMessagesButton } = createUIElement();
-
-	const idmu = new IDMU(window);
-
 	class UnsendThreadMessagesBatchStrategy {
 		#batchSize
-		constructor(batchSize) {
+		#idmu
+		constructor(idmu, batchSize) {
+			this.#idmu = idmu;
 			this.#batchSize = batchSize;
 		}
 		async run() {
@@ -441,7 +430,7 @@
 			for(let i =0; i < this.#batchSize;i++) {
 				done = await Promise.race([
 					new Promise(resolve => setTimeout(() => resolve(true), 10000)),
-					idmu.fetchAndRenderThreadNextMessagePage()
+					this.#idmu.fetchAndRenderThreadNextMessagePage()
 				]);
 				if(done) {
 					break
@@ -451,7 +440,7 @@
 			}
 			try {
 				const queue = new Queue();
-				for(const uipiMessage of await idmu.createUIPIMessages()) {
+				for(const uipiMessage of await this.#idmu.createUIPIMessages()) {
 					queue.add(new UIPIMessageUnsendTask(queue.length + 1, uipiMessage));
 				}
 				for(const item of queue.items.slice()) {
@@ -474,6 +463,21 @@
 		}
 	}
 
+	// This script automates the process of unsending DM's on instagram.com
+	// This script is meant to be run on the page that lists the message threads
+	// The workflow works as follow:
+	// - Create a list of all messages by querying on the [role=listbox] selector
+	//  - For each message another workflow begins:
+	//      - Over the message node so that the three dots button appears
+	//      - Click the three dots button to open the message actions
+	//      - Click the "Unsend" action button, a modal will open with a dialog that asks user to confirm the intent
+	//      - Click the "Unsend" button inside the modal
+	// There is no concurrency, message are unsent one after another by using a queue.
+
+
+	const { uiElement, unsendThreadMessagesButton, loadThreadMessagesButton } = createUIElement();
+
+	const idmu = new IDMU(window);
 
 	unsendThreadMessagesButton.addEventListener("click", async () => {
 		console.log("unsendThreadMessagesButton click");
