@@ -17,15 +17,30 @@ export function render(window) {
 	const strategy = new UnsendThreadMessagesBatchStrategy(idmu, (unsuccessfulWorkflows) => {
 		console.log(unsuccessfulWorkflows)
 	})
-	const { overlayElement, uiElement, unsendThreadMessagesButton, loadThreadMessagesButton } = createUIElement(window.document)
+	const { overlayElement, uiElement, menuElement, unsendThreadMessagesButton, loadThreadMessagesButton } = createUIElement(window.document)
 	function onUnsendingFinished() {
 		console.debug("onUnsendingFinished")
+		;[...menuElement.querySelectorAll("button")].filter(button => button !== unsendThreadMessagesButton).forEach(button => {
+			button.style.display = ""
+		})
 		unsendThreadMessagesButton.textContent = unsendThreadMessagesButton.dataTextContent
 		unsendThreadMessagesButton.style.backgroundColor = unsendThreadMessagesButton.dataBackgroundColor
 		overlayElement.style.display = "none"
 		if(!strategy._stopped) {
 			window.alert("IDMU: Finished")
 		}
+	}
+	async function startUnsending() {
+		[...menuElement.querySelectorAll("button")].filter(button => button !== unsendThreadMessagesButton).forEach(button => {
+			button.style.display = "none"
+		})
+		overlayElement.style.display = ""
+		console.debug("User asked to start messages unsending; UI i1nteraction will be disabled")
+		unsendThreadMessagesButton.textContent = "Stop processing"
+		unsendThreadMessagesButton.style.backgroundColor = "#FA383E"
+		const batchSize = window.localStorage.getItem("IDMU_BATCH_SIZE") || UnsendThreadMessagesBatchStrategy.DEFAULT_BATCH_SIZE
+		await strategy.run(batchSize)
+		onUnsendingFinished()
 	}
 	function handleEvents(event) {
 		if(strategy.isRunning() && !uiElement.contains(event.target)) {
@@ -42,13 +57,7 @@ export function render(window) {
 			strategy.stop()
 			onUnsendingFinished()
 		} else {
-			overlayElement.style.display = ""
-			console.debug("User asked to start messages unsending; UI i1nteraction will be disabled")
-			unsendThreadMessagesButton.textContent = "Stop processing"
-			unsendThreadMessagesButton.style.backgroundColor = "#FA383E"
-			const batchSize = window.localStorage.getItem("IDMU_BATCH_SIZE") || UnsendThreadMessagesBatchStrategy.DEFAULT_BATCH_SIZE
-			await strategy.run(batchSize)
-			onUnsendingFinished()
+			startUnsending()
 		}
 	})
 	loadThreadMessagesButton.addEventListener("click", async () => {
