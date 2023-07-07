@@ -11,17 +11,27 @@ The userscript allow a user to batch unsend DM in a thread on the web version of
 This script is meant to be run on the page that lists the message threads.
 
 The workflow works as follow:
-- Create a list of all messages by querying the DOM with an early messages detection strategy (we process the raw outputs of our ``find-messages-strategy`` and flag invalid messages by running parts of the workflow).
- - For each message do the following:
-     - Dispatch a mouseover for this message so that the three dots button appears
-     - Click the three dots button to open the message actions
-     - Click the "Unsend" action button, a modal will open with a dialog that asks user to confirm the intent
-     - Click the "Unsend" button inside the modal
+- Create a list of all messages by querying the DOM with an early messages detection strategy (we test the raw outputs of our ``find-messages-strategy`` against parts of the workflow).
+  - For each message do the following:
+
+     - ### Show action menu button:
+        Dispatch a mouseover for this message so that the three dots button appears.
+
+     - ### Open action menu:
+        Click the three dots button to open the message actions.
+
+     - ### Open unsend confirm modal:
+        Click the "Unsend" action button, a modal will open with a dialog that asks user to confirm the intent.
+
+     - ### Click "confirm":
+        Click the "Unsend" button inside the modal.
 There is no concurrency, message are unsent one after another by using a queue.
 
 ## Installing
 
-[Install the usercript](https://github.com/thoughtsunificator/instagram-dm-unsender/raw/userscript/idmu.user.js)
+[Install userscript](https://github.com/thoughtsunificator/instagram-dm-unsender/raw/userscript/idmu.user.js)
+
+[Older releases](https://github.com/thoughtsunificator/instagram-dm-unsender/releases)
 
 ## Development
 
@@ -36,11 +46,9 @@ Start rollup with the watch flag:
 You can also do a one-time build with:
 - ``npm run build``
 
-
 ## Why only US
 
 Instagram web app is different based on the user location and supporting all of them would require extra efforts which I do not see as a priority right now. As of now only the US version is supported.
-
 
 ## Testing
 
@@ -54,3 +62,8 @@ Run test with ava:
 
 Coverage:
 - ``npm run c8``
+
+## TODO 
+
+- [ ] i18n, make sure it works for all languages
+- [ ] l10n, make sure it works not only for the US version but also for the others.
