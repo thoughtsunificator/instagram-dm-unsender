@@ -1,7 +1,13 @@
 /**
  *
+ * @callback getElement
+ * @returns {Element}
+ */
+
+/**
+ *
  * @param {Element} target
- * @param {function} getElement
+ * @param {getElement} getElement
  * @returns {Promise<Element>}
  */
 export async function waitForElement(target, getElement) {
@@ -21,6 +27,13 @@ export async function waitForElement(target, getElement) {
 	})
 }
 
+/**
+ *
+ * @param {Element} clickTarget
+ * @param {Element} target
+ * @param {getElement} getElement
+ * @returns {Element|Promise<Element>}
+ */
 export function clickElementAndWaitFor(clickTarget, target, getElement) {
 	const promise = waitForElement(target, getElement)
 	clickTarget.click()
