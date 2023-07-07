@@ -6,6 +6,7 @@ export class UnsendThreadMessagesBatchStrategy {
 	#idmu
 	#onUnsuccessfulWorkflows
 	#finished_workflows
+
 	/**
 	 *
 	 * @param {IDMU} idmu
@@ -17,6 +18,7 @@ export class UnsendThreadMessagesBatchStrategy {
 		this.#idmu = idmu
 		this.#onUnsuccessfulWorkflows = onUnsuccessfulWorkflows
 	}
+
 	/**
 	 *
 	 * @returns {boolean}
@@ -24,10 +26,12 @@ export class UnsendThreadMessagesBatchStrategy {
 	isRunning() {
 		return this._running && !this._stopped
 	}
+
 	stop() {
 		console.debug("UnsendThreadMessagesBatchStrategy stop")
 		this._stopped = true
 	}
+
 	/**
 	 *
 	 * @param {number} batchSize
