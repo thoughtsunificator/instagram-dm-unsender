@@ -24,8 +24,11 @@ The workflow works as follow:
         Click the "Unsend" action button, a modal will open with a dialog that asks user to confirm the intent.
 
      - ### Click "confirm":
-        Click the "Unsend" button inside the modal.
+        Click the "confirm" button inside the modal.
+
 There is no concurrency, message are unsent one after another by using a queue.
+
+⚠️ Instagram has a rate limits, after a certain of messages you might get blocked from unsending message for a period of time.
 
 ## Installing
 
@@ -67,3 +70,4 @@ Coverage:
 
 - [ ] i18n, make sure it works for all languages
 - [ ] l10n, make sure it works not only for the US version but also for the others.
+- [ ] alert system (for scenarios such as rate limits)
