@@ -6,9 +6,9 @@ on:
       - "v*"
 
 jobs:
-  test:
+  release:
     runs-on: ubuntu-latest
-    name: Test
+    name: Release
     steps:
       - name: git-checkout
         uses: actions/checkout@v2
