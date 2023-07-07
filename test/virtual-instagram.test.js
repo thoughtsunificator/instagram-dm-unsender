@@ -46,12 +46,12 @@ test("findMessagesStrategy multiple", async t => {
 test("findMessagesStrategy multiple dummies", async t => {
 	t.context.document.body.append(...[
 		createDummyMessage(t.context.document),
-		createMessageElement(t.context.document, "Test", false),
+		createMessageElement(t.context.document, "Test1", false),
 		createMessageElement(t.context.document, "Testdsadsadsac"),
 		createDummyMessage(t.context.document),
-		createMessageElement(t.context.document, "Test", false),
+		createMessageElement(t.context.document, "Test2", false),
 		createMessageElement(t.context.document, "xzcxzdsadsadsa"),
-		createMessageElement(t.context.document, "Test", false),
+		createMessageElement(t.context.document, "Test3", false),
 		createMessageElement(t.context.document, "32132xzcxzdsadsadsa"),
 	])
 	let messageElements = await findMessagesStrategy(t.context.document.body)
