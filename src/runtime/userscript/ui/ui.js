@@ -63,7 +63,7 @@ export function render(window) {
 	loadThreadMessagesButton.addEventListener("click", async () => {
 		console.debug("loadThreadMessagesButton click")
 		try {
-			const batchSize = parseInt(window.prompt("How many pages should we load ? ", window.localStorage.getItem("IDMU_BATCH_SIZE") || UnsendThreadMessagesBatchStrategy.DEFAULT_BATCH_SIZE ))
+			const batchSize = parseInt(window.prompt("How many pages should we load before each unsending? ", window.localStorage.getItem("IDMU_BATCH_SIZE") || UnsendThreadMessagesBatchStrategy.DEFAULT_BATCH_SIZE ))
 			if(parseInt(batchSize)) {
 				window.localStorage.setItem("IDMU_BATCH_SIZE", parseInt(batchSize))
 			}
