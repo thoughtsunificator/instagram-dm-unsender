@@ -61,7 +61,7 @@ export default class UIMessage extends UIComponent {
 	 */
 	async openActionsMenu(actionButton) {
 		console.debug("Workflow step 2 : openActionsMenu", actionButton)
-		return this.clickElement(
+		return this.clickElementAndWaitFor(
 			actionButton,
 			this.root.ownerDocument.body,
 			() => {
@@ -82,7 +82,7 @@ export default class UIMessage extends UIComponent {
 	 */
 	async closeActionsMenu(actionButton, actionsMenuElement) {
 		console.debug("closeActionsMenu")
-		return this.clickElement(
+		return this.clickElementAndWaitFor(
 			actionButton,
 			this.root.ownerDocument.body,
 			() => this.root.ownerDocument.body.contains(actionsMenuElement) === false,
@@ -99,7 +99,7 @@ export default class UIMessage extends UIComponent {
 			this.root.ownerDocument.body,
 			() => [...this.root.ownerDocument.querySelectorAll("[role=dialog] [role=menu] [role=menuitem]")].filter(node => node.textContent.toLocaleLowerCase() === "unsend").pop(), // TODO i18n
 		)
-		return this.clickElement(
+		return this.clickElementAndWaitFor(
 			unSendButton,
 			this.root.ownerDocument.body,
 			() => this.root.ownerDocument.querySelector("[role=dialog] button"),
@@ -107,11 +107,12 @@ export default class UIMessage extends UIComponent {
 	}
 	/**
 	 *
+	 * @param {Element} dialogButton
 	 * @returns {Promise}
 	 */
 	async confirmUnsend(dialogButton) {
 		console.debug("Workflow final step : confirmUnsend", dialogButton)
-		await this.clickElement(
+		await this.clickElementAndWaitFor(
 			dialogButton,
 			this.root.ownerDocument.body,
 			() => this.root.ownerDocument.querySelector("[role=dialog] button") === null

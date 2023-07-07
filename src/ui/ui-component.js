@@ -1,5 +1,4 @@
-import { clickElement } from "../dom/click-element.js"
-import { waitForElement } from "../dom/wait-for-element.js"
+import { waitForElement, clickElementAndWaitFor } from "../dom/async-events.js"
 
 export default class UIComponent {
 	/**
@@ -29,8 +28,8 @@ export default class UIComponent {
 	 * @param {function} getElement
 	 * @returns {Promise<Element>}
 	 */
-	async clickElement(clickTarget, target, getElement) {
-		return clickElement(clickTarget, target, getElement)
+	async clickElementAndWaitFor(clickTarget, target, getElement) {
+		return clickElementAndWaitFor(clickTarget, target, getElement)
 	}
 
 }

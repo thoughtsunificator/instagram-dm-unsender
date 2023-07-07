@@ -20,3 +20,9 @@ export async function waitForElement(target, getElement) {
 		}
 	})
 }
+
+export function clickElementAndWaitFor(clickTarget, target, getElement) {
+	const promise = waitForElement(target, getElement)
+	clickTarget.click()
+	return getElement() || promise
+}

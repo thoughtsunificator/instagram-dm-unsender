@@ -27,7 +27,7 @@ export function render(window) {
 			window.alert("IDMU: Finished")
 		}
 	}
-	document.addEventListener("keydown", event => {
+	window.document.addEventListener("keydown", event => {
 		if(strategy.isRunning()) {
 			console.info("User interaction is disabled as the strategy is still running; Please stop the execution first.")
 			event.preventDefault()
@@ -42,7 +42,7 @@ export function render(window) {
 			onUnsendingFinished()
 		} else {
 			overlayElement.style.display = ""
-			console.debug("User asked to start messages unsending; UI interaction will be disabled")
+			console.debug("User asked to start messages unsending; UI i1nteraction will be disabled")
 			unsendThreadMessagesButton.textContent = "Stop processing"
 			unsendThreadMessagesButton.style.backgroundColor = "#FA383E"
 			const batchSize = window.localStorage.getItem("IDMU_BATCH_SIZE") || UnsendThreadMessagesBatchStrategy.DEFAULT_BATCH_SIZE
