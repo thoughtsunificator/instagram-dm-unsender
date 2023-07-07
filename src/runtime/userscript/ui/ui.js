@@ -71,6 +71,7 @@ export function render(window) {
  * @param   {Document}          document
  * @returns {object}
  * @returns {HTMLDivElement}    object.uiElement
+ * @returns {HTMLDivElement}    object.overlayElement
  * @returns {HTMLDivElement}    object.menuElement
  * @returns {HTMLButtonElement} object.unsendThreadMessagesButton
  * @returns {HTMLButtonElement} object.loadThreadMessagesButton

@@ -1,6 +1,6 @@
 /**
  * @param {Document} document
- * @returns {HTMLButtonElement}
+ * @returns {HTMLDivElement}
  */
 export function createOverlayElement(document) {
 	const overlayElement = document.createElement("div")

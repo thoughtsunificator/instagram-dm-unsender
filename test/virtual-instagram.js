@@ -1,7 +1,7 @@
 /**
  *
  * @param {Document} document
- * @returns {Element}
+ * @returns {HTMLDivElement}
  */
 export function createMessagesWrapperElement(document) {
 	const element = document.createElement("div")
@@ -23,13 +23,13 @@ export function createMessagesWrapperElement(document) {
  *
  * @param {Document} document
  * @param {boolean} includesUnsend
- * @param {boolean} processed
- * @returns {Element}
+ * @param {boolean} ignored
+ * @returns {HTMLDivElement}
  */
-export function createMessageElement(document, text="", includesUnsend=true, processed=false, eventsTimeout=0) {
+export function createMessageElement(document, text="", includesUnsend=true, ignored=false, eventsTimeout=0) {
 	const element = document.createElement("div")
 	element.setAttribute("role", "row")
-	if(processed) {
+	if(ignored) {
 		element.setAttribute("data-idmu-ignore", "true")
 	}
 	element.innerHTML = `<span>${text}</span>`
@@ -66,7 +66,7 @@ export function createMessageElement(document, text="", includesUnsend=true, pro
 /**
  *
  * @param {Document} document
- * @returns {Element}
+ * @returns {HTMLDivElement}
  */
 export function createDummyMessage(document) {
 	const element = document.createElement("div")
@@ -78,7 +78,7 @@ export function createDummyMessage(document) {
  *
  * @param {Document} document
  * @param {boolean} includesUnsend
- * @returns {Element}
+ * @returns {HTMLDivElement}
  */
 export function createMessageActionsMenuElement(document, includesUnsend=true, eventsTimeout) {
 	const element = document.createElement("div")

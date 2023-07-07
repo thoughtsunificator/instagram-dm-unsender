@@ -3,7 +3,7 @@ import UIMessage from "../ui-message.js"
 /**
  *
  * @param {Element} root
- * @returns {Element[]}
+ * @returns {Promise<Element[]>}
  */
 export default async function findMessagesStrategy(root) {
 	const elements = [...root.querySelectorAll("div[role=row]:not([data-idmu-ignore])")]

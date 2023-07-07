@@ -105,9 +105,10 @@ export default class UIMessage extends UIComponent {
 			() => this.root.ownerDocument.querySelector("[role=dialog] button"),
 		)
 	}
+
 	/**
 	 *
-	 * @param {Element} dialogButton
+	 * @param {HTMLButtonElement} dialogButton
 	 * @returns {Promise}
 	 */
 	async confirmUnsend(dialogButton) {
