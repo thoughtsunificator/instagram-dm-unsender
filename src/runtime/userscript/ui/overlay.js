@@ -12,7 +12,6 @@ export function createOverlayElement(document) {
 	overlayElement.style.height = "100vh"
 	overlayElement.style.zIndex = "998"
 	overlayElement.style.backgroundColor = "#000000d6"
-	overlayElement.style.pointerEvents = "none"
 	overlayElement.style.display = "none"
 	return overlayElement
 }

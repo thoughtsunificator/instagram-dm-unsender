@@ -27,12 +27,13 @@ export function render(window) {
 			window.alert("IDMU: Finished")
 		}
 	}
-	window.document.addEventListener("keydown", event => {
-		if(strategy.isRunning()) {
+	function handleEvents(event) {
+		if(strategy.isRunning() && !uiElement.contains(event.target)) {
 			console.info("User interaction is disabled as the strategy is still running; Please stop the execution first.")
 			event.preventDefault()
 		}
-	})
+	}
+	window.document.addEventListener("keydown", handleEvents)
 	unsendThreadMessagesButton.dataTextContent = unsendThreadMessagesButton.textContent
 	unsendThreadMessagesButton.dataBackgroundColor = unsendThreadMessagesButton.style.backgroundColor
 	unsendThreadMessagesButton.addEventListener("click", async () => {
@@ -83,7 +84,7 @@ function createUIElement(document) {
 	const alertsWrapperElement = createAlertsWrapperElement(document)
 	const unsendThreadMessagesButton = createMenuButtonElement(document, "Unsend all DMs")
 	const loadThreadMessagesButton = createMenuButtonElement(document, "Batch size", "secondary")
-	document.body.appendChild(overlayElement)
+	document.body.prepend(overlayElement)
 	document.body.appendChild(alertsWrapperElement)
 	menuElement.appendChild(unsendThreadMessagesButton)
 	menuElement.appendChild(loadThreadMessagesButton)
