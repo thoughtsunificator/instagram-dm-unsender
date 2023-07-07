@@ -88,5 +88,5 @@ function createUIElement(document) {
 	menuElement.appendChild(unsendThreadMessagesButton)
 	menuElement.appendChild(loadThreadMessagesButton)
 	uiElement.appendChild(menuElement)
-	return { overlayElement, uiElement, menuElement, unsendThreadMessagesButton, loadThreadMessagesButton }
+	return { uiElement, overlayElement, menuElement, unsendThreadMessagesButton, loadThreadMessagesButton }
 }
