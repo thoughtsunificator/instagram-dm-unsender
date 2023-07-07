@@ -5,6 +5,14 @@ export default class UIMessagesWrapper extends UIComponent {
 
 	/**
 	 *
+	 * @returns {Element}
+	 */
+	static find(window) {
+		return window.document.querySelector("div[role=grid] > div > div > div > div")
+	}
+
+	/**
+	 *
 	 * @returns {Promise>}
 	 */
 	async fetchAndRenderThreadNextMessagePage() {
