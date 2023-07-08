@@ -21,7 +21,8 @@ export function render(window) {
 	function onUnsendingFinished() {
 		console.debug("onUnsendingFinished")
 		;[...menuElement.querySelectorAll("button")].filter(button => button !== unsendThreadMessagesButton).forEach(button => {
-			button.style.display = ""
+			button.style.visibility = ""
+			button.disabled = false
 		})
 		unsendThreadMessagesButton.textContent = unsendThreadMessagesButton.dataTextContent
 		unsendThreadMessagesButton.style.backgroundColor = unsendThreadMessagesButton.dataBackgroundColor
@@ -32,7 +33,8 @@ export function render(window) {
 	}
 	async function startUnsending() {
 		[...menuElement.querySelectorAll("button")].filter(button => button !== unsendThreadMessagesButton).forEach(button => {
-			button.style.display = "none"
+			button.style.visibility = "hidden"
+			button.disabled = true
 		})
 		overlayElement.style.display = ""
 		console.debug("User asked to start messages unsending; UI i1nteraction will be disabled")
@@ -46,12 +48,14 @@ export function render(window) {
 		if(strategy.isRunning() && !uiElement.contains(event.target)) {
 			console.info("User interaction is disabled as the strategy is still running; Please stop the execution first.")
 			event.preventDefault()
+			event.stopPropagation()
+			event.stopImmediatePropagation()
 		}
 	}
 	window.document.addEventListener("keydown", handleEvents)
 	unsendThreadMessagesButton.dataTextContent = unsendThreadMessagesButton.textContent
 	unsendThreadMessagesButton.dataBackgroundColor = unsendThreadMessagesButton.style.backgroundColor
-	unsendThreadMessagesButton.addEventListener("click", async () => {
+	unsendThreadMessagesButton.addEventListener("click", () => {
 		if(strategy.isRunning()) {
 			console.debug("User asked to stop messages unsending")
 			strategy.stop()
@@ -60,7 +64,7 @@ export function render(window) {
 			startUnsending()
 		}
 	})
-	loadThreadMessagesButton.addEventListener("click", async () => {
+	loadThreadMessagesButton.addEventListener("click", () => {
 		console.debug("loadThreadMessagesButton click")
 		try {
 			const batchSize = parseInt(window.prompt("How many pages should we load before each unsending? ", window.localStorage.getItem("IDMU_BATCH_SIZE") || UnsendThreadMessagesBatchStrategy.DEFAULT_BATCH_SIZE ))
