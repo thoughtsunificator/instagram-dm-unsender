@@ -22,11 +22,7 @@ export default class UIMessage extends UIComponent {
 		return false
 	}
 
-	/**
-	 *
-	 * @returns {Promise}
-	 */
-	async scrollIntoView() {
+	scrollIntoView() {
 		this.root.scrollIntoView()
 	}
 
@@ -34,7 +30,7 @@ export default class UIMessage extends UIComponent {
 	 *
 	 * @returns {Promise<HTMLButtonElement>}
 	 */
-	async showActionsMenuButton() {
+	showActionsMenuButton() {
 		console.debug("Workflow step 1 : showActionsMenuButton")
 		this.root.dispatchEvent(new MouseEvent("mousemove", { bubbles: true }))
 		this.root.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }))
@@ -59,7 +55,7 @@ export default class UIMessage extends UIComponent {
 	 * @param {HTMLButtonElement} actionButton
 	 * @returns {Promise}
 	 */
-	async openActionsMenu(actionButton) {
+	openActionsMenu(actionButton) {
 		console.debug("Workflow step 2 : openActionsMenu", actionButton)
 		return this.clickElementAndWaitFor(
 			actionButton,
@@ -67,7 +63,6 @@ export default class UIMessage extends UIComponent {
 			() => {
 				const menuElements = [...this.root.ownerDocument.querySelectorAll("[role=menu] [role=menuitem]")]
 				menuElements.sort(node => node.textContent.toLocaleLowerCase() === "unsend" ? -1 : 0) // TODO i18n
-				// return [...this.root.ownerDocument.querySelectorAll("[role=dialog] [role=menu] [role=menuitem]")].filter(node => node.textContent.toLocaleLowerCase() === "unsend").pop() // TODO i18n
 				return menuElements.shift()
 			},
 		)
@@ -80,7 +75,7 @@ export default class UIMessage extends UIComponent {
 	 * @param {HTMLDivElement} actionsMenuElement
 	 * @returns {Promise<boolean>}
 	 */
-	async closeActionsMenu(actionButton, actionsMenuElement) {
+	closeActionsMenu(actionButton, actionsMenuElement) {
 		console.debug("closeActionsMenu")
 		return this.clickElementAndWaitFor(
 			actionButton,
