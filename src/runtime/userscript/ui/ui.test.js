@@ -2,7 +2,7 @@ import { test } from "../../../../test/test.js"
 import { render } from "./ui.js"
 import { createMessagesWrapperElement } from "../../../../test/virtual-instagram.js"
 
-test("userscript ui unsend button", async t => {
+test("userscript ui unsend button", t => {
 	render(t.context.window)
 	let alerted = false
 	t.context.window.alert = () => { alerted = true }
