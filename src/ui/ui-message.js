@@ -21,7 +21,7 @@ export default class UIMessage extends UIComponent {
 		])
 		clearTimeout(timeout)
 		if(actionButton) {
-			const actionsMenuElement = await uiMessage.openActionsMenu(actionButton) // TODO i18n
+			const actionsMenuElement = await uiMessage.openActionsMenu(actionButton)
 			await uiMessage.closeActionsMenu(actionButton, actionsMenuElement)
 			await uiMessage.hideActionMenuButton()
 			return actionsMenuElement && actionsMenuElement.textContent.toLocaleLowerCase() === "unsend"
