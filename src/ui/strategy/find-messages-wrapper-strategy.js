@@ -1,4 +1,4 @@
-import UIMessagesWrapper from "../ui-messages-wrapper.js";
+import UIMessagesWrapper from "../ui-messages-wrapper.js"
 
 /**
  *
