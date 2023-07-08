@@ -97,11 +97,11 @@ test("createMessageActionsMenuElement click", t => {
 })
 
 test("loadMoreMessagesStrategy", async t => {
-	const messagesWrapperElement = createMessagesWrapperElement(t.context.document)
-	t.context.document.mount.append(messagesWrapperElement)
+	t.context.document.mount.append(createMessagesWrapperElement(t.context.document))
+	const messagesWrapperElement = findMessagesWrapperStrategy(t.context.window)
 	const result = loadMoreMessagesStrategy(messagesWrapperElement)
 	messagesWrapperElement.scrollTop = 1
-	messagesWrapperElement.innerHTML += "<div></div>"
+	messagesWrapperElement.innerHTML += `<div aria-label="Loading..."></div>`
 	t.is(await result, false)
 })
 
