@@ -8,17 +8,18 @@ import { waitForElement } from "../../dom/async-events.js"
 export default async function loadMoreMessageStrategy(root) {
 	console.debug("loadMoreMessageStrategy")
 	root.scrollTop = 0
+	let findLoaderTimeout
 	const loadingElement = await Promise.race([
 		waitForElement(root, () => root.ownerDocument.body.querySelector(`[aria-label="Loading..."]`)), // TODO i18n
-		new Promise(resolve => setTimeout(resolve, 500))
+		new Promise(resolve => {
+			findLoaderTimeout = setTimeout(resolve, 500)
+		})
 	])
+	clearTimeout(findLoaderTimeout)
 	if(loadingElement) {
 		console.debug("Found loader; waiting for messages mutations")
 		console.debug("scrollTop", root.scrollTop)
-		const hasReachedLastPage = await Promise.race([
-			waitForElement(root, () => root.scrollTop !== 0),
-			new Promise(resolve => setTimeout(() => resolve(true), root.ownerDocument.defaultView.IDMU_SCROLL_DETECTION_TIMEOUT))
-		])
+		const hasReachedLastPage = await waitForElement(root, () => root.scrollTop !== 0)
 		console.debug("hasReachedLastPage", hasReachedLastPage)
 		console.debug("scrollTop", root.scrollTop)
 		return root.scrollTop === 0

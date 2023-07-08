@@ -12,10 +12,14 @@ export default class UIMessage extends UIComponent {
 		element.querySelector(`[aria-label="Close details and actions"]`)?.click()
 		element.dispatchEvent(new MouseEvent("mouseout", { bubbles: true }))
 		const uiMessage = new UIMessage(element)
+		let timeout
 		const actionButton = await Promise.race([
 			uiMessage.showActionsMenuButton(),
-			new Promise(resolve => setTimeout(resolve, 20))
+			new Promise(resolve => {
+				timeout = setTimeout(resolve, 20)
+			})
 		])
+		clearTimeout(timeout)
 		if(actionButton) {
 			const actionsMenuElement = await uiMessage.openActionsMenu(actionButton) // TODO i18n
 			await uiMessage.closeActionsMenu(actionButton, actionsMenuElement)
