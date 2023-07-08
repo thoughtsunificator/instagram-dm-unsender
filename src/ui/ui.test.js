@@ -12,7 +12,7 @@ test("UI fetchAndRenderThreadNextMessagePage", async t => {
 	const ui = new UI(t.context.window)
 	ui.identifier.uiMessagesWrapper = new UIWrapper(messagesWrapperElement)
 	const result = ui.fetchAndRenderThreadNextMessagePage()
-	messagesWrapperElement.innerHTML += `<div aria-label="Loading..."></div>`
+	messagesWrapperElement.innerHTML += `<div role="progressbar"></div>`
 	messagesWrapperElement.scrollTop = 1
 	t.is(await result, false)
 })

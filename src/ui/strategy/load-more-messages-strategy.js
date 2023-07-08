@@ -10,7 +10,7 @@ export default async function loadMoreMessageStrategy(root) {
 	root.scrollTop = 0
 	let findLoaderTimeout
 	const loadingElement = await Promise.race([
-		waitForElement(root, () => root.ownerDocument.body.querySelector(`[aria-label="Loading..."]`)), // TODO i18n
+		waitForElement(root, () => root.ownerDocument.body.querySelector(`[role="progressbar"]`)),
 		new Promise(resolve => {
 			findLoaderTimeout = setTimeout(resolve, 500)
 		})

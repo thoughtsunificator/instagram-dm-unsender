@@ -15,7 +15,7 @@ test("UIMessagesWrapper fetchAndRenderThreadNextMessagePage", async t => {
 	const messagesWrapperElement = findMessagesWrapperStrategy(t.context.window)
 	const uiMessagesWrapper = new UIMessagesWrapper(messagesWrapperElement)
 	const result = uiMessagesWrapper.fetchAndRenderThreadNextMessagePage()
-	messagesWrapperElement.innerHTML += `<div aria-label="Loading..."></div>`
+	messagesWrapperElement.innerHTML += `<div role="progressbar"></div>`
 	messagesWrapperElement.scrollTop = 1
 	t.is(await result, false)
 })

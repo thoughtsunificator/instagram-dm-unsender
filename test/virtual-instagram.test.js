@@ -101,7 +101,7 @@ test("loadMoreMessagesStrategy", async t => {
 	const messagesWrapperElement = findMessagesWrapperStrategy(t.context.window)
 	const result = loadMoreMessagesStrategy(messagesWrapperElement)
 	messagesWrapperElement.scrollTop = 1
-	messagesWrapperElement.innerHTML += `<div aria-label="Loading..."></div>`
+	messagesWrapperElement.innerHTML += `<div role="progressbar"></div>`
 	t.is(await result, false)
 })
 

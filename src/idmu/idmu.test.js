@@ -17,7 +17,7 @@ test("IDMU fetchAndRenderThreadNextMessagePage", async t => {
 	const idmu = new IDMU(t.context.window)
 	const result = idmu.fetchAndRenderThreadNextMessagePage()
 	messagesWrapperElement.scrollTop = 1
-	messagesWrapperElement.innerHTML += `<div aria-label="Loading..."></div>`
+	messagesWrapperElement.innerHTML += `<div role="progressbar"></div>`
 	t.is(await result, false)
 })
 
