@@ -16,6 +16,7 @@
 		"sourceType": "module"
 	},
 	"rules": {
+		"require-await": "warn",
 		"comma-style": [1, "last"],
 		"curly": [1, "multi-line"],
 		"eol-last": [1, "always"],
