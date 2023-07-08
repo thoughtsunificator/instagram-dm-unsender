@@ -69,11 +69,12 @@ export default class UIMessage extends UIComponent {
 			this.root.ownerDocument.body,
 			() => {
 				const menuElements = [...this.root.ownerDocument.querySelectorAll("[role=menu] [role=menuitem]")]
+				console.debug("menuElements", menuElements)
 				menuElements.sort(node => node.textContent.toLocaleLowerCase() === "unsend" ? -1 : 0) // TODO i18n
 				return menuElements.shift()
 			},
-		)
-		;[...actionMenuElement.parentNode.parentNode.querySelectorAll("[role=menuitem]")].forEach(element => {
+			)
+			;[...actionMenuElement.parentNode.parentNode.querySelectorAll("[role=menuitem]")].forEach(element => {
 			if(element !== actionMenuElement) {
 				element.remove()
 			}

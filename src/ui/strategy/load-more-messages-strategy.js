@@ -6,11 +6,12 @@ import { waitForElement } from "../../dom/async-events.js"
  * @returns {Promise<boolean>}
  */
 export default async function loadMoreMessageStrategy(root) {
-	console.debug("loadMoreMessageStrategy")
+	console.debug("lodMoreMessageStrategy")
+	root.scrollTop = 999
 	root.scrollTop = 0
 	let findLoaderTimeout
 	const loadingElement = await Promise.race([
-		waitForElement(root, () => root.ownerDocument.body.querySelector(`[role="progressbar"]`)),
+		waitForElement(root, () => root.ownerDocument.body.querySelector(`[role=progressbar]`)),
 		new Promise(resolve => {
 			findLoaderTimeout = setTimeout(resolve, 500)
 		})
