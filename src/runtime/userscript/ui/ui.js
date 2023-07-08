@@ -4,6 +4,7 @@ import IDMU from "../../../idmu/idmu.js"
 import { UnsendThreadMessagesBatchStrategy } from "../strategy.js"
 import { createAlertsWrapperElement } from "./alert.js"
 import { createOverlayElement } from "./overlay.js"
+import findMessagesWrapperStrategy from "../../../ui/strategy/find-messages-wrapper-strategy.js"
 
 /**
  *
@@ -52,7 +53,17 @@ export function render(window) {
 			event.stopImmediatePropagation()
 		}
 	}
+	function onMutations() {
+		if(window.location.pathname.startsWith("/direct/t/")) {
+			uiElement.style.display = ""
+		} else {
+			uiElement.style.display = "none"
+			strategy.stop()
+		}
+	}
 	window.document.addEventListener("keydown", handleEvents)
+	new MutationObserver(onMutations).observe(window.document.body, { childList: true })
+	new MutationObserver(onMutations).observe(window.document.querySelector("[id^=mount] > div > div > div"), { childList: true, attributes: true })
 	unsendThreadMessagesButton.dataTextContent = unsendThreadMessagesButton.textContent
 	unsendThreadMessagesButton.dataBackgroundColor = unsendThreadMessagesButton.style.backgroundColor
 	unsendThreadMessagesButton.addEventListener("click", () => {
