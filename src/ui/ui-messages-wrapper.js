@@ -15,7 +15,7 @@ export default class UIMessagesWrapper extends UIComponent {
 	 *
 	 * @returns {Promise>}
 	 */
-	async fetchAndRenderThreadNextMessagePage() {
+	fetchAndRenderThreadNextMessagePage() {
 		return loadMoreMessageStrategy(this.root)
 	}
 

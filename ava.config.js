@@ -1,3 +1,3 @@
 export default {
-	files: ["test/*.test.js", "test/**/*.test.js"]
+	files: ["src/*.test.js", "src/**/*.test.js"]
 }

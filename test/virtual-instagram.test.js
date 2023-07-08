@@ -6,24 +6,24 @@ import loadMoreMessagesStrategy from "../src/ui/strategy/load-more-messages-stra
 
 test("findMessagesStrategy", async t => {
 	const messageElement = createMessageElement(t.context.document, "Test")
-	t.context.document.body.append(messageElement)
+	t.context.document.mount.append(messageElement)
 	t.deepEqual(await findMessagesStrategy(t.context.document.body), [messageElement])
 })
 
 test("findMessagesStrategy ignore if already processed", async t => {
 	const messageElement = createMessageElement(t.context.document, "Test", true, true)
-	t.context.document.body.append(messageElement)
+	t.context.document.mount.append(messageElement)
 	t.deepEqual(await findMessagesStrategy(t.context.document.body), [])
 })
 
 test("findMessagesStrategy ignore if unsend button is not found", async t => {
 	const messageElement = createMessageElement(t.context.document, "Test", false)
-	t.context.document.body.append(messageElement)
+	t.context.document.mount.append(messageElement)
 	t.deepEqual(await findMessagesStrategy(t.context.document.body), [])
 })
 
 test("findMessagesStrategy multiple", async t => {
-	t.context.document.body.append(...[
+	t.context.document.mount.append(...[
 		createMessageElement(t.context.document, "Test", false),
 		createMessageElement(t.context.document, "Testdsadsadsac"),
 		createMessageElement(t.context.document, "Test", false),
@@ -44,7 +44,7 @@ test("findMessagesStrategy multiple", async t => {
 })
 
 test("findMessagesStrategy multiple dummies", async t => {
-	t.context.document.body.append(...[
+	t.context.document.mount.append(...[
 		createDummyMessage(t.context.document),
 		createMessageElement(t.context.document, "Test1", false),
 		createMessageElement(t.context.document, "Testdsadsadsac"),
@@ -68,13 +68,13 @@ test("findMessagesStrategy multiple dummies", async t => {
 
 test("findMessagesWrapperStrategy", async t => {
 	const messagesWrapperElement = createMessagesWrapperElement(t.context.document)
-	t.context.document.body.append(messagesWrapperElement)
+	t.context.document.mount.append(messagesWrapperElement)
 	t.deepEqual(await findMessagesWrapperStrategy(t.context.window), messagesWrapperElement)
 })
 
-test("createMessageActionsMenuElement", async t => {
+test("createMessageActionsMenuElement", t => {
 	const messageActionsMenuElement = createMessageActionsMenuElement(t.context.document)
-	t.context.document.body.append(messageActionsMenuElement)
+	t.context.document.mount.append(messageActionsMenuElement)
 	t.not(messageActionsMenuElement.querySelector("#unsend"), null)
 	t.is(messageActionsMenuElement.querySelector("button"), null)
 	messageActionsMenuElement.querySelector("#unsend").click()
@@ -84,9 +84,9 @@ test("createMessageActionsMenuElement", async t => {
 	})
 })
 
-test("createMessageActionsMenuElement click", async t => {
+test("createMessageActionsMenuElement click", t => {
 	const messageActionsMenuElement = createMessageActionsMenuElement(t.context.document)
-	t.context.document.body.append(messageActionsMenuElement)
+	t.context.document.mount.append(messageActionsMenuElement)
 	t.not(messageActionsMenuElement.querySelector("#unsend"), null)
 	t.is(messageActionsMenuElement.querySelector("button"), null)
 	messageActionsMenuElement.querySelector("#unsend").click()
@@ -98,7 +98,7 @@ test("createMessageActionsMenuElement click", async t => {
 
 test("loadMoreMessagesStrategy", async t => {
 	const messagesWrapperElement = createMessagesWrapperElement(t.context.document)
-	t.context.document.body.append(messagesWrapperElement)
+	t.context.document.mount.append(messagesWrapperElement)
 	const result = loadMoreMessagesStrategy(messagesWrapperElement)
 	messagesWrapperElement.scrollTop = 1
 	messagesWrapperElement.innerHTML += "<div></div>"

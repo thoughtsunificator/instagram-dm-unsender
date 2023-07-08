@@ -5,6 +5,7 @@
 export function createOverlayElement(document) {
 	const overlayElement = document.createElement("div")
 	overlayElement.id = "idmu-overlay"
+	overlayElement.tabIndex = 0
 	overlayElement.style.top = "0"
 	overlayElement.style.right = "0"
 	overlayElement.style.position = "fixed"

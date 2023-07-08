@@ -10,7 +10,7 @@
  * @param {getElement} getElement
  * @returns {Promise<Element>}
  */
-export async function waitForElement(target, getElement) {
+export function waitForElement(target, getElement) {
 	return new Promise((resolve) => {
 		let element = getElement()
 		if(element) {

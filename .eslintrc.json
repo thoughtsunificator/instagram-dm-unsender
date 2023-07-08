@@ -1,7 +1,6 @@
 {
 	"root": true,
 	"env": {
-		"browser": true,
 		"es2022": true
 	},
 	"extends": [
@@ -15,6 +14,20 @@
 		"ecmaVersion": "latest",
 		"sourceType": "module"
 	},
+	"overrides": [
+    {
+      "files": ["*.js"],
+      "env": {
+				"browser": true
+      }
+    },
+		{
+      "files": ["*.test.js", "test/*"],
+      "env": {
+				"node": true
+      }
+    }
+  ],
 	"rules": {
 		"require-await": "warn",
 		"comma-style": [1, "last"],

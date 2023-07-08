@@ -17,7 +17,7 @@ export default class UIComponent {
 	 * @param {function} getElement
 	 * @returns {Promise<Element>}
 	 */
-	async waitForElement(target, getElement) {
+	waitForElement(target, getElement) {
 		return getElement() || waitForElement(target, getElement)
 	}
 
@@ -28,7 +28,7 @@ export default class UIComponent {
 	 * @param {function} getElement
 	 * @returns {Promise<Element>}
 	 */
-	async clickElementAndWaitFor(clickTarget, target, getElement) {
+	clickElementAndWaitFor(clickTarget, target, getElement) {
 		return clickElementAndWaitFor(clickTarget, target, getElement)
 	}
 

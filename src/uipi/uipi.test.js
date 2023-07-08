@@ -1,20 +1,20 @@
-import { test } from "./test.js"
-import UI from "../src/ui/ui.js"
-import { createMessageElement, createMessagesWrapperElement } from "./virtual-instagram.js"
-import UIPIMessage from "../src/uipi/uipi-message.js"
-import UIMessage from "../src/ui/ui-message.js"
-import UIPI from "../src/uipi/uipi.js"
-import findMessagesWrapperStrategy from "../src/ui/strategy/find-messages-wrapper-strategy.js"
+import { test } from "../../test/test.js"
+import UI from "../ui/ui.js"
+import { createMessageElement, createMessagesWrapperElement } from "../../test/virtual-instagram.js"
+import UIPIMessage from "./uipi-message.js"
+import UIMessage from "../ui/ui-message.js"
+import UIPI from "./uipi.js"
+import findMessagesWrapperStrategy from "../ui/strategy/find-messages-wrapper-strategy.js"
 
-test("UIPI", async t => {
+test("UIPI", t => {
 	const ui = new UI(t.context.window)
 	const uipi = new UIPI(ui)
 	t.is(uipi.uiComponent, ui)
 })
 
-test("UIPI create", async t => {
+test("UIPI create", t => {
 	const messagesWrapperElement = createMessagesWrapperElement(t.context.document)
-	t.context.document.body.append(messagesWrapperElement)
+	t.context.document.mount.append(messagesWrapperElement)
 	const uipi = UIPI.create(t.context.window)
 	t.true(uipi instanceof UIPI)
 	t.true(uipi.uiComponent instanceof UI)
@@ -23,20 +23,20 @@ test("UIPI create", async t => {
 
 
 test("UIPI fetchAndRenderThreadNextMessagePage", async t => {
-	const messagesWrapperElement = createMessagesWrapperElement(t.context.document)
-	t.context.document.body.append(messagesWrapperElement)
+	t.context.document.mount.append(createMessagesWrapperElement(t.context.document))
+	const messagesWrapperElement = findMessagesWrapperStrategy(t.context.window)
 	const uipi = UIPI.create(t.context.window)
 	const result = uipi.fetchAndRenderThreadNextMessagePage()
 	uipi.uiComponent.identifier.uiMessagesWrapper.root.scrollTop = 1
-	uipi.uiComponent.identifier.uiMessagesWrapper.root.innerHTML += "<div></div>"
+	messagesWrapperElement.innerHTML += `<div aria-label="Loading..."></div>`
 	t.is(await result, false)
 })
-	
+
 test("UIPI createUIPIMessages", async t => {
 	const messageElement = createMessageElement(t.context.document, "Test")
 	const uiMessage = new UIMessage(messageElement)
 	const messagesWrapperElement = createMessagesWrapperElement(t.context.document)
-	t.context.document.body.append(messagesWrapperElement)
+	t.context.document.mount.append(messagesWrapperElement)
 	const uipi = UIPI.create(t.context.window)
 	uipi.uiComponent.identifier.uiMessagesWrapper.root.appendChild(messageElement)
 	const uiMessages = await uipi.createUIPIMessages()
@@ -45,7 +45,7 @@ test("UIPI createUIPIMessages", async t => {
 
 test("UIPI createUIPIMessages multiple", async t => {
 	const messagesWrapperElement = createMessagesWrapperElement(t.context.document)
-	t.context.document.body.append(messagesWrapperElement)
+	t.context.document.mount.append(messagesWrapperElement)
 	const uipi = UIPI.create(t.context.window)
 	uipi.uiComponent.identifier.uiMessagesWrapper.root.appendChild(createMessageElement(t.context.document, "Test"))
 	uipi.uiComponent.identifier.uiMessagesWrapper.root.appendChild(createMessageElement(t.context.document, "Ignore_me", false))

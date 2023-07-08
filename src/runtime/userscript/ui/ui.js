@@ -4,7 +4,6 @@ import IDMU from "../../../idmu/idmu.js"
 import { UnsendThreadMessagesBatchStrategy } from "../strategy.js"
 import { createAlertsWrapperElement } from "./alert.js"
 import { createOverlayElement } from "./overlay.js"
-import findMessagesWrapperStrategy from "../../../ui/strategy/find-messages-wrapper-strategy.js"
 
 /**
  *
@@ -36,8 +35,10 @@ export function render(window) {
 		[...menuElement.querySelectorAll("button")].filter(button => button !== unsendThreadMessagesButton).forEach(button => {
 			button.style.visibility = "hidden"
 			button.disabled = true
+
 		})
 		overlayElement.style.display = ""
+		overlayElement.focus()
 		console.debug("User asked to start messages unsending; UI i1nteraction will be disabled")
 		unsendThreadMessagesButton.textContent = "Stop processing"
 		unsendThreadMessagesButton.style.backgroundColor = "#FA383E"
@@ -46,11 +47,13 @@ export function render(window) {
 		onUnsendingFinished()
 	}
 	function handleEvents(event) {
-		if(strategy.isRunning() && !uiElement.contains(event.target)) {
+		if(strategy.isRunning()) {
 			console.info("User interaction is disabled as the strategy is still running; Please stop the execution first.")
+			event.stopImmediatePropagation()
 			event.preventDefault()
 			event.stopPropagation()
-			event.stopImmediatePropagation()
+			overlayElement.focus()
+			return false
 		}
 	}
 	function onMutations() {
@@ -62,6 +65,7 @@ export function render(window) {
 		}
 	}
 	window.document.addEventListener("keydown", handleEvents)
+	window.document.addEventListener("keyup", handleEvents)
 	new MutationObserver(onMutations).observe(window.document.body, { childList: true })
 	new MutationObserver(onMutations).observe(window.document.querySelector("[id^=mount] > div > div > div"), { childList: true, attributes: true })
 	unsendThreadMessagesButton.dataTextContent = unsendThreadMessagesButton.textContent
@@ -108,7 +112,7 @@ function createUIElement(document) {
 	const alertsWrapperElement = createAlertsWrapperElement(document)
 	const unsendThreadMessagesButton = createMenuButtonElement(document, "Unsend all DMs")
 	const loadThreadMessagesButton = createMenuButtonElement(document, "Batch size", "secondary")
-	document.body.prepend(overlayElement)
+	document.body.appendChild(overlayElement)
 	document.body.appendChild(alertsWrapperElement)
 	menuElement.appendChild(unsendThreadMessagesButton)
 	menuElement.appendChild(loadThreadMessagesButton)

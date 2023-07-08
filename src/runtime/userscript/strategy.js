@@ -37,7 +37,7 @@ export class UnsendThreadMessagesBatchStrategy {
 	 * @param {number} batchSize
 	 * @returns {Promise}
 	 */
-	async run(batchSize) {
+	run(batchSize) {
 		console.debug("UnsendThreadMessagesBatchStrategy.run()", batchSize)
 		this._running = true
 		this._stopped = false

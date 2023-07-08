@@ -11,10 +11,10 @@ export function createMenuButtonElement(document, text, styleName) {
 	const buttonElement = document.createElement("button")
 	buttonElement.textContent = text
 	applyButtonStyle(buttonElement, styleName)
-	buttonElement.addEventListener("mouseover", async () => {
+	buttonElement.addEventListener("mouseover", () => {
 		buttonElement.style.filter = `brightness(1.15)`
 	})
-	buttonElement.addEventListener("mouseout", async () => {
+	buttonElement.addEventListener("mouseout", () => {
 		buttonElement.style.filter = ``
 	})
 	return buttonElement

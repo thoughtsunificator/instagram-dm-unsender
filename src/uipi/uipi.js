@@ -38,7 +38,7 @@ export default class UIPI extends UIPIComponent {
 	 *
 	 * @returns {Promise}
 	 */
-	async fetchAndRenderThreadNextMessagePage() {
+	fetchAndRenderThreadNextMessagePage() {
 		console.debug("UIPI fetchAndRenderThreadNextMessagePage")
 		return this.uiComponent.fetchAndRenderThreadNextMessagePage()
 	}
@@ -47,7 +47,7 @@ export default class UIPI extends UIPIComponent {
 	 *
 	 * @returns {Promise<UIPIMessage[]>}
 	 */
-	async createUIPIMessages() {
+	createUIPIMessages() {
 		console.debug("UIPI createUIPIMessages")
 		return this.uiComponent.createUIPIMessages()
 	}

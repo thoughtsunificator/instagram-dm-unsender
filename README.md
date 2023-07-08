@@ -55,7 +55,7 @@ Instagram web app is different based on the user location and supporting all of 
 
 ## Testing
 
-Use the ``DEBUG=idmu:test`` env to enable debug logging while testing.
+Use the ``DEBUG=idmu:test`` env to enable debug logs while testing.
 
 Lint files:
 - ``npm run eslint``

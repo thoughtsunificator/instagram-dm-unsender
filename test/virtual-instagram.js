@@ -3,6 +3,27 @@
  * @param {Document} document
  * @returns {HTMLDivElement}
  */
+export function createMountElement(document) {
+	const element = document.createElement("div")
+	element.id = "mount_43243"
+	element.innerHTML = `
+		<div>
+			<div>
+				<div>
+					<div>
+					</div>
+				</div>
+			</div>
+		</div>
+	`
+	return element
+}
+
+/**
+ *
+ * @param {Document} document
+ * @returns {HTMLDivElement}
+ */
 export function createMessagesWrapperElement(document) {
 	const element = document.createElement("div")
 	element.setAttribute("role", "grid")

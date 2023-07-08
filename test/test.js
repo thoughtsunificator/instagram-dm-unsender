@@ -1,6 +1,7 @@
 import test from "ava"
 import { JSDOM } from "jsdom"
 import debug from "debug"
+import { createMountElement } from "./virtual-instagram.js"
 
 global.NodeFilter = new JSDOM().window.NodeFilter
 global.MouseEvent = new JSDOM().window.MouseEvent
@@ -15,6 +16,9 @@ test.beforeEach(t => {
 	})
 	const virtualDOM = jsdom.window
 	const { document } = virtualDOM.window
+	const mountElement = createMountElement(document)
+	document.body.appendChild(mountElement)
+	document.mount = mountElement
 	t.context.document = document
 	t.context.window = virtualDOM.window
 	t.context.window.IDMU_DEBUG = true

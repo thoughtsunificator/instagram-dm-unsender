@@ -8,6 +8,9 @@ export default class UIMessage extends UIComponent {
 	 * @returns {Promise<boolean>}
 	 */
 	static async isMyOwnMessage(element) {
+		element.querySelector("[aria-label=More][aria-expanded=true]")?.click()
+		element.querySelector(`[aria-label="Close details and actions"]`)?.click()
+		element.dispatchEvent(new MouseEvent("mouseout", { bubbles: true }))
 		const uiMessage = new UIMessage(element)
 		const actionButton = await Promise.race([
 			uiMessage.showActionsMenuButton(),
@@ -55,9 +58,9 @@ export default class UIMessage extends UIComponent {
 	 * @param {HTMLButtonElement} actionButton
 	 * @returns {Promise}
 	 */
-	openActionsMenu(actionButton) {
+	async openActionsMenu(actionButton) {
 		console.debug("Workflow step 2 : openActionsMenu", actionButton)
-		return this.clickElementAndWaitFor(
+		const actionMenuElement = await this.clickElementAndWaitFor(
 			actionButton,
 			this.root.ownerDocument.body,
 			() => {
@@ -66,6 +69,12 @@ export default class UIMessage extends UIComponent {
 				return menuElements.shift()
 			},
 		)
+		;[...actionMenuElement.parentNode.parentNode.querySelectorAll("[role=menuitem]")].forEach(element => {
+			if(element !== actionMenuElement) {
+				element.remove()
+			}
+		})
+		return actionMenuElement
 
 	}
 

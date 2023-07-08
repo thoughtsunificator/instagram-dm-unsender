@@ -1,8 +1,8 @@
-import { test } from "../test.js"
-import { createMessagesWrapperElement, createMessageElement } from "../virtual-instagram.js"
-import { UnsendThreadMessagesBatchStrategy } from "../../src/runtime/userscript/strategy.js"
-import IDMU from "../../src/idmu/idmu.js"
-import findMessagesWrapperStrategy from "../../src/ui/strategy/find-messages-wrapper-strategy.js"
+import { test } from "../../../test/test.js"
+import { createMessagesWrapperElement, createMessageElement } from "../../../test/virtual-instagram.js"
+import { UnsendThreadMessagesBatchStrategy } from "./strategy.js"
+import IDMU from "../../idmu/idmu.js"
+import findMessagesWrapperStrategy from "../../ui/strategy/find-messages-wrapper-strategy.js"
 
 test.beforeEach(t => {
 	t.context.pages = []
@@ -22,11 +22,11 @@ test.beforeEach(t => {
 		}
 		t.context.pages.push(page)
 	}
-	t.context.window.IDMU_SCROLL_DETECTION_TIMEOUT = 0
+	t.context.window.IDMU_SCROLL_DETECTION_TIMEOUT = 5
 	t.context.window.IDMU_MESSAGE_QUEUE_DELAY = 0
 	t.context.window.IDMU_NEXT_MESSAGE_PAGE_DELAY = 0
 	t.context.window.IDMU_UNSUCESSFUL_WORKFLOW_ALERT_INTERVAL = 0
-	t.context.document.body.append(createMessagesWrapperElement(t.context.document))
+	t.context.document.mount.append(createMessagesWrapperElement(t.context.document))
 	const messagesWrapperElement = findMessagesWrapperStrategy(t.context.window)
 	Object.defineProperty(messagesWrapperElement, "scrollTop", {
 		get() {
@@ -75,7 +75,7 @@ test.beforeEach(t => {
 // 	t.deepEqual(_unsuccessfulWorkflows.map(uiMessage => uiMessage.uiComponent.root.textContent), [  ])
 // })
 
-test("UnsendThreadMessagesBatchStrategy isRunning", async t => {
+test("UnsendThreadMessagesBatchStrategy isRunning", t => {
 	const strategy = new UnsendThreadMessagesBatchStrategy(t.context.idmu)
 	t.is(strategy._running, false)
 	t.is(strategy._stopped, false)
@@ -86,7 +86,7 @@ test("UnsendThreadMessagesBatchStrategy isRunning", async t => {
 	t.is(strategy.isRunning(), true)
 })
 
-test("UnsendThreadMessagesBatchStrategy stop", async t => {
+test("UnsendThreadMessagesBatchStrategy stop", t => {
 	const strategy = new UnsendThreadMessagesBatchStrategy(t.context.idmu)
 	t.is(strategy._running, false)
 	t.is(strategy._stopped, false)

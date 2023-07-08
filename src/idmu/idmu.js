@@ -15,7 +15,7 @@ export default class IDMU {
 	 *
 	 * @returns {Promise<UIPIMessage[]>}
 	 */
-	async createUIPIMessages() {
+	createUIPIMessages() {
 		return this.#getUIPI().createUIPIMessages()
 	}
 
@@ -24,7 +24,7 @@ export default class IDMU {
 	 *
 	 * @returns {Promise}
 	 */
-	async fetchAndRenderThreadNextMessagePage() {
+	fetchAndRenderThreadNextMessagePage() {
 		return this.#getUIPI().fetchAndRenderThreadNextMessagePage()
 	}
 
