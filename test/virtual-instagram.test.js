@@ -96,7 +96,7 @@ test("createMessageActionsMenuElement click", t => {
 	})
 })
 
-test("loadMoreMessagesStrategy", async t => {
+test("loadMoreMessagesStrategy done", async t => {
 	t.context.mountElement.append(createMessagesWrapperElement(t.context.document))
 	const messagesWrapperElement = findMessagesWrapperStrategy(t.context.window)
 	messagesWrapperElement.innerHTML += `<div role="progressbar"></div>`
@@ -105,13 +105,13 @@ test("loadMoreMessagesStrategy", async t => {
 	t.is(await result, true)
 })
 
-
-test("loadMoreMessagesStrategy #2", async t => {
+test("loadMoreMessagesStrategy not done", async t => {
 	t.context.mountElement.append(createMessagesWrapperElement(t.context.document))
 	const messagesWrapperElement = findMessagesWrapperStrategy(t.context.window)
 	messagesWrapperElement.innerHTML += `<div role="progressbar"></div>`
 	const result = loadMoreMessagesStrategy(messagesWrapperElement)
+	messagesWrapperElement.scrollTop = 1
 	messagesWrapperElement.querySelector("[role=progressbar]").remove()
-	t.is(await result, true)
+	t.is(await result, false)
 })
 

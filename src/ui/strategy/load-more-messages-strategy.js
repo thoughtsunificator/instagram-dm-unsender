@@ -13,7 +13,7 @@ export default async function loadMoreMessageStrategy(root) {
 	const loadingElement = await Promise.race([
 		waitForElement(root, () => root.querySelector(`[role=progressbar]`)),
 		new Promise(resolve => {
-			findLoaderTimeout = setTimeout(resolve, 500)
+			findLoaderTimeout = setTimeout(resolve, root.ownerDocument.defaultView.IDMU_SCROLL_DETECTION_TIMEOUT)
 		})
 	])
 	clearTimeout(findLoaderTimeout)
