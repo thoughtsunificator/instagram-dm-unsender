@@ -58,7 +58,7 @@ export function createMessagesWrapperElement(document, pages=[]) {
 			if(page) {
 				event.target.innerHTML += `<div role="progressbar"></div>`
 				setTimeout(() => {
-					if(pages.find(nextPage => nextPage.page === event.target.currentPage)) {
+					if(pages.find(nextPage => nextPage.page === event.target.currentPage + 1)) {
 						event.target.scrollTop = 5
 					}
 					console.debug("messageWrapperElement loading page", page)
