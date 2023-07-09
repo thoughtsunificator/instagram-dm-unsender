@@ -17,7 +17,7 @@ export default class UIMessage extends UIComponent {
 		const actionButton = await Promise.race([
 			uiMessage.showActionsMenuButton(),
 			new Promise(resolve => {
-				timeout = setTimeout(resolve, 20)
+				timeout = setTimeout(resolve, element.ownerDocument.defaultView.IDMU_MESSAGE_DETECTION_ACTION_MENU_TIMEOUT)
 			})
 		])
 		clearTimeout(timeout)

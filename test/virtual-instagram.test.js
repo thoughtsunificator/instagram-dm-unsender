@@ -99,8 +99,8 @@ test("createMessageActionsMenuElement click", t => {
 test("loadMoreMessagesStrategy", async t => {
 	t.context.mountElement.append(createMessagesWrapperElement(t.context.document))
 	const messagesWrapperElement = findMessagesWrapperStrategy(t.context.window)
-	const result = loadMoreMessagesStrategy(messagesWrapperElement)
 	messagesWrapperElement.innerHTML += `<div role="progressbar"></div>`
+	const result = loadMoreMessagesStrategy(messagesWrapperElement)
 	messagesWrapperElement.querySelector("[role=progressbar]").remove()
 	t.is(await result, true)
 })
@@ -109,8 +109,8 @@ test("loadMoreMessagesStrategy", async t => {
 test("loadMoreMessagesStrategy #2", async t => {
 	t.context.mountElement.append(createMessagesWrapperElement(t.context.document))
 	const messagesWrapperElement = findMessagesWrapperStrategy(t.context.window)
-	const result = loadMoreMessagesStrategy(messagesWrapperElement)
 	messagesWrapperElement.innerHTML += `<div role="progressbar"></div>`
+	const result = loadMoreMessagesStrategy(messagesWrapperElement)
 	messagesWrapperElement.querySelector("[role=progressbar]").remove()
 	t.is(await result, true)
 })

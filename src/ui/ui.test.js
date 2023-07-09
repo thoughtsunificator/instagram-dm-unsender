@@ -11,8 +11,8 @@ test("UI fetchAndRenderThreadNextMessagePage", async t => {
 	const messagesWrapperElement = findMessagesWrapperStrategy(t.context.window)
 	const ui = new UI(t.context.window)
 	ui.identifier.uiMessagesWrapper = new UIWrapper(messagesWrapperElement)
-	const result = ui.fetchAndRenderThreadNextMessagePage()
 	messagesWrapperElement.innerHTML += `<div role="progressbar"></div>`
+	const result = ui.fetchAndRenderThreadNextMessagePage()
 	messagesWrapperElement.querySelector("[role=progressbar]").remove()
 	t.is(await result, true)
 })

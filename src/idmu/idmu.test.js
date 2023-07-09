@@ -15,8 +15,8 @@ test("IDMU fetchAndRenderThreadNextMessagePage", async t => {
 	t.context.mountElement.append(createMessagesWrapperElement(t.context.document))
 	const messagesWrapperElement = findMessagesWrapperStrategy(t.context.window)
 	const idmu = new IDMU(t.context.window)
-	const result = idmu.fetchAndRenderThreadNextMessagePage()
 	messagesWrapperElement.innerHTML += `<div role="progressbar"></div>`
+	const result = idmu.fetchAndRenderThreadNextMessagePage()
 	messagesWrapperElement.querySelector("[role=progressbar]").remove()
 	t.is(await result, true)
 })
