@@ -18,11 +18,11 @@ export default async function loadMoreMessageStrategy(root) {
 	])
 	clearTimeout(findLoaderTimeout)
 	if(loadingElement) {
-		console.debug("loadMoreMessageStrategy: Found loader; progressbar to disappear")
+		console.debug("loadMoreMessageStrategy: Found loader; Stand by until until it is removed")
 		console.debug("loadMoreMessageStrategy: scrollTop", root.scrollTop)
 		await waitForElement(root, () => root.querySelector(`[role=progressbar]`) === null)
-		console.debug("loadMoreMessageStrategy: progressbar to disappeared")
-		console.debug(`loadMoreMessageStrategy: scrollTop is ${root.scrollTop} we ${root.scrollTop === 0 ? "reached last page" : " did not reach last page and will begin another loading shortly"}`, )
+		console.debug("loadMoreMessageStrategy: Loader was removed, older messages loading completed")
+		console.debug(`loadMoreMessageStrategy: scrollTop is ${root.scrollTop} we ${root.scrollTop === 0 ? "reached last page" : " did not reach last page and will begin loading older messages shortly"}`, )
 		return root.scrollTop === 0
 	} else {
 		console.debug("loadMoreMessageStrategy: Could not find loader")
