@@ -8,7 +8,7 @@ test("userscript ui unsend button", t => {
 	t.context.window.alert = () => { alerted = true }
 	const messagesWrapperElement = createMessagesWrapperElement(t.context.document)
 	const overlayElement = t.context.document.querySelector("#idmu-overlay")
-	t.context.document.mount.append(messagesWrapperElement)
+	t.context.mountElement.append(messagesWrapperElement)
 	const button = t.context.window.document.querySelectorAll("button")[0]
 	t.is(button.style.backgroundColor, "")
 	t.is(button.textContent, "Unsend all DMs")

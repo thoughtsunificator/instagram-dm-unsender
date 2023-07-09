@@ -14,7 +14,7 @@ test("UIPI", t => {
 
 test("UIPI create", t => {
 	const messagesWrapperElement = createMessagesWrapperElement(t.context.document)
-	t.context.document.mount.append(messagesWrapperElement)
+	t.context.mountElement.append(messagesWrapperElement)
 	const uipi = UIPI.create(t.context.window)
 	t.true(uipi instanceof UIPI)
 	t.true(uipi.uiComponent instanceof UI)
@@ -23,20 +23,21 @@ test("UIPI create", t => {
 
 
 test("UIPI fetchAndRenderThreadNextMessagePage", async t => {
-	t.context.document.mount.append(createMessagesWrapperElement(t.context.document))
+	t.context.mountElement.append(createMessagesWrapperElement(t.context.document))
 	const messagesWrapperElement = findMessagesWrapperStrategy(t.context.window)
 	const uipi = UIPI.create(t.context.window)
 	const result = uipi.fetchAndRenderThreadNextMessagePage()
 	uipi.uiComponent.identifier.uiMessagesWrapper.root.scrollTop = 1
 	messagesWrapperElement.innerHTML += `<div role="progressbar"></div>`
-	t.is(await result, false)
+	messagesWrapperElement.querySelector("[role=progressbar]").remove()
+	t.is(await result, true)
 })
 
 test("UIPI createUIPIMessages", async t => {
 	const messageElement = createMessageElement(t.context.document, "Test")
 	const uiMessage = new UIMessage(messageElement)
 	const messagesWrapperElement = createMessagesWrapperElement(t.context.document)
-	t.context.document.mount.append(messagesWrapperElement)
+	t.context.mountElement.append(messagesWrapperElement)
 	const uipi = UIPI.create(t.context.window)
 	uipi.uiComponent.identifier.uiMessagesWrapper.root.appendChild(messageElement)
 	const uiMessages = await uipi.createUIPIMessages()
@@ -45,7 +46,7 @@ test("UIPI createUIPIMessages", async t => {
 
 test("UIPI createUIPIMessages multiple", async t => {
 	const messagesWrapperElement = createMessagesWrapperElement(t.context.document)
-	t.context.document.mount.append(messagesWrapperElement)
+	t.context.mountElement.append(messagesWrapperElement)
 	const uipi = UIPI.create(t.context.window)
 	uipi.uiComponent.identifier.uiMessagesWrapper.root.appendChild(createMessageElement(t.context.document, "Test"))
 	uipi.uiComponent.identifier.uiMessagesWrapper.root.appendChild(createMessageElement(t.context.document, "Ignore_me", false))

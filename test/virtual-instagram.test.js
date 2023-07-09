@@ -6,24 +6,24 @@ import loadMoreMessagesStrategy from "../src/ui/strategy/load-more-messages-stra
 
 test("findMessagesStrategy", async t => {
 	const messageElement = createMessageElement(t.context.document, "Test")
-	t.context.document.mount.append(messageElement)
+	t.context.mountElement.append(messageElement)
 	t.deepEqual(await findMessagesStrategy(t.context.document.body), [messageElement])
 })
 
 test("findMessagesStrategy ignore if already processed", async t => {
 	const messageElement = createMessageElement(t.context.document, "Test", true, true)
-	t.context.document.mount.append(messageElement)
+	t.context.mountElement.append(messageElement)
 	t.deepEqual(await findMessagesStrategy(t.context.document.body), [])
 })
 
 test("findMessagesStrategy ignore if unsend button is not found", async t => {
 	const messageElement = createMessageElement(t.context.document, "Test", false)
-	t.context.document.mount.append(messageElement)
+	t.context.mountElement.append(messageElement)
 	t.deepEqual(await findMessagesStrategy(t.context.document.body), [])
 })
 
 test("findMessagesStrategy multiple", async t => {
-	t.context.document.mount.append(...[
+	t.context.mountElement.append(...[
 		createMessageElement(t.context.document, "Test", false),
 		createMessageElement(t.context.document, "Testdsadsadsac"),
 		createMessageElement(t.context.document, "Test", false),
@@ -44,7 +44,7 @@ test("findMessagesStrategy multiple", async t => {
 })
 
 test("findMessagesStrategy multiple dummies", async t => {
-	t.context.document.mount.append(...[
+	t.context.mountElement.append(...[
 		createDummyMessage(t.context.document),
 		createMessageElement(t.context.document, "Test1", false),
 		createMessageElement(t.context.document, "Testdsadsadsac"),
@@ -66,15 +66,15 @@ test("findMessagesStrategy multiple dummies", async t => {
 	t.is(messageElements[2].querySelector("span").textContent, "32132xzcxzdsadsadsa")
 })
 
-test("findMessagesWrapperStrategy", async t => {
+test("findMessagesWrapperStrategy", t => {
 	const messagesWrapperElement = createMessagesWrapperElement(t.context.document)
-	t.context.document.mount.append(messagesWrapperElement)
-	t.deepEqual(await findMessagesWrapperStrategy(t.context.window), messagesWrapperElement)
+	t.context.mountElement.append(messagesWrapperElement)
+	t.deepEqual(findMessagesWrapperStrategy(t.context.window), messagesWrapperElement)
 })
 
 test("createMessageActionsMenuElement", t => {
 	const messageActionsMenuElement = createMessageActionsMenuElement(t.context.document)
-	t.context.document.mount.append(messageActionsMenuElement)
+	t.context.mountElement.append(messageActionsMenuElement)
 	t.not(messageActionsMenuElement.querySelector("#unsend"), null)
 	t.is(messageActionsMenuElement.querySelector("button"), null)
 	messageActionsMenuElement.querySelector("#unsend").click()
@@ -86,7 +86,7 @@ test("createMessageActionsMenuElement", t => {
 
 test("createMessageActionsMenuElement click", t => {
 	const messageActionsMenuElement = createMessageActionsMenuElement(t.context.document)
-	t.context.document.mount.append(messageActionsMenuElement)
+	t.context.mountElement.append(messageActionsMenuElement)
 	t.not(messageActionsMenuElement.querySelector("#unsend"), null)
 	t.is(messageActionsMenuElement.querySelector("button"), null)
 	messageActionsMenuElement.querySelector("#unsend").click()
@@ -97,11 +97,21 @@ test("createMessageActionsMenuElement click", t => {
 })
 
 test("loadMoreMessagesStrategy", async t => {
-	t.context.document.mount.append(createMessagesWrapperElement(t.context.document))
+	t.context.mountElement.append(createMessagesWrapperElement(t.context.document))
 	const messagesWrapperElement = findMessagesWrapperStrategy(t.context.window)
 	const result = loadMoreMessagesStrategy(messagesWrapperElement)
-	messagesWrapperElement.scrollTop = 1
 	messagesWrapperElement.innerHTML += `<div role="progressbar"></div>`
-	t.is(await result, false)
+	messagesWrapperElement.querySelector("[role=progressbar]").remove()
+	t.is(await result, true)
+})
+
+
+test("loadMoreMessagesStrategy #2", async t => {
+	t.context.mountElement.append(createMessagesWrapperElement(t.context.document))
+	const messagesWrapperElement = findMessagesWrapperStrategy(t.context.window)
+	const result = loadMoreMessagesStrategy(messagesWrapperElement)
+	messagesWrapperElement.innerHTML += `<div role="progressbar"></div>`
+	messagesWrapperElement.querySelector("[role=progressbar]").remove()
+	t.is(await result, true)
 })
 

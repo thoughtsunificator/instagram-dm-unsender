@@ -7,15 +7,18 @@ import UIMessage from "../ui-message.js"
  */
 export default async function findMessagesStrategy(root) {
 	const elements = [...root.querySelectorAll("div[role=row]:not([data-idmu-ignore])")]
+	console.debug("findMessagesStrategy elements ", elements)
 	const messageElements = []
 	for(const element of elements) {
 		const isMyOwnMessage = await UIMessage.isMyOwnMessage(element)
 		if(isMyOwnMessage) {
+			console.debug("findMessagesStrategy adding ", element)
 			messageElements.push(element)
 		} else {
+			console.debug("findMessagesStrategy ignoring ", element)
 			element.setAttribute("data-idmu-ignore", "")
 		}
 	}
-	console.debug(messageElements)
+	console.debug("findMessagesStrategy hits", messageElements)
 	return messageElements
 }

@@ -54,7 +54,9 @@ export class UnsendThreadMessagesBatchStrategy {
 		if(!this._running) {
 			clearInterval(this.interval)
 		}
+		console.debug("UnsendThreadMessagesBatchStrategy finished_workflows", this.#finished_workflows)
 		const unsuccessfulWorkflows = this.#finished_workflows.filter(uiMessage => this.#idmu.window.document.contains(uiMessage.uiComponent.root))
+		console.debug("UnsendThreadMessagesBatchStrategy unsuccessfulWorkflows", unsuccessfulWorkflows)
 		if(unsuccessfulWorkflows.length >= 1) {
 			unsuccessfulWorkflows.forEach(failedWorkflow => this.#finished_workflows.splice(this.#finished_workflows.indexOf(failedWorkflow), 1))
 			this.#onUnsuccessfulWorkflows(unsuccessfulWorkflows)

@@ -13,13 +13,14 @@ import { createOverlayElement } from "./overlay.js"
  * @returns {HTMLButtonElement} object.loadThreadMessagesButton
  */
 export function render(window) {
+	console.debug("render")
 	const idmu = new IDMU(window)
 	const strategy = new UnsendThreadMessagesBatchStrategy(idmu, (unsuccessfulWorkflows) => {
 		console.log(unsuccessfulWorkflows)
 	})
 	const { overlayElement, uiElement, menuElement, unsendThreadMessagesButton, loadThreadMessagesButton } = createUIElement(window.document)
 	function onUnsendingFinished() {
-		console.debug("onUnsendingFinished")
+		console.debug("render onUnsendingFinished")
 		;[...menuElement.querySelectorAll("button")].filter(button => button !== unsendThreadMessagesButton).forEach(button => {
 			button.style.visibility = ""
 			button.disabled = false
@@ -32,14 +33,13 @@ export function render(window) {
 		}
 	}
 	async function startUnsending() {
-		[...menuElement.querySelectorAll("button")].filter(button => button !== unsendThreadMessagesButton).forEach(button => {
+		console.debug("User asked for messages unsending to start; UI interaction will be disabled in the meantime")
+		;[...menuElement.querySelectorAll("button")].filter(button => button !== unsendThreadMessagesButton).forEach(button => {
 			button.style.visibility = "hidden"
 			button.disabled = true
-
 		})
 		overlayElement.style.display = ""
 		overlayElement.focus()
-		console.debug("User asked to start messages unsending; UI i1nteraction will be disabled")
 		unsendThreadMessagesButton.textContent = "Stop processing"
 		unsendThreadMessagesButton.style.backgroundColor = "#FA383E"
 		const batchSize = window.localStorage.getItem("IDMU_BATCH_SIZE") || UnsendThreadMessagesBatchStrategy.DEFAULT_BATCH_SIZE
@@ -48,7 +48,7 @@ export function render(window) {
 	}
 	function handleEvents(event) {
 		if(strategy.isRunning()) {
-			console.info("User interaction is disabled as the strategy is still running; Please stop the execution first.")
+			console.info("User interaction is disabled as the unsending is still running; Please stop the execution first.")
 			event.stopImmediatePropagation()
 			event.preventDefault()
 			event.stopPropagation()
@@ -72,7 +72,7 @@ export function render(window) {
 	unsendThreadMessagesButton.dataBackgroundColor = unsendThreadMessagesButton.style.backgroundColor
 	unsendThreadMessagesButton.addEventListener("click", () => {
 		if(strategy.isRunning()) {
-			console.debug("User asked to stop messages unsending")
+			console.debug("User asked for messages unsending to stop")
 			strategy.stop()
 			onUnsendingFinished()
 		} else {

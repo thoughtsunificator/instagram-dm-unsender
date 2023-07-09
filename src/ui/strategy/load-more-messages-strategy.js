@@ -6,26 +6,26 @@ import { waitForElement } from "../../dom/async-events.js"
  * @returns {Promise<boolean>}
  */
 export default async function loadMoreMessageStrategy(root) {
-	console.debug("lodMoreMessageStrategy")
+	console.debug("loadMoreMessageStrategy")
 	root.scrollTop = 999
 	root.scrollTop = 0
 	let findLoaderTimeout
 	const loadingElement = await Promise.race([
-		waitForElement(root, () => root.ownerDocument.body.querySelector(`[role=progressbar]`)),
+		waitForElement(root, () => root.querySelector(`[role=progressbar]`)),
 		new Promise(resolve => {
 			findLoaderTimeout = setTimeout(resolve, 500)
 		})
 	])
 	clearTimeout(findLoaderTimeout)
 	if(loadingElement) {
-		console.debug("Found loader; waiting for messages mutations")
-		console.debug("scrollTop", root.scrollTop)
-		const hasReachedLastPage = await waitForElement(root, () => root.scrollTop !== 0)
-		console.debug("hasReachedLastPage", hasReachedLastPage)
-		console.debug("scrollTop", root.scrollTop)
+		console.debug("loadMoreMessageStrategy: Found loader; progressbar to disappear")
+		console.debug("loadMoreMessageStrategy: scrollTop", root.scrollTop)
+		await waitForElement(root, () => root.querySelector(`[role=progressbar]`) === null)
+		console.debug("loadMoreMessageStrategy: progressbar to disappeared")
+		console.debug(`loadMoreMessageStrategy: scrollTop is ${root.scrollTop} we ${root.scrollTop === 0 ? "reached last page" : " did not reach last page and will begin another loading shortly"}`, )
 		return root.scrollTop === 0
 	} else {
-		console.debug("Could not find loader")
+		console.debug("loadMoreMessageStrategy: Could not find loader")
 		return true
 	}
 }

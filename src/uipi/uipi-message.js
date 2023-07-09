@@ -26,6 +26,7 @@ export default class UIPIMessage extends UIPIComponent {
 			await this.uiComponent.scrollIntoView()
 			actionButton = await this.uiComponent.showActionsMenuButton()
 			actionsMenuElement = await this.uiComponent.openActionsMenu(actionButton)
+			console.debug("actionsMenuElement", actionsMenuElement)
 			const dialogButton = await this.uiComponent.openConfirmUnsendModal()
 			await this.uiComponent.confirmUnsend(dialogButton)
 			this.uiComponent.root.setAttribute("data-idmu-unsent", "")

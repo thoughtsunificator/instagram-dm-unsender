@@ -18,7 +18,7 @@ test.beforeEach(t => {
 	const { document } = virtualDOM.window
 	const mountElement = createMountElement(document)
 	document.body.appendChild(mountElement)
-	document.mount = mountElement
+	t.context.mountElement = mountElement
 	t.context.document = document
 	t.context.window = virtualDOM.window
 	t.context.window.IDMU_DEBUG = true

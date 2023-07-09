@@ -12,22 +12,21 @@ test("IDMU", t => {
 })
 
 test("IDMU fetchAndRenderThreadNextMessagePage", async t => {
-	t.context.document.mount.append(createMessagesWrapperElement(t.context.document))
+	t.context.mountElement.append(createMessagesWrapperElement(t.context.document))
 	const messagesWrapperElement = findMessagesWrapperStrategy(t.context.window)
 	const idmu = new IDMU(t.context.window)
 	const result = idmu.fetchAndRenderThreadNextMessagePage()
-	messagesWrapperElement.scrollTop = 1
 	messagesWrapperElement.innerHTML += `<div role="progressbar"></div>`
-	t.is(await result, false)
+	messagesWrapperElement.querySelector("[role=progressbar]").remove()
+	t.is(await result, true)
 })
 
 test("IDMU createUIPIMessages", async t => {
 	const messagesWrapperElement = createMessagesWrapperElement(t.context.document)
-	t.context.document.mount.append(messagesWrapperElement)
+	t.context.mountElement.append(messagesWrapperElement)
 	const messageElement = createMessageElement(t.context.document, "cxzc423Testsdfdsfsdfsdfds")
 	const idmu = new IDMU(t.context.window)
 	findMessagesWrapperStrategy(t.context.window).appendChild(messageElement)
-	console.debug(t.context.document.body.outerHTML)
 	const uiMessages = await idmu.createUIPIMessages()
 	t.is(uiMessages.length, 1)
 	t.is(uiMessages[0].uiComponent.root.querySelector("span").textContent, "cxzc423Testsdfdsfsdfsdfds")

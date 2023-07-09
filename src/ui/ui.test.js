@@ -7,14 +7,14 @@ import UIMessage from "./ui-message.js"
 import findMessagesWrapperStrategy from "./strategy/find-messages-wrapper-strategy.js"
 
 test("UI fetchAndRenderThreadNextMessagePage", async t => {
-	t.context.document.mount.append(createMessagesWrapperElement(t.context.document))
+	t.context.mountElement.append(createMessagesWrapperElement(t.context.document))
 	const messagesWrapperElement = findMessagesWrapperStrategy(t.context.window)
 	const ui = new UI(t.context.window)
 	ui.identifier.uiMessagesWrapper = new UIWrapper(messagesWrapperElement)
 	const result = ui.fetchAndRenderThreadNextMessagePage()
 	messagesWrapperElement.innerHTML += `<div role="progressbar"></div>`
-	messagesWrapperElement.scrollTop = 1
-	t.is(await result, false)
+	messagesWrapperElement.querySelector("[role=progressbar]").remove()
+	t.is(await result, true)
 })
 
 test("UI createUIPIMessages", async t => {
@@ -24,7 +24,7 @@ test("UI createUIPIMessages", async t => {
 	messagesWrapperElement.appendChild(messageElement)
 	const ui = new UI(t.context.window)
 	ui.identifier.uiMessagesWrapper = new UIWrapper(messagesWrapperElement)
-	t.context.document.mount.append(messagesWrapperElement)
+	t.context.mountElement.append(messagesWrapperElement)
 	const uipiMessages = await ui.createUIPIMessages()
 	t.deepEqual(uipiMessages, [new UIPIMessage(uiMessage)])
 })

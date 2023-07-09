@@ -22,7 +22,6 @@ export default class UI extends UIComponent {
 		console.debug("UI createUIPIMessages")
 		const uipiMessages = []
 		const messageElements = await findMessagesStrategy(this.identifier.uiMessagesWrapper.root)
-		console.debug("findMessagesStrategy", messageElements)
 		for(const messageElement of messageElements) {
 			const uiMessage = new UIMessage(messageElement)
 			uipiMessages.push(new UIPIMessage(uiMessage))

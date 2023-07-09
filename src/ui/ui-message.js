@@ -8,6 +8,7 @@ export default class UIMessage extends UIComponent {
 	 * @returns {Promise<boolean>}
 	 */
 	static async isMyOwnMessage(element) {
+		console.debug("isMyOwnMessage", element)
 		element.querySelector("[aria-label=More][aria-expanded=true]")?.click()
 		element.querySelector(`[aria-label="Close details and actions"]`)?.click()
 		element.dispatchEvent(new MouseEvent("mouseout", { bubbles: true }))
@@ -50,7 +51,7 @@ export default class UIMessage extends UIComponent {
 	 * @returns {Promise<boolean>}
 	 */
 	hideActionMenuButton() {
-		console.debug("hideActionMenuButton")
+		console.debug("Workflow rolling back hideActionMenuButton")
 		this.root.dispatchEvent(new MouseEvent("mousemove", { bubbles: true }))
 		this.root.dispatchEvent(new MouseEvent("mouseout", { bubbles: true }))
 		this.root.dispatchEvent(new MouseEvent("mouseleave", { bubbles: true }))
@@ -69,11 +70,11 @@ export default class UIMessage extends UIComponent {
 			this.root.ownerDocument.body,
 			() => {
 				const menuElements = [...this.root.ownerDocument.querySelectorAll("[role=menu] [role=menuitem]")]
-				console.debug("menuElements", menuElements)
+				console.debug("Workflow step 2 menuElements", menuElements.map(menuElement => menuElement.textContent))
 				menuElements.sort(node => node.textContent.toLocaleLowerCase() === "unsend" ? -1 : 0) // TODO i18n
 				return menuElements.shift()
 			},
-			)
+		)
 			;[...actionMenuElement.parentNode.parentNode.querySelectorAll("[role=menuitem]")].forEach(element => {
 			if(element !== actionMenuElement) {
 				element.remove()
@@ -90,7 +91,7 @@ export default class UIMessage extends UIComponent {
 	 * @returns {Promise<boolean>}
 	 */
 	closeActionsMenu(actionButton, actionsMenuElement) {
-		console.debug("closeActionsMenu")
+		console.debug("Workflow rolling back  closeActionsMenu")
 		return this.clickElementAndWaitFor(
 			actionButton,
 			this.root.ownerDocument.body,

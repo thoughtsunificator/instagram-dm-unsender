@@ -5,7 +5,7 @@ export default class UIMessagesWrapper extends UIComponent {
 
 	/**
 	 * @param {Window}
-	 * @returns {Element}
+	 * @returns {HTMLDivElement}
 	 */
 	static find(window) {
 		return window.document.querySelector("div[role=grid] > div > div > div > div")
