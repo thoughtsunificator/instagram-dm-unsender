@@ -18,7 +18,7 @@ export default async function loadMoreMessageStrategy(root) {
 	])
 	clearTimeout(findLoaderTimeout)
 	if(loadingElement) {
-		console.debug("loadMoreMessageStrategy: Found loader; Stand by until until it is removed")
+		console.debug("loadMoreMessageStrategy: Found loader; Stand-by until it is removed")
 		console.debug("loadMoreMessageStrategy: scrollTop", root.scrollTop)
 		await waitForElement(root, () => root.querySelector(`[role=progressbar]`) === null)
 		console.debug("loadMoreMessageStrategy: Loader was removed, older messages loading completed")
