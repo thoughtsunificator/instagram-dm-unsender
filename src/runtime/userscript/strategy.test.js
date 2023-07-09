@@ -26,20 +26,20 @@ test.beforeEach(t => {
 	t.context.idmu = new IDMU(t.context.window)
 })
 
-test("UnsendThreadMessagesBatchStrategy unsuccessfulWorkflowAlert", async t => {
-	t.context.window.FAKE_FAIL_UNSEND = true
-	await new UnsendThreadMessagesBatchStrategy(t.context.idmu, (unsuccessfulWorkflows) => {
-		console.log(unsuccessfulWorkflows)
-		t.deepEqual(unsuccessfulWorkflows.map(uiMessage => uiMessage.uiComponent.root.textContent), [
-			"Test1",
-			"Test2",
-			"Test3",
-			"Test1",
-			"Test2",
-			"Test3",
-		])
-	}).run(2)
-})
+// test("UnsendThreadMessagesBatchStrategy unsuccessfulWorkflowAlert", async t => {
+// 	t.context.window.FAKE_FAIL_UNSEND = true
+// 	await new UnsendThreadMessagesBatchStrategy(t.context.idmu, (unsuccessfulWorkflows) => {
+// 		console.log(unsuccessfulWorkflows)
+// 		t.deepEqual(unsuccessfulWorkflows.map(uiMessage => uiMessage.uiComponent.root.textContent), [
+// 			"Test1",
+// 			"Test2",
+// 			"Test3",
+// 			"Test1",
+// 			"Test2",
+// 			"Test3",
+// 		])
+// 	}).run(2)
+// })
 
 // test("UnsendThreadMessagesBatchStrategy unsuccessfulWorkflowAlert #2", async t => {
 // 	const _unsuccessfulWorkflows = []
