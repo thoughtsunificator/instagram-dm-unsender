@@ -6,6 +6,10 @@ The userscript allow a user to batch unsend DM in a thread on the web version of
 
 ⚠️ [Only works on the US version](#why-only-us)
 
+## Use cases
+
+- One possible use case would be people wanting to switch to fediverse want to "remove" all their messages from Meta's platform.
+
 ## How does it work ?
 
 This script is meant to be run on the page that lists the message threads.
@@ -26,13 +30,17 @@ The workflow works as follow:
      - ### Click "confirm":
         Click the "confirm" button inside the modal.
 
+
+
 There is no concurrency, message are unsent one after another by using a queue.
 
 ⚠️ Instagram has a rate limits, after a certain of messages you might get blocked from unsending message for a period of time.
 
 ## Installing
 
-[Install userscript](https://github.com/thoughtsunificator/instagram-dm-unsender/raw/userscript/idmu.user.js)
+[Install stable](https://github.com/thoughtsunificator/instagram-dm-unsender/releases/download/v0.4.41/idmu.user.js)
+
+[Install latest](https://github.com/thoughtsunificator/instagram-dm-unsender/raw/userscript/idmu.user.js)
 
 [Older releases](https://github.com/thoughtsunificator/instagram-dm-unsender/releases)
 
