@@ -1,6 +1,6 @@
 import { test } from "../../../test/test.js"
 import { createMessagesWrapperElement } from "../../../test/virtual-instagram.js"
-import { UnsendThreadMessagesBatchStrategy } from "./strategy.js"
+import { BatchUnsendStrategy } from "./unsend-strategy.js"
 import IDMU from "../../idmu/idmu.js"
 
 test.beforeEach(t => {
@@ -8,8 +8,8 @@ test.beforeEach(t => {
 	t.context.idmu = new IDMU(t.context.window)
 })
 
-test("UnsendThreadMessagesBatchStrategy isRunning", t => {
-	const strategy = new UnsendThreadMessagesBatchStrategy(t.context.idmu)
+test("BatchUnsendStrategy isRunning", t => {
+	const strategy = new BatchUnsendStrategy(t.context.idmu)
 	t.is(strategy._running, false)
 	t.is(strategy._stopped, false)
 	t.is(strategy.isRunning(), false)
@@ -19,8 +19,8 @@ test("UnsendThreadMessagesBatchStrategy isRunning", t => {
 	t.is(strategy.isRunning(), true)
 })
 
-test("UnsendThreadMessagesBatchStrategy stop", t => {
-	const strategy = new UnsendThreadMessagesBatchStrategy(t.context.idmu)
+test("BatchUnsendStrategy stop", t => {
+	const strategy = new BatchUnsendStrategy(t.context.idmu)
 	t.is(strategy._running, false)
 	t.is(strategy._stopped, false)
 	t.is(strategy.isRunning(), false)

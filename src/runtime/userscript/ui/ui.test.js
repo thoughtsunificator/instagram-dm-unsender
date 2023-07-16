@@ -1,9 +1,15 @@
 import { test } from "../../../../test/test.js"
-import { render } from "./ui.js"
+import UI from "./ui.js"
 import { createMessagesWrapperElement } from "../../../../test/virtual-instagram.js"
 
+test("userscript ui render", t => {
+	UI.render(t.context.window)
+	t.is(t.context.window.document.querySelectorAll("button").length, 2)
+	t.pass()
+})
+
 test("userscript ui unsend button", t => {
-	render(t.context.window)
+	UI.render(t.context.window)
 	let alerted = false
 	t.context.window.alert = () => { alerted = true }
 	const messagesWrapperElement = createMessagesWrapperElement(t.context.document)

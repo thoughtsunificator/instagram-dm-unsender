@@ -1,7 +1,7 @@
-import { render } from "./ui/ui.js"
+import UI from "./ui/ui.js"
 
 if(!window.IDMU_DEBUG) {
 	console.debug = () => {}
 }
 
-render(window)
+UI.render(window)

@@ -21,7 +21,6 @@ test("UIPI create", t => {
 	t.is(uipi.uiComponent.identifier.uiMessagesWrapper.root, findMessagesWrapperStrategy(t.context.window))
 })
 
-
 test("UIPI fetchAndRenderThreadNextMessagePage", async t => {
 	t.context.mountElement.append(createMessagesWrapperElement(t.context.document))
 	const messagesWrapperElement = findMessagesWrapperStrategy(t.context.window)
