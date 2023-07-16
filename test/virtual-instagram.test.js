@@ -1,28 +1,26 @@
 import { test } from "./test.js"
 import { createMessageElement, createMessagesWrapperElement, createMessageActionsMenuElement, createDummyMessage } from "./virtual-instagram.js"
-import findMessagesStrategy from "../src/ui/strategy/find-messages-strategy.js"
-import findMessagesWrapperStrategy from "../src/ui/strategy/find-messages-wrapper-strategy.js"
-import loadMoreMessagesStrategy from "../src/ui/strategy/load-more-messages-strategy.js"
+import { findMessagesWrapper, loadMoreMessages, findMessages } from "../src/ui/default/dom-lookup.js"
 
-test("findMessagesStrategy", async t => {
+test("findMessages", async t => {
 	const messageElement = createMessageElement(t.context.document, "Test")
 	t.context.mountElement.append(messageElement)
-	t.deepEqual(await findMessagesStrategy(t.context.document.body), [messageElement])
+	t.deepEqual(await findMessages(t.context.document.body), [messageElement])
 })
 
-test("findMessagesStrategy ignore if already processed", async t => {
+test("findMessages ignore if already processed", async t => {
 	const messageElement = createMessageElement(t.context.document, "Test", true, true)
 	t.context.mountElement.append(messageElement)
-	t.deepEqual(await findMessagesStrategy(t.context.document.body), [])
+	t.deepEqual(await findMessages(t.context.document.body), [])
 })
 
-test("findMessagesStrategy ignore if unsend button is not found", async t => {
+test("findMessages ignore if unsend button is not found", async t => {
 	const messageElement = createMessageElement(t.context.document, "Test", false)
 	t.context.mountElement.append(messageElement)
-	t.deepEqual(await findMessagesStrategy(t.context.document.body), [])
+	t.deepEqual(await findMessages(t.context.document.body), [])
 })
 
-test("findMessagesStrategy multiple", async t => {
+test("findMessages multiple", async t => {
 	t.context.mountElement.append(...[
 		createMessageElement(t.context.document, "Test", false),
 		createMessageElement(t.context.document, "Testdsadsadsac"),
@@ -31,19 +29,19 @@ test("findMessagesStrategy multiple", async t => {
 		createMessageElement(t.context.document, "Test", false),
 		createMessageElement(t.context.document, "32132xzcxzdsadsadsa"),
 	])
-	let messageElements = await findMessagesStrategy(t.context.document.body)
+	let messageElements = await findMessages(t.context.document.body)
 	t.is(messageElements.length, 3)
 	t.is(messageElements[0].querySelector("span").textContent, "Testdsadsadsac")
 	t.is(messageElements[1].querySelector("span").textContent, "xzcxzdsadsadsa")
 	t.is(messageElements[2].querySelector("span").textContent, "32132xzcxzdsadsadsa")
-	messageElements = await findMessagesStrategy(t.context.document.body)
+	messageElements = await findMessages(t.context.document.body)
 	t.is(messageElements.length, 3)
 	t.is(messageElements[0].querySelector("span").textContent, "Testdsadsadsac")
 	t.is(messageElements[1].querySelector("span").textContent, "xzcxzdsadsadsa")
 	t.is(messageElements[2].querySelector("span").textContent, "32132xzcxzdsadsadsa")
 })
 
-test("findMessagesStrategy multiple dummies", async t => {
+test("findMessages multiple dummies", async t => {
 	t.context.mountElement.append(...[
 		createDummyMessage(t.context.document),
 		createMessageElement(t.context.document, "Test1", false),
@@ -54,22 +52,22 @@ test("findMessagesStrategy multiple dummies", async t => {
 		createMessageElement(t.context.document, "Test3", false),
 		createMessageElement(t.context.document, "32132xzcxzdsadsadsa"),
 	])
-	let messageElements = await findMessagesStrategy(t.context.document.body)
+	let messageElements = await findMessages(t.context.document.body)
 	t.is(messageElements.length, 3)
 	t.is(messageElements[0].querySelector("span").textContent, "Testdsadsadsac")
 	t.is(messageElements[1].querySelector("span").textContent, "xzcxzdsadsadsa")
 	t.is(messageElements[2].querySelector("span").textContent, "32132xzcxzdsadsadsa")
-	messageElements = await findMessagesStrategy(t.context.document.body)
+	messageElements = await findMessages(t.context.document.body)
 	t.is(messageElements.length, 3)
 	t.is(messageElements[0].querySelector("span").textContent, "Testdsadsadsac")
 	t.is(messageElements[1].querySelector("span").textContent, "xzcxzdsadsadsa")
 	t.is(messageElements[2].querySelector("span").textContent, "32132xzcxzdsadsadsa")
 })
 
-test("findMessagesWrapperStrategy", t => {
+test("findMessagesWrapper", t => {
 	const messagesWrapperElement = createMessagesWrapperElement(t.context.document)
 	t.context.mountElement.append(messagesWrapperElement)
-	t.not(findMessagesWrapperStrategy(t.context.window), null)
+	t.not(findMessagesWrapper(t.context.window), null)
 })
 
 test("createMessageActionsMenuElement", t => {
@@ -96,20 +94,20 @@ test("createMessageActionsMenuElement click", t => {
 	})
 })
 
-test("loadMoreMessagesStrategy done", async t => {
+test("loadMoreMessages done", async t => {
 	t.context.mountElement.append(createMessagesWrapperElement(t.context.document))
-	const messagesWrapperElement = findMessagesWrapperStrategy(t.context.window)
+	const messagesWrapperElement = findMessagesWrapper(t.context.window)
 	messagesWrapperElement.innerHTML += `<div role="progressbar"></div>`
-	const result = loadMoreMessagesStrategy(messagesWrapperElement)
+	const result = loadMoreMessages(messagesWrapperElement)
 	messagesWrapperElement.querySelector("[role=progressbar]").remove()
 	t.is(await result, true)
 })
 
-test("loadMoreMessagesStrategy not done", async t => {
+test("loadMoreMessages not done", async t => {
 	t.context.mountElement.append(createMessagesWrapperElement(t.context.document))
-	const messagesWrapperElement = findMessagesWrapperStrategy(t.context.window)
+	const messagesWrapperElement = findMessagesWrapper(t.context.window)
 	messagesWrapperElement.innerHTML += `<div role="progressbar"></div>`
-	const result = loadMoreMessagesStrategy(messagesWrapperElement)
+	const result = loadMoreMessages(messagesWrapperElement)
 	messagesWrapperElement.scrollTop = 1
 	messagesWrapperElement.querySelector("[role=progressbar]").remove()
 	t.is(await result, false)

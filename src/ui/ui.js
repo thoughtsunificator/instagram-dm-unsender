@@ -1,32 +1,29 @@
 import UIComponent from "./ui-component.js"
-import findMessagesStrategy from "../ui/strategy/find-messages-strategy.js"
-import UIPIMessage from "../uipi/uipi-message.js"
-import UIMessage from "./ui-message.js"
 
 export default class UI extends UIComponent {
 
 	/**
 	 *
-	 * @returns {Promise>}
+	 * @abstract
+	 * @returns {UI}
 	 */
-	async fetchAndRenderThreadNextMessagePage() {
-		console.debug("UI fetchAndRenderThreadNextMessagePage")
-		return await this.identifier.uiMessagesWrapper.fetchAndRenderThreadNextMessagePage()
+	static create() {
 	}
 
 	/**
 	 *
+	 * @abstract
+	 * @returns {Promise}
+	 */
+	async fetchAndRenderThreadNextMessagePage() {
+	}
+
+	/**
+	 *
+	 * @abstract
 	 * @returns {Promise<UIPIMessage[]>}
 	 */
 	async createUIPIMessages() {
-		console.debug("UI createUIPIMessages")
-		const uipiMessages = []
-		const messageElements = await findMessagesStrategy(this.identifier.uiMessagesWrapper.root)
-		for(const messageElement of messageElements) {
-			const uiMessage = new UIMessage(messageElement)
-			uipiMessages.push(new UIPIMessage(uiMessage))
-		}
-		return uipiMessages
 	}
 
 }

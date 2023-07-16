@@ -13,6 +13,7 @@ class UnsendStrategy {
 	/**
 	 *
 	 * @abstract
+	 * @returns {boolean}
 	 */
 	isRunning() {
 	}

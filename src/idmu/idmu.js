@@ -5,6 +5,7 @@ export default class IDMU {
 	/**
 	 *
 	 * @param {Window} window
+	 * @param {UI.constructor} UI
 	 */
 	constructor(window) {
 		this.window = window
@@ -34,7 +35,7 @@ export default class IDMU {
 	 */
 	#getUIPI() {
 		if(this.uipi === null) {
-			this.uipi = UIPI.create(this.window)
+			this.uipi = UIPI.create(this.window, this.UI)
 		}
 		return this.uipi
 	}

@@ -1,7 +1,7 @@
-import { test } from "../../test/test.js"
+import { test } from "../../../test/test.js"
 import UIMessagesWrapper from "./ui-messages-wrapper.js"
-import { createMessagesWrapperElement } from "../../test/virtual-instagram.js"
-import findMessagesWrapperStrategy from "./strategy/find-messages-wrapper-strategy.js"
+import { createMessagesWrapperElement } from "../../../test/virtual-instagram.js"
+import { findMessagesWrapper } from "./dom-lookup.js"
 
 test("UIMessagesWrapper", t => {
 	const messagesWrapperElement = createMessagesWrapperElement(t.context.document)
@@ -12,7 +12,7 @@ test("UIMessagesWrapper", t => {
 
 test("UIMessagesWrapper fetchAndRenderThreadNextMessagePage", async t => {
 	t.context.mountElement.append(createMessagesWrapperElement(t.context.document))
-	const messagesWrapperElement = findMessagesWrapperStrategy(t.context.window)
+	const messagesWrapperElement = findMessagesWrapper(t.context.window)
 	const uiMessagesWrapper = new UIMessagesWrapper(messagesWrapperElement)
 	messagesWrapperElement.innerHTML += `<div role="progressbar"></div>`
 	const result = uiMessagesWrapper.fetchAndRenderThreadNextMessagePage()

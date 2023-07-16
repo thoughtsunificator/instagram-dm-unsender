@@ -1,6 +1,6 @@
-import { test } from "../../test/test.js"
+import { test } from "../../../test/test.js"
 import UIMessage from "./ui-message.js"
-import { createMessageElement, createMessageActionsMenuElement } from "../../test/virtual-instagram.js"
+import { createMessageElement, createMessageActionsMenuElement } from "../../../test/virtual-instagram.js"
 
 test("UIMessage", t => {
 	const messageElement = createMessageElement(t.context.document, "Test")

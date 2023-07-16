@@ -1,4 +1,4 @@
-import UIComponent from "./ui-component.js"
+import UIComponent from "../ui-component.js"
 
 export default class UIMessage extends UIComponent {
 

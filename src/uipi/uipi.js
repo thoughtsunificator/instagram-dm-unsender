@@ -1,16 +1,13 @@
-import UIPIComponent from "./uipi-component.js"
-import findMessagesWrapperStrategy from "../ui/strategy/find-messages-wrapper-strategy.js"
-import UIMessagesWrapper from "../ui/ui-messages-wrapper.js"
-import UI from "../ui/ui.js"
+import getUI from "../ui/get-ui.js"
 
-export default class UIPI extends UIPIComponent {
+export default class UIPI {
 
 	/**
 	 *
-	 * @param {UI} uiComponent
+	 * @param {UI} ui
 	 */
-	constructor(uiComponent) {
-		super(uiComponent)
+	constructor(ui) {
+		this._ui = ui
 	}
 
 	/**
@@ -20,18 +17,9 @@ export default class UIPI extends UIPIComponent {
 	 */
 	static create(window) {
 		console.debug("UIPI.create")
-		const messagesWrapperElement = findMessagesWrapperStrategy(window)
-		let uipi
-		if(messagesWrapperElement !== null) {
-			console.debug("Found messagesWrapperElement")
-			console.debug(messagesWrapperElement)
-			const ui = new UI(window)
-			ui.identifier.uiMessagesWrapper = new UIMessagesWrapper(messagesWrapperElement)
-			uipi = new UIPI(ui)
-		} else {
-			throw new Error("Unable to find messagesWrapperElement")
-		}
-		return uipi
+		const UI = getUI()
+		const ui = UI.create(window)
+		return new UIPI(ui)
 	}
 
 	/**
@@ -40,7 +28,7 @@ export default class UIPI extends UIPIComponent {
 	 */
 	fetchAndRenderThreadNextMessagePage() {
 		console.debug("UIPI fetchAndRenderThreadNextMessagePage")
-		return this.uiComponent.fetchAndRenderThreadNextMessagePage()
+		return this.ui.fetchAndRenderThreadNextMessagePage()
 	}
 
 	/**
@@ -49,7 +37,14 @@ export default class UIPI extends UIPIComponent {
 	 */
 	createUIPIMessages() {
 		console.debug("UIPI createUIPIMessages")
-		return this.uiComponent.createUIPIMessages()
+		return this.ui.createUIPIMessages()
+	}
+
+	/**
+	 * @type {UI}
+	 */
+	get ui() {
+		return this._ui
 	}
 
 }

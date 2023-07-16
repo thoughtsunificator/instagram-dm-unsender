@@ -1,18 +1,14 @@
-import UIPIComponent from "./uipi-component.js"
-
-
 class FailedWorkflowException extends Error {}
 
-export default class UIPIMessage extends UIPIComponent {
+export default class UIPIMessage {
 
 	/**
 	 *
-	 * @param {UIMessage} uiComponent
+	 * @param {UIMessage} uiMessage
 	 */
-	constructor(uiComponent) {
-		super(uiComponent)
+	constructor(uiMessage) {
+		this._uiMessage = uiMessage
 	}
-
 
 	/**
 	 *
@@ -23,22 +19,29 @@ export default class UIPIMessage extends UIPIComponent {
 		let actionButton
 		let actionsMenuElement
 		try {
-			await this.uiComponent.scrollIntoView()
-			actionButton = await this.uiComponent.showActionsMenuButton()
-			actionsMenuElement = await this.uiComponent.openActionsMenu(actionButton)
+			await this.uiMessage.scrollIntoView()
+			actionButton = await this.uiMessage.showActionsMenuButton()
+			actionsMenuElement = await this.uiMessage.openActionsMenu(actionButton)
 			console.debug("actionsMenuElement", actionsMenuElement)
-			const dialogButton = await this.uiComponent.openConfirmUnsendModal()
-			await this.uiComponent.confirmUnsend(dialogButton)
-			this.uiComponent.root.setAttribute("data-idmu-unsent", "")
+			const dialogButton = await this.uiMessage.openConfirmUnsendModal()
+			await this.uiMessage.confirmUnsend(dialogButton)
+			this.uiMessage.root.setAttribute("data-idmu-unsent", "")
 			return true
 		} catch(ex) {
 			console.error(ex)
 			if(actionButton && actionsMenuElement) {
-				await this.uiComponent.closeActionsMenu(actionButton, actionsMenuElement)
+				await this.uiMessage.closeActionsMenu(actionButton, actionsMenuElement)
 			}
-			await this.uiComponent.hideActionMenuButton()
+			await this.uiMessage.hideActionMenuButton()
 			throw new FailedWorkflowException("Failed to execute workflow for this message")
 		}
+	}
+
+	/**
+	 * @type {UIMessage}
+	 */
+	get uiMessage() {
+		return this._uiMessage
 	}
 
 }
