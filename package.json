@@ -9,7 +9,8 @@
     "test-coverage": "c8 ava",
     "start": "rollup --config rollup.userscript.config.js --environment BUILD:development --watch",
     "build": "rollup --config rollup.userscript.config.js --environment BUILD:production",
-    "eslint": "eslint src/**"
+    "eslint": "eslint src/**",
+    "husky": "husky install"
   },
   "author": "Romain Lebesle <oss@thoughtsunificator.me> (https://thoughtsunificator.me)",
   "license": "MIT",
@@ -20,6 +21,7 @@
     "ava": "^5.3.1",
     "c8": "^8.0.0",
     "eslint": "^8.43.0",
+    "husky": "^8.0.3",
     "jsdom": "^22.1.0",
     "rollup": "^3.25.3"
   }
