@@ -1,7 +1,7 @@
 import test from "ava"
 import { JSDOM } from "jsdom"
 import debug from "debug"
-import { createMountElement } from "./virtual-instagram.js"
+import { createMountElement } from "./default-ui.js"
 
 global.NodeFilter = new JSDOM().window.NodeFilter
 global.MouseEvent = new JSDOM().window.MouseEvent

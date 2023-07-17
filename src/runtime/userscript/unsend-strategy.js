@@ -6,8 +6,6 @@ class UnsendStrategy {
 	 */
 	constructor(idmu) {
 		this._idmu = idmu
-		this._running = false
-		this._stopped = false
 	}
 
 	/**
@@ -59,6 +57,8 @@ export class BatchUnsendStrategy extends UnsendStrategy {
 	 */
 	constructor(idmu, onUnsuccessfulWorkflows=null) {
 		super(idmu)
+		this._running = false
+		this._stopped = false
 		this.#finished_workflows = []
 		this.#onUnsuccessfulWorkflows = onUnsuccessfulWorkflows
 	}
