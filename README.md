@@ -61,6 +61,8 @@ You can also do a one-time build with:
 
 Instagram web app is different based on the user location and supporting all of them would require extra efforts which I do not see as a priority right now. As of now only the US version is supported.
 
+Link to the issue : [https://github.com/thoughtsunificator/instagram-dm-unsender/issues/1](https://github.com/thoughtsunificator/instagram-dm-unsender/issues/1)
+
 ## Testing
 
 Use the ``DEBUG=idmu:test`` env to enable debug logs while testing.
