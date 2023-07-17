@@ -1,5 +1,5 @@
 import { test } from "../../../test/test.js"
-import { createMessagesWrapperElement } from "../../../test/virtual-instagram.js"
+import { createMessagesWrapperElement } from "../../../test/default-ui.js"
 import { BatchUnsendStrategy } from "./unsend-strategy.js"
 import IDMU from "../../idmu/idmu.js"
 

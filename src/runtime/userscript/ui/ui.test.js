@@ -1,6 +1,6 @@
 import { test } from "../../../../test/test.js"
 import UI from "./ui.js"
-import { createMessagesWrapperElement } from "../../../../test/virtual-instagram.js"
+import { createMessagesWrapperElement } from "../../../../test/default-ui.js"
 
 test("userscript ui render", t => {
 	UI.render(t.context.window)

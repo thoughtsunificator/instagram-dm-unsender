@@ -1,6 +1,6 @@
 import { test } from "../../test/test.js"
 import UI from "../ui/ui.js"
-import { createMessageElement, createMessagesWrapperElement } from "../../test/virtual-instagram.js"
+import { createMessageElement, createMessagesWrapperElement } from "../../test/default-ui.js"
 import UIPI from "../uipi/uipi.js"
 import { findMessagesWrapper } from "../ui/default/dom-lookup.js"
 import IDMU from "./idmu.js"

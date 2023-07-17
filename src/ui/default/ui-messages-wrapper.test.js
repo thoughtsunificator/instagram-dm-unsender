@@ -1,6 +1,6 @@
 import { test } from "../../../test/test.js"
 import UIMessagesWrapper from "./ui-messages-wrapper.js"
-import { createMessagesWrapperElement } from "../../../test/virtual-instagram.js"
+import { createMessagesWrapperElement } from "../../../test/default-ui.js"
 import { findMessagesWrapper } from "./dom-lookup.js"
 
 test("UIMessagesWrapper", t => {

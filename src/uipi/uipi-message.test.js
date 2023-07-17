@@ -1,6 +1,6 @@
 import { test } from "../../test/test.js"
 import UIMessage from "../ui/default/ui-message.js"
-import { createMessageElement, createMessageActionsMenuElement } from "../../test/virtual-instagram.js"
+import { createMessageElement, createMessageActionsMenuElement } from "../../test/default-ui.js"
 import UIPIMessage from "./uipi-message.js"
 
 test("UIPIMessage", t => {

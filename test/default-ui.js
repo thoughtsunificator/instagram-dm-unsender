@@ -124,8 +124,8 @@ export function createMessageElement(document, text="", includesUnsend=true, ign
  * @param {Document} document
  * @returns {HTMLDivElement}
  */
-export function createDummyMessage(document) {
-	console.debug("createDummyMessage", arguments)
+export function createDummyMessageElement(document) {
+	console.debug("createDummyMessageElement", arguments)
 	const element = document.createElement("div")
 	element.setAttribute("role", "row")
 	return element

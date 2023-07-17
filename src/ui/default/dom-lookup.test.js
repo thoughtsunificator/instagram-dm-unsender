@@ -1,6 +1,6 @@
-import { test } from "./test.js"
-import { createMessageElement, createMessagesWrapperElement, createMessageActionsMenuElement, createDummyMessage } from "./virtual-instagram.js"
-import { findMessagesWrapper, loadMoreMessages, findMessages } from "../src/ui/default/dom-lookup.js"
+import { test } from "../../../test/test.js"
+import { createMessageElement, createMessagesWrapperElement, createDummyMessageElement } from "../../../test/default-ui.js"
+import { findMessagesWrapper, loadMoreMessages, findMessages } from "./dom-lookup.js"
 
 test("findMessages", async t => {
 	const messageElement = createMessageElement(t.context.document, "Test")
@@ -43,10 +43,10 @@ test("findMessages multiple", async t => {
 
 test("findMessages multiple dummies", async t => {
 	t.context.mountElement.append(...[
-		createDummyMessage(t.context.document),
+		createDummyMessageElement(t.context.document),
 		createMessageElement(t.context.document, "Test1", false),
 		createMessageElement(t.context.document, "Testdsadsadsac"),
-		createDummyMessage(t.context.document),
+		createDummyMessageElement(t.context.document),
 		createMessageElement(t.context.document, "Test2", false),
 		createMessageElement(t.context.document, "xzcxzdsadsadsa"),
 		createMessageElement(t.context.document, "Test3", false),
@@ -68,30 +68,6 @@ test("findMessagesWrapper", t => {
 	const messagesWrapperElement = createMessagesWrapperElement(t.context.document)
 	t.context.mountElement.append(messagesWrapperElement)
 	t.not(findMessagesWrapper(t.context.window), null)
-})
-
-test("createMessageActionsMenuElement", t => {
-	const messageActionsMenuElement = createMessageActionsMenuElement(t.context.document)
-	t.context.mountElement.append(messageActionsMenuElement)
-	t.not(messageActionsMenuElement.querySelector("#unsend"), null)
-	t.is(messageActionsMenuElement.querySelector("button"), null)
-	messageActionsMenuElement.querySelector("#unsend").click()
-	setTimeout(() => {
-		t.is(messageActionsMenuElement.querySelector("#unsend"), null)
-		t.not(messageActionsMenuElement.querySelector("button"), null)
-	})
-})
-
-test("createMessageActionsMenuElement click", t => {
-	const messageActionsMenuElement = createMessageActionsMenuElement(t.context.document)
-	t.context.mountElement.append(messageActionsMenuElement)
-	t.not(messageActionsMenuElement.querySelector("#unsend"), null)
-	t.is(messageActionsMenuElement.querySelector("button"), null)
-	messageActionsMenuElement.querySelector("#unsend").click()
-	setTimeout(() => {
-		t.is(messageActionsMenuElement.querySelector("#unsend"), null)
-		t.not(messageActionsMenuElement.querySelector("button"), null)
-	})
 })
 
 test("loadMoreMessages done", async t => {
