@@ -10,7 +10,7 @@
     "start": "rollup --config rollup.userscript.config.js --environment BUILD:development --watch",
     "build": "rollup --config rollup.userscript.config.js --environment BUILD:production",
     "eslint": "eslint src/**",
-    "husky": "husky install"
+    "prepare": "husky install"
   },
   "author": "Romain Lebesle <oss@thoughtsunificator.me> (https://thoughtsunificator.me)",
   "license": "MIT",
