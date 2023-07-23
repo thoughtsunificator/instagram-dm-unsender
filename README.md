@@ -12,9 +12,9 @@ The userscript allow a user to batch unsend DM in a thread on the web version of
 
 ## What's the difference between deleting and unsending ?
 
-Deleting a thread will only deletes messages on your end.
+Deleting a thread will only delete messages on your end, the other party will still be able to read your messages.
 
-Unsending a thread  on the other hand will delete messages on both ends.
+Unsending a thread on the other hand will delete messages on both ends, the other party will no longer be able to read your messages.
 
 ## How does it work ?
 
