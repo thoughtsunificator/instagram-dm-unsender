@@ -10,6 +10,12 @@ The userscript allow a user to batch unsend DM in a thread on the web version of
 
 - One possible use case would be people wanting to switch to fediverse and want to "remove" all their messages from Meta's platform.
 
+## What's the difference between deleting and unsending ?
+
+Deleting a thread will only deletes messages on your end.
+
+Unsending a thread  on the other hand will delete messages on both ends.
+
 ## How does it work ?
 
 This script is meant to be run on the page that lists the message threads.
