@@ -4,7 +4,7 @@ As of 2023 [instagram.com](https://www.instagram.com) does not allow batch unsen
 
 The userscript allow a user to batch unsend DM in a thread on the web version of [instagram.com](https://www.instagram.com) 
 
-⚠️ [Only works on the US version](#why-only-us)
+⚠️ [This might not work](#why-only-us)
 
 ## Use cases
 
@@ -57,11 +57,9 @@ Start rollup with the watch flag:
 You can also do a one-time build with:
 - ``npm run build``
 
-## Why only US
+## This might not work
 
-Instagram web app is different based on the user location and supporting all of them would require extra efforts which I do not see as a priority right now. As of now only the US version is supported.
-
-Link to the issue : [https://github.com/thoughtsunificator/instagram-dm-unsender/issues/1](https://github.com/thoughtsunificator/instagram-dm-unsender/issues/1)
+Instagram web app is serving different UIs probably based on the user location. [Yours might not be supported](https://github.com/thoughtsunificator/instagram-dm-unsender/issues/1)
 
 ## Testing
 
