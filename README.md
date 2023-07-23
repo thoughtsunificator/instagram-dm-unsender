@@ -8,7 +8,7 @@ The userscript allow a user to batch unsend DM in a thread on the web version of
 
 ## Use cases
 
-- One possible use case would be people wanting to switch to fediverse want to "remove" all their messages from Meta's platform.
+- One possible use case would be people wanting to switch to fediverse and want to "remove" all their messages from Meta's platform.
 
 ## How does it work ?
 
