@@ -44,7 +44,7 @@ There is no concurrency, message are unsent one after another by using a queue.
 
 ## Installing
 
-### Install a Userscript manager for your browser :
+Install a Userscript manager for your browser :
 
 - [Firefox](https://addons.mozilla.org/en-US/firefox/addon/violentmonkey/)
 - [Chrome](https://chrome.google.com/webstore/detail/violentmonkey/jinjaccalgkegednnccohejagnlnfdag?hl=en)
