@@ -44,6 +44,13 @@ There is no concurrency, message are unsent one after another by using a queue.
 
 ## Installing
 
+### Install a Userscript manager for your browser :
+
+- [Firefox](https://addons.mozilla.org/en-US/firefox/addon/violentmonkey/)
+- [Chrome](https://chrome.google.com/webstore/detail/violentmonkey/jinjaccalgkegednnccohejagnlnfdag?hl=en)
+
+Finally, install the userscript from OpenUserJS :
+
 [Install stable](https://github.com/thoughtsunificator/instagram-dm-unsender/releases/download/v0.4.41/idmu.user.js)
 
 [Install latest](https://github.com/thoughtsunificator/instagram-dm-unsender/raw/userscript/idmu.user.js)
