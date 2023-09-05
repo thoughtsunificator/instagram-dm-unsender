@@ -5,6 +5,7 @@ As of 2023 [instagram.com](https://www.instagram.com) does not allow batch unsen
 The userscript allow a user to batch unsend DM in a thread on the web version of [instagram.com](https://www.instagram.com) 
 
 ⚠️ [This might not work](#this-might-not-work)
+⚠️ Only English language is supported as of yet so please set your UI language to English before running the script.
 
 ## Use cases
 
