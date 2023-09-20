@@ -115,7 +115,7 @@ export default class UI {
 			const batchSize = parseInt(
 				this.window.prompt("How many pages should we load before each unsending? ",
 					this.window.localStorage.getItem("IDMU_BATCH_SIZE")
-				|| this.BatchUnsendStrategy.DEFAULT_BATCH_SIZE )
+				|| BatchUnsendStrategy.DEFAULT_BATCH_SIZE )
 			)
 			if(parseInt(batchSize)) {
 				this.#setBatchSize(batchSize)
