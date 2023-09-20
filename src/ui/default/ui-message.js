@@ -75,8 +75,8 @@ export default class UIMessage extends UIComponent {
 			() => {
 				const menuElements = [...this.root.ownerDocument.querySelectorAll("[role=menu] [role=menuitem]")]
 				console.debug("Workflow step 2 menuElements", menuElements.map(menuElement => menuElement.textContent))
-				menuElements.sort(node => node.textContent.toLocaleLowerCase() === "unsend" ? -1 : 0) // TODO i18n
-				return menuElements.shift()
+				console.debug(menuElements.find(node => node.textContent.trim().toLocaleLowerCase() === "unsend"))
+				return menuElements.find(node => node.textContent.trim().toLocaleLowerCase() === "unsend") || menuElements.shift()
 			},
 		)
 			;[...actionMenuElement.parentNode.parentNode.querySelectorAll("[role=menuitem]")].forEach(element => {
