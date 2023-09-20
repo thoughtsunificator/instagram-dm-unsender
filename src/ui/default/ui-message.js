@@ -22,10 +22,14 @@ export default class UIMessage extends UIComponent {
 		])
 		clearTimeout(timeout)
 		if(actionButton) {
+			console.debug("actionButton found looking for unsend action in actionsMenu")
 			const actionsMenuElement = await uiMessage.openActionsMenu(actionButton)
 			await uiMessage.closeActionsMenu(actionButton, actionsMenuElement)
 			await uiMessage.hideActionMenuButton()
+			console.debug(actionsMenuElement, actionsMenuElement.textContent)
 			return actionsMenuElement && actionsMenuElement.textContent.toLocaleLowerCase() === "unsend"
+		} else {
+			console.debug("Did not find actionButton")
 		}
 		return false
 	}
