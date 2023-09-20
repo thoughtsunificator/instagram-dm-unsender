@@ -73,7 +73,7 @@ test("findMessagesWrapper", t => {
 test("loadMoreMessages done", async t => {
 	t.context.mountElement.append(createMessagesWrapperElement(t.context.document))
 	const messagesWrapperElement = findMessagesWrapper(t.context.window)
-	messagesWrapperElement.innerHTML += `<div role="progressbar"></div>`
+	messagesWrapperElement.innerHTML += `<div role="progressbar"></div>` // FIXME subject to change
 	const result = loadMoreMessages(messagesWrapperElement)
 	messagesWrapperElement.querySelector("[role=progressbar]").remove()
 	t.is(await result, true)
@@ -82,10 +82,10 @@ test("loadMoreMessages done", async t => {
 test("loadMoreMessages not done", async t => {
 	t.context.mountElement.append(createMessagesWrapperElement(t.context.document))
 	const messagesWrapperElement = findMessagesWrapper(t.context.window)
-	messagesWrapperElement.innerHTML += `<div role="progressbar"></div>`
+	messagesWrapperElement.innerHTML += `<div role="progressbar"></div>`  // FIXME subject to change
 	const result = loadMoreMessages(messagesWrapperElement)
 	messagesWrapperElement.scrollTop = 1
-	messagesWrapperElement.querySelector("[role=progressbar]").remove()
+	messagesWrapperElement.querySelector("[role=progressbar]").remove()  // FIXME subject to change
 	t.is(await result, false)
 })
 
