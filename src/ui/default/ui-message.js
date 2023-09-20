@@ -123,11 +123,14 @@ export default class UIMessage extends UIComponent {
 	 */
 	async confirmUnsend(dialogButton) {
 		console.debug("Workflow final step : confirmUnsend", dialogButton)
-		await this.clickElementAndWaitFor(
-			dialogButton,
-			this.root.ownerDocument.body,
-			() => this.root.ownerDocument.querySelector("[role=dialog] button") === null
-		)
+		if(!dialogButton.ownerDocument.defaultView.IDMU_DRY_RUN) {
+			// wait until confirm button is removed
+			await this.clickElementAndWaitFor(
+				dialogButton,
+				this.root.ownerDocument.body,
+				() => this.root.ownerDocument.querySelector("[role=dialog] button") === null
+			)
+		}
 	}
 
 }
