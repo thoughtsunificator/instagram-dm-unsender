@@ -4,11 +4,20 @@ As of 2023 [instagram.com](https://www.instagram.com) does not allow batch unsen
 
 The userscript allow a user to batch unsend DM in a thread on the web version of [instagram.com](https://www.instagram.com) 
 
-⚠️ [Only works on the US version](#why-only-us)
+⚠️ Only English language is supported as of yet so please set your UI language to English before running the script.
+
+⚠️ [This might not work](#this-might-not-work)
+
 
 ## Use cases
 
-- One possible use case would be people wanting to switch to fediverse want to "remove" all their messages from Meta's platform.
+- One possible use case would be people wanting to switch to fediverse and want to "remove" all their messages from Meta's platform.
+
+## What's the difference between deleting and unsending ?
+
+Deleting a thread will only delete messages on your end, the other party will still be able to read your messages.
+
+Unsending a thread on the other hand will delete messages on both ends, the other party will no longer be able to read your messages.
 
 ## How does it work ?
 
@@ -38,6 +47,13 @@ There is no concurrency, message are unsent one after another by using a queue.
 
 ## Installing
 
+Install a Userscript manager for your browser :
+
+- [Firefox](https://addons.mozilla.org/en-US/firefox/addon/violentmonkey/)
+- [Chrome](https://chrome.google.com/webstore/detail/violentmonkey/jinjaccalgkegednnccohejagnlnfdag?hl=en)
+
+Finally, install the userscript from OpenUserJS :
+
 [Install stable](https://github.com/thoughtsunificator/instagram-dm-unsender/releases/download/v0.4.41/idmu.user.js)
 
 [Install latest](https://github.com/thoughtsunificator/instagram-dm-unsender/raw/userscript/idmu.user.js)
@@ -57,9 +73,9 @@ Start rollup with the watch flag:
 You can also do a one-time build with:
 - ``npm run build``
 
-## Why only US
+## This might not work
 
-Instagram web app is different based on the user location and supporting all of them would require extra efforts which I do not see as a priority right now. As of now only the US version is supported.
+Instagram web app is serving different UIs probably based on the user location. [Yours might not be supported](https://github.com/thoughtsunificator/instagram-dm-unsender/issues/1)
 
 Link to the issue : [https://github.com/thoughtsunificator/instagram-dm-unsender/issues/1](https://github.com/thoughtsunificator/instagram-dm-unsender/issues/1)
 
