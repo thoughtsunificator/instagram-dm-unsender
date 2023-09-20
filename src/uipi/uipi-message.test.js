@@ -16,6 +16,7 @@ test("UIMessage unsend", async t => {
 	t.context.mountElement.append(uiMessage.root)
 	const uipiMessage = new UIPIMessage(uiMessage)
 	await t.notThrowsAsync(() => uipiMessage.unsend())
+	t.is(t.context.mountElement.contains(uiMessage.root), false)
 })
 
 test("UIMessage unsend dry", async t => {
@@ -35,5 +36,6 @@ test("UIMessage batch unsend", async t => {
 		t.context.mountElement.append(uiMessage.root)
 		const uipiMessage = new UIPIMessage(uiMessage)
 		await t.notThrowsAsync(() => uipiMessage.unsend())
+		t.is(t.context.mountElement.contains(uiMessage.root), false)
 	}
 })
