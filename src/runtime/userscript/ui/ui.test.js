@@ -4,7 +4,7 @@ import { createMessagesWrapperElement } from "../../../../test/default-ui.js"
 
 test("userscript ui render", t => {
 	UI.render(t.context.window)
-	t.is(t.context.window.document.querySelectorAll("button").length, 2)
+	t.is(t.context.window.document.querySelectorAll("button").length, 3)
 	t.pass()
 })
 
