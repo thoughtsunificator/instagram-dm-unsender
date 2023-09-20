@@ -22,10 +22,14 @@ export default class UIMessage extends UIComponent {
 		])
 		clearTimeout(timeout)
 		if(actionButton) {
+			console.debug("actionButton found looking for unsend action in actionsMenu")
 			const actionsMenuElement = await uiMessage.openActionsMenu(actionButton)
 			await uiMessage.closeActionsMenu(actionButton, actionsMenuElement)
 			await uiMessage.hideActionMenuButton()
+			console.debug(actionsMenuElement, actionsMenuElement.textContent)
 			return actionsMenuElement && actionsMenuElement.textContent.toLocaleLowerCase() === "unsend"
+		} else {
+			console.debug("Did not find actionButton")
 		}
 		return false
 	}
@@ -71,8 +75,8 @@ export default class UIMessage extends UIComponent {
 			() => {
 				const menuElements = [...this.root.ownerDocument.querySelectorAll("[role=menu] [role=menuitem]")]
 				console.debug("Workflow step 2 menuElements", menuElements.map(menuElement => menuElement.textContent))
-				menuElements.sort(node => node.textContent.toLocaleLowerCase() === "unsend" ? -1 : 0) // TODO i18n
-				return menuElements.shift()
+				console.debug(menuElements.find(node => node.textContent.trim().toLocaleLowerCase() === "unsend"))
+				return menuElements.find(node => node.textContent.trim().toLocaleLowerCase() === "unsend") || menuElements.shift()
 			},
 		)
 			;[...actionMenuElement.parentNode.parentNode.querySelectorAll("[role=menuitem]")].forEach(element => {
@@ -123,11 +127,14 @@ export default class UIMessage extends UIComponent {
 	 */
 	async confirmUnsend(dialogButton) {
 		console.debug("Workflow final step : confirmUnsend", dialogButton)
-		await this.clickElementAndWaitFor(
-			dialogButton,
-			this.root.ownerDocument.body,
-			() => this.root.ownerDocument.querySelector("[role=dialog] button") === null
-		)
+		if(!dialogButton.ownerDocument.defaultView.IDMU_DRY_RUN) {
+			// wait until confirm button is removed
+			await this.clickElementAndWaitFor(
+				dialogButton,
+				this.root.ownerDocument.body,
+				() => this.root.ownerDocument.querySelector("[role=dialog] button") === null
+			)
+		}
 	}
 
 }

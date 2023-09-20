@@ -40,7 +40,7 @@ export default class UI {
 
 	/**
 	 *
-	 * @param   {Document}          document
+	 * @param   {Document} document
 	 * @returns {UI}
 	 */
 	static create(document) {
@@ -50,18 +50,20 @@ export default class UI {
 		const alertsWrapperElement = createAlertsWrapperElement(document)
 		const unsendThreadMessagesButton = createMenuButtonElement(document, "Unsend all DMs")
 		const loadThreadMessagesButton = createMenuButtonElement(document, "Batch size", "secondary")
+		const loadAllMessagesButton = createMenuButtonElement(document, "Load all DMs")
 		document.body.appendChild(overlayElement)
 		document.body.appendChild(alertsWrapperElement)
 		menuElement.appendChild(unsendThreadMessagesButton)
 		menuElement.appendChild(loadThreadMessagesButton)
+		menuElement.appendChild(loadAllMessagesButton)
 		root.appendChild(menuElement)
 		const ui = new UI(document, root, overlayElement, menuElement, unsendThreadMessagesButton, loadThreadMessagesButton)
 		document.addEventListener("keydown", (event) => ui.#onWindowKeyEvent(event)) // TODO test
 		document.addEventListener("keyup", (event) => ui.#onWindowKeyEvent(event)) // TODO test
 		unsendThreadMessagesButton.addEventListener("click", (event) => ui.#onUnsendThreadMessagesButtonClick(event))
 		loadThreadMessagesButton.addEventListener("click", (event) => ui.#onLoadThreadMessagesButtonClick(event)) // TODO test
+		loadAllMessagesButton.addEventListener("click", (event) => ui.#onLoadAllMessagesButtonClick(event))
 		new MutationObserver((mutations) => ui.#onMutations(mutations)).observe(document.body, { childList: true }) // TODO test
-		new MutationObserver((mutations) => ui.#onMutations(mutations)).observe(document.querySelector("[id^=mount] > div > div > div"), { childList: true, attributes: true }) // TODO test
 		unsendThreadMessagesButton.dataTextContent = unsendThreadMessagesButton.textContent
 		unsendThreadMessagesButton.dataBackgroundColor = unsendThreadMessagesButton.style.backgroundColor
 		return ui
@@ -115,10 +117,27 @@ export default class UI {
 			const batchSize = parseInt(
 				this.window.prompt("How many pages should we load before each unsending? ",
 					this.window.localStorage.getItem("IDMU_BATCH_SIZE")
-				|| this.BatchUnsendStrategy.DEFAULT_BATCH_SIZE )
+				|| BatchUnsendStrategy.DEFAULT_BATCH_SIZE )
 			)
 			if(parseInt(batchSize)) {
 				this.#setBatchSize(batchSize)
+			}
+		} catch(ex) {
+			console.error(ex)
+		}
+	}
+
+	/**
+	 *
+	 * @param {UI} ui
+	 * @param {Event} event
+	 */
+	async #onLoadAllMessagesButtonClick() {
+		console.debug("loadThreadMessagesButton click")
+		try {
+			let done = false
+			while(!done) {
+				done = await this.idmu.fetchAndRenderThreadNextMessagePage()
 			}
 		} catch(ex) {
 			console.error(ex)

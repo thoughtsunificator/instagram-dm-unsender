@@ -77,6 +77,8 @@ You can also do a one-time build with:
 
 Instagram web app is serving different UIs probably based on the user location. [Yours might not be supported](https://github.com/thoughtsunificator/instagram-dm-unsender/issues/1)
 
+Link to the issue : [https://github.com/thoughtsunificator/instagram-dm-unsender/issues/1](https://github.com/thoughtsunificator/instagram-dm-unsender/issues/1)
+
 ## Testing
 
 Use the ``DEBUG=idmu:test`` env to enable debug logs while testing.
