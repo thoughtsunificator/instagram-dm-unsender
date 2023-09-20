@@ -40,7 +40,6 @@ export function findMessagesWrapper(window) {
  */
 export async function loadMoreMessages(root) {
 	console.debug("loadMoreMessages")
-	root.scrollTop = 999
 	root.scrollTop = 0
 	let findLoaderTimeout
 	console.debug("loadMoreMessages looking for loader... ", root.ownerDocument.defaultView.IDMU_SCROLL_DETECTION_TIMEOUT)

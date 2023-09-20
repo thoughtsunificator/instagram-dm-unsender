@@ -40,7 +40,7 @@ export default class UI {
 
 	/**
 	 *
-	 * @param   {Document}          document
+	 * @param   {Document} document
 	 * @returns {UI}
 	 */
 	static create(document) {
@@ -61,7 +61,6 @@ export default class UI {
 		unsendThreadMessagesButton.addEventListener("click", (event) => ui.#onUnsendThreadMessagesButtonClick(event))
 		loadThreadMessagesButton.addEventListener("click", (event) => ui.#onLoadThreadMessagesButtonClick(event)) // TODO test
 		new MutationObserver((mutations) => ui.#onMutations(mutations)).observe(document.body, { childList: true }) // TODO test
-		new MutationObserver((mutations) => ui.#onMutations(mutations)).observe(document.querySelector("[id^=mount] > div > div > div"), { childList: true, attributes: true }) // TODO test
 		unsendThreadMessagesButton.dataTextContent = unsendThreadMessagesButton.textContent
 		unsendThreadMessagesButton.dataBackgroundColor = unsendThreadMessagesButton.style.backgroundColor
 		return ui
