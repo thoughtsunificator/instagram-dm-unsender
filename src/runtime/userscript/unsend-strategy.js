@@ -99,7 +99,7 @@ export class BatchUnsendStrategy extends UnsendStrategy {
 			clearInterval(this.interval)
 		}
 		console.debug("BatchUnsendStrategy finished_workflows", this.#finished_workflows)
-		const unsuccessfulWorkflows = this.#finished_workflows.filter(uiMessage => this.idmu.window.document.contains(uiMessage.uiComponent.root))
+		const unsuccessfulWorkflows = this.#finished_workflows.filter(uipiMessage => this.idmu.window.document.contains(uipiMessage.uiMessage.root))
 		console.debug("BatchUnsendStrategy unsuccessfulWorkflows", unsuccessfulWorkflows)
 		if(unsuccessfulWorkflows.length >= 1) {
 			unsuccessfulWorkflows.forEach(failedWorkflow => this.#finished_workflows.splice(this.#finished_workflows.indexOf(failedWorkflow), 1))
