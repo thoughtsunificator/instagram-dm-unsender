@@ -13,13 +13,13 @@ The userscript allow a user to batch unsend DM in a thread on the web version of
 
 - One possible use case would be people wanting to switch to fediverse and want to "remove" all their messages from Meta's platform.
 
-## What's the difference between deleting and unsending ?
+## What's the difference between deleting and unsending?
 
 Deleting a thread will only delete messages on your end, the other party will still be able to read your messages.
 
 Unsending a thread on the other hand will delete messages on both ends, the other party will no longer be able to read your messages.
 
-## How does it work ?
+## How does it work?
 
 This script is meant to be run on the page that lists the message threads.
 
@@ -54,9 +54,9 @@ Install a Userscript manager for your browser :
 
 Finally, install the userscript from OpenUserJS :
 
-[Install stable](https://github.com/thoughtsunificator/instagram-dm-unsender/releases/download/v0.4.41/idmu.user.js)
+[Install latest stable release](https://github.com/thoughtsunificator/instagram-dm-unsender/releases/latest/download/idmu.user.js)
 
-[Install latest](https://github.com/thoughtsunificator/instagram-dm-unsender/raw/userscript/idmu.user.js)
+[Install development (master) version](https://github.com/thoughtsunificator/instagram-dm-unsender/raw/userscript/idmu.user.js)
 
 [Older releases](https://github.com/thoughtsunificator/instagram-dm-unsender/releases)
 
