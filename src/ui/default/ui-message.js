@@ -9,7 +9,8 @@ export default class UIMessage extends UIComponent {
 	 */
 	static async isMyOwnMessage(element) {
 		console.debug("isMyOwnMessage", element)
-		element.querySelector("[aria-label=More][aria-expanded=true]")?.click()
+		// close menu in case it was left open
+		element.querySelector("[aria-label=More]")?.parentNode?.click()
 		element.querySelector(`[aria-label="Close details and actions"]`)?.click()
 		element.dispatchEvent(new MouseEvent("mouseout", { bubbles: true }))
 		const uiMessage = new UIMessage(element)
@@ -47,7 +48,8 @@ export default class UIMessage extends UIComponent {
 		this.root.dispatchEvent(new MouseEvent("mousemove", { bubbles: true }))
 		this.root.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }))
 		this.root.dispatchEvent(new MouseEvent("mousenter", { bubbles: true }))
-		return this.waitForElement(this.root, () => this.root.querySelector("[aria-label=More]")) // TODO i18n
+		// Some rows are empty and we do want the entire run to fail
+		return this.waitForElement(this.root, () => this.root.querySelector("[aria-label=More]")?.parentNode) // TODO i18n
 	}
 
 	/**
