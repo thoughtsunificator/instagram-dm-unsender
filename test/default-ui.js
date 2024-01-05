@@ -93,7 +93,8 @@ export function createMessageElement(document, text="", includesUnsend=true, ign
 		setTimeout(() => {
 			const moreElement = event.target.ownerDocument.createElement("div")
 			moreElement.setAttribute("aria-label", "More")
-			moreElement.addEventListener("click", () => {
+			event.target.appendChild(moreElement)
+			event.target.addEventListener("click", () => { // Listen for event of parent instead of moreElement because instagram use a svg Element
 				setTimeout(() => {
 					if(event.target.messageActionsMenuElement) {
 						event.target.messageActionsMenuElement.remove()
@@ -106,7 +107,6 @@ export function createMessageElement(document, text="", includesUnsend=true, ign
 					}
 				}, eventsTimeout)
 			})
-			event.target.appendChild(moreElement)
 		})
 	})
 	element.addEventListener("mouseout", () => {
