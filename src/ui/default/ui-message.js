@@ -18,7 +18,7 @@ export default class UIMessage extends UIComponent {
 		const actionButton = await Promise.race([
 			uiMessage.showActionsMenuButton(),
 			new Promise(resolve => {
-				timeout = setTimeout(resolve, element.ownerDocument.defaultView.IDMU_MESSAGE_DETECTION_ACTION_MENU_TIMEOUT)
+				timeout = setTimeout(resolve, 200) // IDMU_MESSAGE_DETECTION_ACTION_MENU_TIMEOUT
 			})
 		])
 		clearTimeout(timeout)
@@ -129,14 +129,12 @@ export default class UIMessage extends UIComponent {
 	 */
 	async confirmUnsend(dialogButton) {
 		console.debug("Workflow final step : confirmUnsend", dialogButton)
-		if(!dialogButton.ownerDocument.defaultView.IDMU_DRY_RUN) {
-			// wait until confirm button is removed
-			await this.clickElementAndWaitFor(
-				dialogButton,
-				this.root.ownerDocument.body,
-				() => this.root.ownerDocument.querySelector("[role=dialog] button") === null
-			)
-		}
+		// wait until confirm button is removed
+		await this.clickElementAndWaitFor(
+			dialogButton,
+			this.root.ownerDocument.body,
+			() => this.root.ownerDocument.querySelector("[role=dialog] button") === null
+		)
 	}
 
 }

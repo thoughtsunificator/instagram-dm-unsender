@@ -42,7 +42,7 @@ export async function loadMoreMessages(root) {
 	console.debug("loadMoreMessages")
 	root.scrollTop = 0
 	let findLoaderTimeout
-	console.debug("loadMoreMessages looking for loader... ", root.ownerDocument.defaultView.IDMU_SCROLL_DETECTION_TIMEOUT)
+	console.debug("loadMoreMessages looking for loader... ", 10000) // IDMU_SCROLL_DETECTION_TIMEOUT
 	const loadingElement = await Promise.race([
 		waitForElement(root, () => {
 			if(root.querySelector(`[role=progressbar]`) === null) {
@@ -51,7 +51,7 @@ export async function loadMoreMessages(root) {
 			return root.querySelector(`[role=progressbar]`)
 		}),
 		new Promise(resolve => {
-			findLoaderTimeout = setTimeout(resolve, root.ownerDocument.defaultView.IDMU_SCROLL_DETECTION_TIMEOUT)
+			findLoaderTimeout = setTimeout(resolve, 10000) // IDMU_SCROLL_DETECTION_TIMEOUT
 		})
 	])
 	clearTimeout(findLoaderTimeout)

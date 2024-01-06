@@ -118,7 +118,7 @@ export class BatchUnsendStrategy extends UnsendStrategy {
 			if(done) {
 				break
 			} else {
-				await new Promise(resolve => setTimeout(resolve, this.idmu.window.IDMU_NEXT_MESSAGE_PAGE_DELAY))
+				await new Promise(resolve => setTimeout(resolve, 1000)) // IDMU_NEXT_MESSAGE_PAGE_DELAY
 			}
 		}
 		try {
@@ -129,7 +129,7 @@ export class BatchUnsendStrategy extends UnsendStrategy {
 				try {
 					await uipiMessage.unsend()
 					this.#finished_workflows.push(uipiMessage)
-					await new Promise(resolve => setTimeout(resolve, this.idmu.window.IDMU_MESSAGE_QUEUE_DELAY))
+					await new Promise(resolve => setTimeout(resolve, 1000)) // IDMU_MESSAGE_QUEUE_DELAY
 				} catch(result) {
 					console.error(result)
 				}
@@ -138,7 +138,7 @@ export class BatchUnsendStrategy extends UnsendStrategy {
 			console.error(ex)
 		}
 		if(!this.interval && this.#onUnsuccessfulWorkflows) {
-			this.interval = setInterval(() => this.#unsuccessfulWorkflowAlert(), this.idmu.window.IDMU_UNSUCESSFUL_WORKFLOW_ALERT_INTERVAL)
+			this.interval = setInterval(() => this.#unsuccessfulWorkflowAlert(), 5000) // IDMU_UNSUCESSFUL_WORKFLOW_ALERT_INTERVAL
 		}
 		if(done) {
 			this.#done()

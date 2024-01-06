@@ -1,7 +1,6 @@
 
 import fs from "fs"
 import nodeResolve from "@rollup/plugin-node-resolve"
-import rollupWindowEnv from "@thoughtsunificator/rollup-plugin-window-env"
 import pkg from "./package.json" assert { type: "json" }
 
 export default {
@@ -27,7 +26,6 @@ export default {
 				return str
 			}
 		},
-		rollupWindowEnv({ envPath : ".env.json", confPath : "data/config.json" }),
 		nodeResolve(),
 	]
 }

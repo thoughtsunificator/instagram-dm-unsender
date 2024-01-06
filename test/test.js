@@ -21,12 +21,6 @@ test.beforeEach(t => {
 	t.context.mountElement = mountElement
 	t.context.document = document
 	t.context.window = virtualDOM.window
-	t.context.window.IDMU_SCROLL_DETECTION_TIMEOUT = 5
-	t.context.window.IDMU_MESSAGE_QUEUE_DELAY = 0
-	t.context.window.IDMU_NEXT_MESSAGE_PAGE_DELAY = 0
-	t.context.window.IDMU_UNSUCESSFUL_WORKFLOW_ALERT_INTERVAL = 0
-	t.context.window.IDMU_MESSAGE_DETECTION_ACTION_MENU_TIMEOUT = 0
-	t.context.window.IDMU_DEBUG = true
 })
 
 
