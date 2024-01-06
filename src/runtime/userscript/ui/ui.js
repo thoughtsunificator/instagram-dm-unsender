@@ -63,7 +63,8 @@ export default class UI {
 		unsendThreadMessagesButton.addEventListener("click", (event) => ui.#onUnsendThreadMessagesButtonClick(event))
 		loadThreadMessagesButton.addEventListener("click", (event) => ui.#onLoadThreadMessagesButtonClick(event)) // TODO test
 		loadAllMessagesButton.addEventListener("click", (event) => ui.#onLoadAllMessagesButtonClick(event))
-		new MutationObserver((mutations) => ui.#onMutations(mutations, ui)).observe(document.body, { childList: true }) // TODO test
+		this._mutationObserver = new MutationObserver((mutations) => ui.#onMutations(ui, mutations))
+		this._mutationObserver.observe(document.body, { childList: true }) // TODO test
 		unsendThreadMessagesButton.dataTextContent = unsendThreadMessagesButton.textContent
 		unsendThreadMessagesButton.dataBackgroundColor = unsendThreadMessagesButton.style.backgroundColor
 		return ui
@@ -97,9 +98,11 @@ export default class UI {
 	 *
 	 * @param {Mutation[]} mutations
 	 */
-	#onMutations(mutations, ui) {
+	#onMutations(ui, mutations) {
 		if(ui.root.ownerDocument.querySelector("[id^=mount] > div > div > div") !== null && ui) {
-			new MutationObserver(ui.#onMutations.bind(this)).observe(ui.root.ownerDocument.querySelector("[id^=mount] > div > div > div"), { childList: true, attributes: true })
+			this._mutationObserver.disconnect()
+			this._mutationObserver = new MutationObserver(ui.#onMutations.bind(this, ui))
+			this._mutationObserver.observe(ui.root.ownerDocument.querySelector("[id^=mount] > div > div > div"), { childList: true, attributes: true })
 		}
 		if(this.window.location.pathname.startsWith("/direct/t/")) {
 			this.root.style.display = ""

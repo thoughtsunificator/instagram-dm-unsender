@@ -13,6 +13,9 @@ export default class UIMessage extends UIComponent {
 		element.querySelector("[aria-label=More]")?.parentNode?.click()
 		element.querySelector(`[aria-label="Close details and actions"]`)?.click()
 		element.dispatchEvent(new MouseEvent("mouseout", { bubbles: true }))
+		await new Promise(resolve => {
+			setTimeout(resolve, 200)
+		})
 		const uiMessage = new UIMessage(element)
 		let timeout
 		const actionButton = await Promise.race([
