@@ -98,9 +98,11 @@ export default class UI {
 	 *
 	 * @param {Mutation[]} mutations
 	 */
-	#onMutations(ui, mutations) {
+	#onMutations(ui) {
 		if(ui.root.ownerDocument.querySelector("[id^=mount] > div > div > div") !== null && ui) {
-			this._mutationObserver.disconnect()
+			if(this._mutationObserver) {
+				this._mutationObserver.disconnect()
+			}
 			this._mutationObserver = new MutationObserver(ui.#onMutations.bind(this, ui))
 			this._mutationObserver.observe(ui.root.ownerDocument.querySelector("[id^=mount] > div > div > div"), { childList: true, attributes: true })
 		}
