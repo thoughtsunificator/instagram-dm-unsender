@@ -19,9 +19,19 @@ Deleting a thread will only delete messages on your end, the other party will st
 
 Unsending a thread on the other hand will delete messages on both ends, the other party will no longer be able to read your messages.
 
-## How does it work?
+## How does it work / How can I use it?
 
-This script is meant to be run on the page that lists the message threads.
+This script is meant to be run on the page that lists the message threads. 
+
+** The UI will only appear once you select a message thread ** :
+
+![UI Preview](preview.png)
+
+From here three buttons are available :
+
+- Unsend all DMs - Start the unsending workflow
+- Batch size - Change the number of page to load between unsending
+- Load all DMs - Load all your thread messages
 
 The workflow works as follow:
 - Create a list of all messages by querying the DOM with an early messages detection strategy (we test the raw outputs of our ``find-messages-strategy`` against parts of the workflow).
