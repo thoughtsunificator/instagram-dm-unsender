@@ -4,6 +4,7 @@ import IDMU from "../../../idmu/idmu.js"
 import { BatchUnsendStrategy } from "../unsend-strategy.js"
 import { createAlertsWrapperElement } from "./alert.js"
 import { createOverlayElement } from "./overlay.js"
+import { BUTTON_STYLE } from "./style/instagram.js"
 
 export default class UI {
 	/**
@@ -48,8 +49,8 @@ export default class UI {
 		const menuElement = createMenuElement(document)
 		const overlayElement = createOverlayElement(document)
 		const alertsWrapperElement = createAlertsWrapperElement(document)
-		const unsendThreadMessagesButton = createMenuButtonElement(document, "Unsend all DMs")
-		const loadThreadMessagesButton = createMenuButtonElement(document, "Batch size", "secondary")
+		const unsendThreadMessagesButton = createMenuButtonElement(document, "Unsend all DMs", BUTTON_STYLE.PRIMARY)
+		const loadThreadMessagesButton = createMenuButtonElement(document, "Batch size")
 		const loadAllMessagesButton = createMenuButtonElement(document, "Load all DMs")
 		document.body.appendChild(overlayElement)
 		document.body.appendChild(alertsWrapperElement)
