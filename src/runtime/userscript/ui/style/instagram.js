@@ -1,3 +1,5 @@
+/** @module instagram Helpers to mimick Instagram's look and feel */
+
 export const BUTTON_STYLE = {
 	"PRIMARY": "primary",
 	"SECONDARY": "secondary",

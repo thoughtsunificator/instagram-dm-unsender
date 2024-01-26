@@ -1,13 +1,15 @@
+/** @module default-ui Default UI / English UI */
+
 import UI from "../ui.js"
 import { findMessagesWrapper, findMessages } from "./dom-lookup.js"
 import UIPIMessage from "../../uipi/uipi-message.js"
 import UIMessage from "./ui-message.js"
 import UIMessagesWrapper from "./ui-messages-wrapper.js"
 
-export default class DefaultUI extends UI {
+class DefaultUI extends UI {
 
 	/**
-	 *
+	 * @param {Window} window
 	 * @returns {DefaultUI}
 	 */
 	static create(window) {
@@ -24,7 +26,7 @@ export default class DefaultUI extends UI {
 
 	/**
 	*
-	* @returns {Promise>}
+	* @returns {Promise}
 	*/
 	async fetchAndRenderThreadNextMessagePage() {
 		console.debug("UI fetchAndRenderThreadNextMessagePage")
@@ -47,3 +49,5 @@ export default class DefaultUI extends UI {
 	}
 
 }
+
+export default DefaultUI

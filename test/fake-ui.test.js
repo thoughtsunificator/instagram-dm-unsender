@@ -1,5 +1,5 @@
-import { test } from "./test.js"
-import { createDummyMessageElement, createMessageActionsMenuElement } from "./default-ui.js"
+import { test } from "./setup.js"
+import { createDummyMessageElement, createMessageActionsMenuElement } from "./fake-ui.js"
 
 test("createDummyMessageElement click", t => {
 	const dummyMessageElement = createDummyMessageElement(t.context.document)
@@ -27,6 +27,7 @@ test("createMessageActionsMenuElement click", t => {
 	messageActionsMenuElement.querySelector("#unsend").click()
 	setTimeout(() => {
 		t.is(messageActionsMenuElement.querySelector("#unsend"), null)
-		t.not(messageActionsMenuElement.querySelector("button"), null)
+		t.not(messageActionsMenuElement.querySelector("#cancelUnsend"), null)
+		t.not(messageActionsMenuElement.querySelector("#confirmUnsend"), null)
 	})
 })

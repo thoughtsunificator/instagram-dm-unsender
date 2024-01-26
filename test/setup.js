@@ -1,7 +1,9 @@
+/** setups/teardowns */
+
 import test from "ava"
 import { JSDOM } from "jsdom"
 import debug from "debug"
-import { createMountElement } from "./default-ui.js"
+import { createMountElement } from "./fake-ui.js"
 
 global.NodeFilter = new JSDOM().window.NodeFilter
 global.MouseEvent = new JSDOM().window.MouseEvent
@@ -9,6 +11,10 @@ global.getComputedStyle = new JSDOM().window.getComputedStyle
 global.MutationObserver = new JSDOM().window.MutationObserver
 global.Node = new JSDOM().window.Node
 global.MouseEvent = new JSDOM().window.MouseEvent
+const oldSetTimeout = setTimeout
+global.setTimeout = (callback) => {
+	return oldSetTimeout(callback, 0)
+}
 
 test.beforeEach(t => {
 	const jsdom = new JSDOM("<!doctype html><html><body></body></html>", {

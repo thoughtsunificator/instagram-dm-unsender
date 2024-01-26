@@ -1,3 +1,8 @@
+/** @module unsend-strategy Various strategies for unsending messages */
+
+// eslint-disable-next-line no-unused-vars
+import IDMU from "../../idmu/idmu.js"
+
 class UnsendStrategy {
 
 	/**
@@ -42,12 +47,12 @@ class UnsendStrategy {
 }
 
 
-export class BatchUnsendStrategy extends UnsendStrategy {
+class BatchUnsendStrategy extends UnsendStrategy {
 
 	static DEFAULT_BATCH_SIZE = 5
 
 	#onUnsuccessfulWorkflows
-	#finished_workflows
+	#finishedWorkflows
 
 
 	/**
@@ -59,7 +64,7 @@ export class BatchUnsendStrategy extends UnsendStrategy {
 		super(idmu)
 		this._running = false
 		this._stopped = false
-		this.#finished_workflows = []
+		this.#finishedWorkflows = []
 		this.#onUnsuccessfulWorkflows = onUnsuccessfulWorkflows
 	}
 
@@ -98,11 +103,11 @@ export class BatchUnsendStrategy extends UnsendStrategy {
 		if(!this._running) {
 			clearInterval(this.interval)
 		}
-		console.debug("BatchUnsendStrategy finished_workflows", this.#finished_workflows)
-		const unsuccessfulWorkflows = this.#finished_workflows.filter(uipiMessage => this.idmu.window.document.contains(uipiMessage.uiMessage.root))
+		console.debug("BatchUnsendStrategy finishedWorkflows", this.#finishedWorkflows)
+		const unsuccessfulWorkflows = this.#finishedWorkflows.filter(uipiMessage => this.idmu.window.document.contains(uipiMessage.uiMessage.root))
 		console.debug("BatchUnsendStrategy unsuccessfulWorkflows", unsuccessfulWorkflows)
 		if(unsuccessfulWorkflows.length >= 1) {
-			unsuccessfulWorkflows.forEach(failedWorkflow => this.#finished_workflows.splice(this.#finished_workflows.indexOf(failedWorkflow), 1))
+			unsuccessfulWorkflows.forEach(failedWorkflow => this.#finishedWorkflows.splice(this.#finishedWorkflows.indexOf(failedWorkflow), 1))
 			this.#onUnsuccessfulWorkflows(unsuccessfulWorkflows)
 		}
 	}
@@ -115,9 +120,11 @@ export class BatchUnsendStrategy extends UnsendStrategy {
 				break
 			}
 			done = await this.idmu.fetchAndRenderThreadNextMessagePage()
+			console.debug("done fetchAndRenderThreadNextMessagePage ?", done)
 			if(done) {
 				break
 			} else {
+				console.debug("Waiting IDMU_NEXT_MESSAGE_PAGE_DELAY")
 				await new Promise(resolve => setTimeout(resolve, 1000)) // IDMU_NEXT_MESSAGE_PAGE_DELAY
 			}
 		}
@@ -128,7 +135,7 @@ export class BatchUnsendStrategy extends UnsendStrategy {
 				}
 				try {
 					await uipiMessage.unsend()
-					this.#finished_workflows.push(uipiMessage)
+					this.#finishedWorkflows.push(uipiMessage)
 					await new Promise(resolve => setTimeout(resolve, 1000)) // IDMU_MESSAGE_QUEUE_DELAY
 				} catch(result) {
 					console.error(result)
@@ -148,3 +155,5 @@ export class BatchUnsendStrategy extends UnsendStrategy {
 	}
 
 }
+
+export { UnsendStrategy, BatchUnsendStrategy }

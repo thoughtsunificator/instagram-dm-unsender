@@ -1,4 +1,4 @@
-# instagram-dm-unsender
+# instagram-dm-unsender (idmu)
 
 As of 2023 [instagram.com](https://www.instagram.com) does not allow batch unsending of messages which is why this project came to be.
 

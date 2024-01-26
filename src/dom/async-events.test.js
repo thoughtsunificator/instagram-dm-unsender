@@ -1,4 +1,4 @@
-import { test } from "../../test/test.js"
+import { test } from "../../test/setup.js"
 import { clickElementAndWaitFor, waitForElement } from "./async-events.js"
 
 test("waitForElement", async t => {

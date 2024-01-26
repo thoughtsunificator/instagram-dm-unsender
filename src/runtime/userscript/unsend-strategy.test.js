@@ -1,10 +1,11 @@
-import { test } from "../../../test/test.js"
-import { createMessagesWrapperElement } from "../../../test/default-ui.js"
+import { test } from "../../../test/setup.js"
+import { createMessagesWrapperElement, createMessageElement } from "../../../test/fake-ui.js"
 import { BatchUnsendStrategy } from "./unsend-strategy.js"
 import IDMU from "../../idmu/idmu.js"
+import { findMessagesWrapper } from "../../ui/default/dom-lookup.js"
 
 test.beforeEach(t => {
-	t.context.mountElement.append(createMessagesWrapperElement(t.context.document))
+	t.context.mountElement.append(createMessagesWrapperElement(t.context.document, 3, 5))
 	t.context.idmu = new IDMU(t.context.window)
 })
 
@@ -30,4 +31,24 @@ test("BatchUnsendStrategy stop", t => {
 	t.is(strategy._stopped, true)
 	t.is(strategy.isRunning(), false)
 })
+
+test("BatchUnsendStrategy", async t => {
+	let unsuccessfulWorkflowsCount = 0
+	const onUnsuccessfulWorkflows = () => {
+		unsuccessfulWorkflowsCount++
+	}
+	findMessagesWrapper(t.context.window).append(...[
+		createMessageElement(t.context.document, "Test", false),
+		createMessageElement(t.context.document, "Testdsadsadsac"),
+		createMessageElement(t.context.document, "Test", false),
+		createMessageElement(t.context.document, "xzcxzdsadsadsa"),
+		createMessageElement(t.context.document, "Test", false),
+		createMessageElement(t.context.document, "32132xzcxzdsadsadsa"),
+	])
+	const strategy = new BatchUnsendStrategy(t.context.idmu, onUnsuccessfulWorkflows)
+	await strategy.run(1)
+	t.is(unsuccessfulWorkflowsCount, 0)
+})
+
+
 

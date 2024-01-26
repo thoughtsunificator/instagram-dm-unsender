@@ -1,6 +1,11 @@
+/** @module uipi-message API for UIMessage */
+
+// eslint-disable-next-line no-unused-vars
+import UIMessage from "../ui/default/ui-message.js"
+
 class FailedWorkflowException extends Error {}
 
-export default class UIPIMessage {
+class UIPIMessage {
 
 	/**
 	 *
@@ -19,7 +24,7 @@ export default class UIPIMessage {
 		let actionButton
 		let actionsMenuElement
 		try {
-			await this.uiMessage.scrollIntoView()
+			this.uiMessage.scrollIntoView()
 			actionButton = await this.uiMessage.showActionsMenuButton()
 			actionsMenuElement = await this.uiMessage.openActionsMenu(actionButton)
 			console.debug("actionsMenuElement", actionsMenuElement)
@@ -45,3 +50,5 @@ export default class UIPIMessage {
 	}
 
 }
+
+export default UIPIMessage

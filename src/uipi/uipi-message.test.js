@@ -1,6 +1,6 @@
-import { test } from "../../test/test.js"
+import { test } from "../../test/setup.js"
 import UIMessage from "../ui/default/ui-message.js"
-import { createMessageElement } from "../../test/default-ui.js"
+import { createMessageElement } from "../../test/fake-ui.js"
 import UIPIMessage from "./uipi-message.js"
 
 test("UIPIMessage", t => {

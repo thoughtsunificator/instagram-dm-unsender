@@ -1,3 +1,5 @@
+/** @module menu IDMU's main menu */
+
 /**
  * @param {Document} document
  * @returns {HTMLButtonElement}

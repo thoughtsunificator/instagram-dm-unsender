@@ -1,6 +1,8 @@
+/** @module ui-component Base class for any element that is a part of the UI. */
+
 import { waitForElement, clickElementAndWaitFor } from "../dom/async-events.js"
 
-export default class UIComponent {
+export class UIComponent {
 	/**
 	 *
 	 * @param {Element} root
@@ -33,3 +35,5 @@ export default class UIComponent {
 	}
 
 }
+
+export default UIComponent

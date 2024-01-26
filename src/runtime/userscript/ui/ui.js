@@ -1,3 +1,7 @@
+/** @module ui IDMU's own ui/overlay
+ * Provide a button to unsend messages
+*/
+
 import { createMenuButtonElement } from "./menu-button.js"
 import { createMenuElement } from "./menu.js"
 import IDMU from "../../../idmu/idmu.js"
@@ -6,7 +10,10 @@ import { createAlertsWrapperElement } from "./alert.js"
 import { createOverlayElement } from "./overlay.js"
 import { BUTTON_STYLE } from "./style/instagram.js"
 
-export default class UI {
+// eslint-disable-next-line no-unused-vars
+import { UnsendStrategy } from "../unsend-strategy.js"
+
+class UI {
 	/**
 	 *
 	 * @param {Document} document
@@ -97,7 +104,7 @@ export default class UI {
 
 	/**
 	 *
-	 * @param {Mutation[]} mutations
+	 * @param {UI} ui
 	 */
 	#onMutations(ui) {
 		if(ui.root.ownerDocument.querySelector("[id^=mount] > div > div > div") !== null && ui) {
@@ -171,6 +178,7 @@ export default class UI {
 	/**
 	 *
 	 * @param {Event} event
+	 * @returns {boolean}
 	 */
 	#onWindowKeyEvent(event) {
 		if(this.strategy.isRunning()) {
@@ -271,3 +279,5 @@ export default class UI {
 	}
 
 }
+
+export default UI

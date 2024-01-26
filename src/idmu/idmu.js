@@ -1,11 +1,15 @@
+/** @module idmu Global/Main API for interacting with the UI */
+
 import UIPI from "../uipi/uipi.js"
 
-export default class IDMU {
+// eslint-disable-next-line no-unused-vars
+import UIPIMessage from "../uipi/uipi-message.js"
+
+class IDMU {
 
 	/**
 	 *
 	 * @param {Window} window
-	 * @param {UI.constructor} UI
 	 */
 	constructor(window) {
 		this.window = window
@@ -41,3 +45,4 @@ export default class IDMU {
 	}
 
 }
+export default IDMU

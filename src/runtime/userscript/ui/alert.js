@@ -1,3 +1,5 @@
+/** @module alert Alert UI */
+
 /**
  *
  * @param {Document} document

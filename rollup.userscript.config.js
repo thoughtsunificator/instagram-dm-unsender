@@ -1,3 +1,4 @@
+/** Bundle our main script into a valid userscript */
 
 import fs from "fs"
 import nodeResolve from "@rollup/plugin-node-resolve"

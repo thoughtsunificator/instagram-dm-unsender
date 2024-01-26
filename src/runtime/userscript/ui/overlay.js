@@ -1,3 +1,5 @@
+/** @module overlay IDMU's overlay */
+
 /**
  * @param {Document} document
  * @returns {HTMLDivElement}

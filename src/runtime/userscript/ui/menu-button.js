@@ -1,3 +1,5 @@
+/** @module menu-button Helpers to create buttons that can be used in IDMU's menu */
+
 import { applyButtonStyle } from "./style/instagram.js"
 
 /**

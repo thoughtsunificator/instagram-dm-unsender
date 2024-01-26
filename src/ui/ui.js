@@ -1,6 +1,9 @@
 import UIComponent from "./ui-component.js"
 
-export default class UI extends UIComponent {
+// eslint-disable-next-line no-unused-vars
+import UIPIMessage from "../uipi/uipi-message.js"
+
+class UI extends UIComponent {
 
 	/**
 	 *
@@ -27,3 +30,5 @@ export default class UI extends UIComponent {
 	}
 
 }
+
+export default UI
