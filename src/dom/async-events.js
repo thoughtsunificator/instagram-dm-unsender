@@ -20,7 +20,7 @@ export function waitForElement(target, getElement, controller=new AbortControlle
 	return new Promise((resolve, reject) => {
 		let mutationObserver
 		const abortHandler = () => {
-			console.log("abortController")
+			console.debug("abortController")
 			reject(new DOMException("Aborted", "AbortError"))
 			if(mutationObserver) {
 				mutationObserver.disconnect()

@@ -10,10 +10,12 @@ class IDMU {
 	/**
 	 *
 	 * @param {Window} window
+	 * @param {callback} onStatusText
 	 */
-	constructor(window) {
+	constructor(window, onStatusText) {
 		this.window = window
 		this.uipi = null
+		this.onStatusText = onStatusText
 	}
 
 	/**
@@ -22,6 +24,14 @@ class IDMU {
 	 */
 	createUIPIMessages() {
 		return this.#getUIPI().createUIPIMessages()
+	}
+
+	/**
+	 *
+	 * @param {string} text
+	 */
+	setStatusText(text) {
+		this.onStatusText(text)
 	}
 
 
@@ -39,10 +49,11 @@ class IDMU {
 	 */
 	#getUIPI() {
 		if(this.uipi === null) {
-			this.uipi = UIPI.create(this.window, this.UI)
+			this.uipi = UIPI.create(this.window)
 		}
 		return this.uipi
 	}
+
 
 }
 export default IDMU

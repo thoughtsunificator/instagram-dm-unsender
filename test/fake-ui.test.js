@@ -13,10 +13,8 @@ test("createMessageActionsMenuElement", t => {
 	t.not(messageActionsMenuElement.querySelector("#unsend"), null)
 	t.is(messageActionsMenuElement.querySelector("button"), null)
 	messageActionsMenuElement.querySelector("#unsend").click()
-	setTimeout(() => {
-		t.is(messageActionsMenuElement.querySelector("#unsend"), null)
-		t.not(messageActionsMenuElement.querySelector("button"), null)
-	})
+	t.is(messageActionsMenuElement.querySelector("#unsend"), null)
+	t.not(messageActionsMenuElement.querySelector("button"), null)
 })
 
 test("createMessageActionsMenuElement click", t => {
@@ -25,9 +23,7 @@ test("createMessageActionsMenuElement click", t => {
 	t.not(messageActionsMenuElement.querySelector("#unsend"), null)
 	t.is(messageActionsMenuElement.querySelector("button"), null)
 	messageActionsMenuElement.querySelector("#unsend").click()
-	setTimeout(() => {
-		t.is(messageActionsMenuElement.querySelector("#unsend"), null)
-		t.not(messageActionsMenuElement.querySelector("#cancelUnsend"), null)
-		t.not(messageActionsMenuElement.querySelector("#confirmUnsend"), null)
-	})
+	t.is(messageActionsMenuElement.querySelector("#unsend"), null)
+	t.not(messageActionsMenuElement.querySelector("#cancelUnsend"), null)
+	t.not(messageActionsMenuElement.querySelector("#confirmUnsend"), null)
 })

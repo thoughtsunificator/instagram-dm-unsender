@@ -15,9 +15,6 @@ class UIMessage extends UIComponent {
 		element.querySelector("[aria-label=More]")?.parentNode?.click()
 		element.querySelector(`[aria-label="Close details and actions"]`)?.click()
 		element.dispatchEvent(new MouseEvent("mouseout", { bubbles: true }))
-		await new Promise(resolve => {
-			setTimeout(resolve, 200)
-		})
 		const uiMessage = new UIMessage(element)
 		let timeout
 		const actionButton = await Promise.race([
@@ -49,7 +46,7 @@ class UIMessage extends UIComponent {
 	 * @returns {Promise<HTMLButtonElement>}
 	 */
 	showActionsMenuButton() {
-		console.debug("Workflow step 1 : showActionsMenuButton")
+		console.debug("Workflow step 1 : showActionsMenuButton", this.root)
 		this.root.dispatchEvent(new MouseEvent("mousemove", { bubbles: true }))
 		this.root.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }))
 		this.root.dispatchEvent(new MouseEvent("mousenter", { bubbles: true }))
@@ -62,7 +59,7 @@ class UIMessage extends UIComponent {
 	 * @returns {Promise<boolean>}
 	 */
 	hideActionMenuButton() {
-		console.debug("Workflow rolling back hideActionMenuButton (something went wrong)")
+		console.debug("Workflow rolling back hideActionMenuButton (something went wrong)", this.root)
 		this.root.dispatchEvent(new MouseEvent("mousemove", { bubbles: true }))
 		this.root.dispatchEvent(new MouseEvent("mouseout", { bubbles: true }))
 		this.root.dispatchEvent(new MouseEvent("mouseleave", { bubbles: true }))
@@ -83,7 +80,7 @@ class UIMessage extends UIComponent {
 				const menuElements = [...this.root.ownerDocument.querySelectorAll("[role=menu] [role=menuitem]")]
 				console.debug("Workflow step 2 : ", menuElements.map(menuElement => menuElement.textContent))
 				console.debug("Workflow step 2 : ", menuElements.find(node => node.textContent.trim().toLocaleLowerCase() === "unsend"))
-				return menuElements.find(node => node.textContent.trim().toLocaleLowerCase() === "unsend") || menuElements.shift()
+				return menuElements.find(node => node.textContent.trim().toLocaleLowerCase() === "unsend") || menuElements.shift() // TODO i18n
 			},
 		)
 			;[...actionMenuElement.parentNode.parentNode.querySelectorAll("[role=menuitem]")].forEach(element => {

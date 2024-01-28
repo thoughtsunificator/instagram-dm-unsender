@@ -29,6 +29,9 @@ class UIPIMessage {
 			actionsMenuElement = await this.uiMessage.openActionsMenu(actionButton)
 			console.debug("actionsMenuElement", actionsMenuElement)
 			const dialogButton = await this.uiMessage.openConfirmUnsendModal()
+			if(this.uiMessage.root.oldRemove) {
+				this.uiMessage.root.remove = this.uiMessage.root.oldRemove
+			}
 			await this.uiMessage.confirmUnsend(dialogButton)
 			this.uiMessage.root.setAttribute("data-idmu-unsent", "")
 			return true

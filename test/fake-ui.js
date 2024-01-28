@@ -1,5 +1,7 @@
 /** @module default-ui Provide a fake instagram UI. */
 
+import { findMessages } from "../src/ui/default/dom-lookup.js"
+
 /**
  *
  * @param {Document} document
@@ -29,7 +31,7 @@ export function createMountElement(document) {
  * @param {int} [itemsPerPage=1]
  * @returns {HTMLDivElement}
  */
-export function createMessagesWrapperElement(document, totalPages=1, itemsPerPage=5) {
+export function createMessagesWrapperElement(document, totalPages=0, itemsPerPage=0) {
 	console.debug("createMessagesWrapperElement", arguments)
 	const element = document.createElement("div")
 	element.setAttribute("role", "grid")
@@ -55,8 +57,11 @@ export function createMessagesWrapperElement(document, totalPages=1, itemsPerPag
 	})
 	messageWrapperElement.scrollIntoView = () => {}
 	messageWrapperElement.currentPage = 0
-	let currentPageChildren = []
-	messageWrapperElement.addEventListener("scroll", (event) => {
+	for(let i =0; i < itemsPerPage;i++) {
+		const messageElement = createMessageElement.call(null, document, `Item ${i}`)
+		messageWrapperElement.append(messageElement)
+	}
+	messageWrapperElement.addEventListener("scroll", async (event) => {
 		if(event.target.scrollTop === 0) {
 			console.debug("scroll event")
 			const hasNextPage = event.target.currentPage + 1 <= totalPages
@@ -65,26 +70,22 @@ export function createMessagesWrapperElement(document, totalPages=1, itemsPerPag
 				const progressBar = document.createElement("div")
 				progressBar.setAttribute("role", "progressbar")
 				event.target.appendChild(progressBar)
-				setTimeout(() => {
-					const hasMorePages = event.target.currentPage + 2 <= totalPages
-					console.debug("hasMorePages", hasMorePages)
-					if(hasMorePages) {
-						event.target.scrollTop = 5
-					}
-					console.debug("messageWrapperElement loading page", event.target.currentPage)
-					for(const messageElement of currentPageChildren) { // Mocks instagram removing elements outside the viewport
-						messageElement.remove()
-					}
-					currentPageChildren = []
-					console.debug("event.target.children.length", event.target.children.length)
-					for(let i =0; i < itemsPerPage;i++) {
-						const messageElement = createMessageElement.call(null, document, `Item ${i}`)
-						messageWrapperElement.append(messageElement)
-						currentPageChildren.push(messageElement)
-					}
-					progressBar.remove()
-					event.target.currentPage++
-				})
+				const hasMorePages = event.target.currentPage + 2 <= totalPages
+				console.debug("hasMorePages", hasMorePages)
+				if(hasMorePages) {
+					event.target.scrollTop = 5
+				}
+				console.debug("messageWrapperElement loading page", event.target.currentPage)
+				for(const messageElement of await findMessages(document.body)) { // Mocks instagram removing elements outside the viewport
+					messageElement.remove()
+				}
+				console.debug("event.target.children.length", event.target.children.length)
+				for(let i =0; i < itemsPerPage;i++) {
+					const messageElement = createMessageElement.call(null, document, `Item ${i}`)
+					messageWrapperElement.append(messageElement)
+				}
+				progressBar.remove()
+				event.target.currentPage++
 			}
 		}
 	})
@@ -132,11 +133,9 @@ export function createMessageElement(document, text="", includesUnsend=true, ign
 		})
 	})
 	element.addEventListener("mouseout", () => {
-		setTimeout(() => {
-			if(element.querySelector("[aria-label]")) {
-				element.querySelector("[aria-label]").remove()
-			}
-		}	,eventsTimeout)
+		if(element.querySelector("[aria-label]")) {
+			element.querySelector("[aria-label]").remove()
+		}
 	})
 	return element
 }
@@ -205,10 +204,8 @@ export function createMessageActionsMenuElement(document, includesUnsend=true, e
 			console.debug("Creating htmlConfirm modal and setting listener")
 			element.querySelector("#confirmUnsend").addEventListener("click", () => {
 				console.debug("#confirmUnsend clicked")
-				setTimeout(() => {
-					element.messageElement.remove()
-					element.remove()
-				}, eventsTimeout)
+				element.messageElement.remove()
+				element.remove()
 			})
 		})
 	}

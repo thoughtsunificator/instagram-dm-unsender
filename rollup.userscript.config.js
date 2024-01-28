@@ -2,7 +2,11 @@
 
 import fs from "fs"
 import nodeResolve from "@rollup/plugin-node-resolve"
+import serve from "rollup-plugin-serve"
 import pkg from "./package.json" assert { type: "json" }
+
+const isProduction = process.env.BUILD === "production"
+const isDevelopment = !isProduction
 
 export default {
 	input: "./src/runtime/userscript/main.js",
@@ -28,5 +32,9 @@ export default {
 			}
 		},
 		nodeResolve(),
+		isDevelopment && serve({
+			contentBase: "dist",
+			port: process.env.PORT || 3000
+		}),
 	]
 }

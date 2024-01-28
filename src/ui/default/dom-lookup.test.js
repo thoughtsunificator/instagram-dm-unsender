@@ -97,13 +97,9 @@ test("loadMoreMessages multiple pages", async t => {
 	const messagesWrapperElement = findMessagesWrapper(t.context.window)
 	let result
 	for(let i = 0; i < totalPages;i ++) {
-		if(i === 0) {
-			t.is(messagesWrapperElement.children.length, 0)
-		} else {
-			t.is(messagesWrapperElement.children.length, itemsPerPage)
-		}
+		t.is((await findMessages(t.context.document.body)).length, itemsPerPage)
 		result = await loadMoreMessages(messagesWrapperElement)
-		t.is(messagesWrapperElement.children.length, itemsPerPage)
+		t.is((await findMessages(t.context.document.body)).length, itemsPerPage)
 		if(i === 0) {
 			t.is(result, false)
 		}

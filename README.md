@@ -74,14 +74,18 @@ Finally, install the userscript from OpenUserJS :
 
 I recommend using [Violentmonkey](https://violentmonkey.github.io/) or similar and enable userscript autoreloading as explained in here https://violentmonkey.github.io/posts/how-to-edit-scripts-with-your-favorite-editor/ 
 
-Install all dependencies:
+Install dependencies:
 - ``npm install``
 
-Start rollup with the watch flag:
+To both serve and build with autoreloading:
 - ``npm start``
+
+> This will also start an HTTP server and allow autoreloading of the userscript as changes are made.
 
 You can also do a one-time build with:
 - ``npm run build``
+
+> The script will build to ``dist/idmu.user.js`` by default.
 
 ## This might not work
 

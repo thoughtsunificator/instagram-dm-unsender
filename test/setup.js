@@ -15,6 +15,10 @@ const oldSetTimeout = setTimeout
 global.setTimeout = (callback) => {
 	return oldSetTimeout(callback, 0)
 }
+const oldSetInterval = setInterval
+global.setInterval = (callback) => {
+	return oldSetInterval(callback, 0)
+}
 
 test.beforeEach(t => {
 	const jsdom = new JSDOM("<!doctype html><html><body></body></html>", {

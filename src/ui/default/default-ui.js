@@ -42,6 +42,9 @@ class DefaultUI extends UI {
 		const uipiMessages = []
 		const messageElements = await findMessages(this.identifier.uiMessagesWrapper.root)
 		for(const messageElement of messageElements) {
+			// FIX Instagram removing messages from the DOM after scrolling
+			messageElement.oldRemove = messageElement.remove
+			messageElement.remove = () => {}
 			const uiMessage = new UIMessage(messageElement)
 			uipiMessages.push(new UIPIMessage(uiMessage))
 		}
