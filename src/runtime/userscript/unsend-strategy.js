@@ -1,3 +1,8 @@
+/** @module unsend-strategy Various strategies for unsending messages */
+
+// eslint-disable-next-line no-unused-vars
+import IDMU from "../../idmu/idmu.js"
+
 class UnsendStrategy {
 
 	/**
@@ -26,9 +31,8 @@ class UnsendStrategy {
 	/**
 	 *
 	 * @abstract
-	 * @param {number} batchSize
 	 */
-	run() {
+	async run() {
 	}
 
 	/**
@@ -42,25 +46,21 @@ class UnsendStrategy {
 }
 
 
-export class BatchUnsendStrategy extends UnsendStrategy {
+/**
+ * Loads multiple pages before unsending message
+ */
+class DefaultStrategy extends UnsendStrategy {
 
-	static DEFAULT_BATCH_SIZE = 5
-
-	#onUnsuccessfulWorkflows
-	#finished_workflows
 
 
 	/**
-	 * @callback onUnsuccessfulWorkflows
 	 * @param {IDMU} idmu
-	 * @param {onUnsuccessfulWorkflows} onUnsuccessfulWorkflows
 	 */
-	constructor(idmu, onUnsuccessfulWorkflows=null) {
+	constructor(idmu) {
 		super(idmu)
 		this._running = false
 		this._stopped = false
-		this.#finished_workflows = []
-		this.#onUnsuccessfulWorkflows = onUnsuccessfulWorkflows
+		this._unsentCounter = 0
 	}
 
 	/**
@@ -72,79 +72,65 @@ export class BatchUnsendStrategy extends UnsendStrategy {
 	}
 
 	stop() {
-		console.debug("BatchUnsendStrategy stop")
+		console.debug("DefaultStrategy stop")
 		this._stopped = true
 	}
 
 	/**
 	 *
-	 * @param {number} batchSize
 	 * @returns {Promise}
 	 */
-	run(batchSize) {
-		console.debug("BatchUnsendStrategy.run()", batchSize)
+	run() {
+		console.debug("DefaultStrategy.run()")
 		this._running = true
 		this._stopped = false
-		return this.#processBatches(batchSize)
+		this._unsentCounter = 0
+		return this.#next()
 	}
 
-	#done() {
-		this._running = false
-		console.debug("BatchUnsendStrategy done")
-	}
-
-	#unsuccessfulWorkflowAlert() {
-		console.debug("BatchUnsendStrategy unsuccessfulWorkflowAlert")
-		if(!this._running) {
-			clearInterval(this.interval)
-		}
-		console.debug("BatchUnsendStrategy finished_workflows", this.#finished_workflows)
-		const unsuccessfulWorkflows = this.#finished_workflows.filter(uipiMessage => this.idmu.window.document.contains(uipiMessage.uiMessage.root))
-		console.debug("BatchUnsendStrategy unsuccessfulWorkflows", unsuccessfulWorkflows)
-		if(unsuccessfulWorkflows.length >= 1) {
-			unsuccessfulWorkflows.forEach(failedWorkflow => this.#finished_workflows.splice(this.#finished_workflows.indexOf(failedWorkflow), 1))
-			this.#onUnsuccessfulWorkflows(unsuccessfulWorkflows)
-		}
-	}
-
-	async #processBatches(batchSize) {
-		console.debug("BatchUnsendStrategy processBatches")
+	async #next() {
 		let done = false
-		for(let i = 0; i < batchSize;i++) {
-			if(this._stopped) {
-				break
-			}
-			done = await this.idmu.fetchAndRenderThreadNextMessagePage()
-			if(done) {
-				break
-			} else {
-				await new Promise(resolve => setTimeout(resolve, this.idmu.window.IDMU_NEXT_MESSAGE_PAGE_DELAY))
-			}
-		}
+		// Find out if we can load another page of messages
 		try {
-			for(const uipiMessage of await this.idmu.createUIPIMessages()) {
-				if(this._stopped) {
-					break
+			this.idmu.setStatusText("Searching for messages...")
+			const uipiMessages = await this.idmu.createUIPIMessages()
+			uipiMessages.reverse()
+			if(uipiMessages.length >= 1) {
+				for(const uipiMessage of uipiMessages) {
+					this.idmu.setStatusText(`Found ${uipiMessages.length} messages, unsending...`)
+					if(this._stopped) {
+						break
+					}
+					try {
+						await uipiMessage.unsend()
+						this._unsentCounter++
+						this.idmu.setStatusText("Waiting 1 second before unsending next message...")
+						await new Promise(resolve => setTimeout(resolve, 1000)) // IDMU_MESSAGE_QUEUE_DELAY
+					} catch(result) {
+						console.error(result)
+					}
 				}
-				try {
-					await uipiMessage.unsend()
-					this.#finished_workflows.push(uipiMessage)
-					await new Promise(resolve => setTimeout(resolve, this.idmu.window.IDMU_MESSAGE_QUEUE_DELAY))
-				} catch(result) {
-					console.error(result)
-				}
+			} else {
+				this.idmu.setStatusText("No more messages; Searching for additional pages...")
+				console.debug("No more messages; fetchAndRenderThreadNextMessagePage", done)
+				const hasMoreMessages = (await this.idmu.createUIPIMessages()).length >= 1
+				done = hasMoreMessages === false && (await this.idmu.fetchAndRenderThreadNextMessagePage())
 			}
 		} catch(ex) {
 			console.error(ex)
 		}
-		if(!this.interval && this.#onUnsuccessfulWorkflows) {
-			this.interval = setInterval(() => this.#unsuccessfulWorkflowAlert(), this.idmu.window.IDMU_UNSUCESSFUL_WORKFLOW_ALERT_INTERVAL)
-		}
 		if(done) {
-			this.#done()
-		} else if(!this._stopped) {
-			return this.#processBatches(batchSize)
+			this.idmu.setStatusText(`Done. ${this._unsentCounter} messages unsent.`)
+			clearInterval(this.interval)
+			this._running = false
+			console.debug("DefaultStrategy done")
+		} else if(!this._stopped) { // Try to load the next page if there is any
+			this.idmu.setStatusText("Waiting 1 second before next iteration...")
+			await new Promise(resolve => setTimeout(resolve, 1000)) // IDMU_NEXT_MESSAGE_PAGE_DELAY
+			return this.#next()
 		}
 	}
 
 }
+
+export { UnsendStrategy, DefaultStrategy }

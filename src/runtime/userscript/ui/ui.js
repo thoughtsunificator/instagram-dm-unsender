@@ -1,11 +1,19 @@
+/** @module ui IDMU's own ui/overlay
+ * Provide a button to unsend messages
+*/
+
 import { createMenuButtonElement } from "./menu-button.js"
 import { createMenuElement } from "./menu.js"
 import IDMU from "../../../idmu/idmu.js"
-import { BatchUnsendStrategy } from "../unsend-strategy.js"
+import { DefaultStrategy } from "../unsend-strategy.js"
 import { createAlertsWrapperElement } from "./alert.js"
 import { createOverlayElement } from "./overlay.js"
+import { BUTTON_STYLE } from "./style/instagram.js"
 
-export default class UI {
+// eslint-disable-next-line no-unused-vars
+import { UnsendStrategy } from "../unsend-strategy.js"
+
+class UI {
 	/**
 	 *
 	 * @param {Document} document
@@ -13,17 +21,17 @@ export default class UI {
 	 * @param {HTMLDivElement} overlayElement
 	 * @param {HTMLDivElement} menuElement
 	 * @param {HTMLButtonElement} unsendThreadMessagesButton
-	 * @param {HTMLButtonElement} loadThreadMessagesButton
+	 * @param {HTMLDivElement} statusElement
 	 */
-	constructor(document, root, overlayElement, menuElement, unsendThreadMessagesButton, loadThreadMessagesButton) {
+	constructor(document, root, overlayElement, menuElement, unsendThreadMessagesButton, statusElement) {
 		this._document = document
 		this._root = root
 		this._overlayElement = overlayElement
 		this._menuElement = menuElement
+		this._statusElement = statusElement
 		this._unsendThreadMessagesButton = unsendThreadMessagesButton
-		this._loadThreadMessagesButton = loadThreadMessagesButton
-		this._idmu = new IDMU(this.window)
-		this._strategy = new BatchUnsendStrategy(this._idmu, () => this.#onUnsuccessfulWorkflows())
+		this._idmu = new IDMU(this.window, this.onStatusText.bind(this))
+		this._strategy = new DefaultStrategy(this._idmu)
 	}
 
 	/**
@@ -45,30 +53,30 @@ export default class UI {
 	 */
 	static create(document) {
 		const root = document.createElement("div")
+		root.id = "idmu-root"
 		const menuElement = createMenuElement(document)
 		const overlayElement = createOverlayElement(document)
 		const alertsWrapperElement = createAlertsWrapperElement(document)
-		const unsendThreadMessagesButton = createMenuButtonElement(document, "Unsend all DMs")
-		const loadThreadMessagesButton = createMenuButtonElement(document, "Batch size", "secondary")
-		const loadAllMessagesButton = createMenuButtonElement(document, "Load all DMs")
+		const unsendThreadMessagesButton = createMenuButtonElement(document, "Unsend all DMs", BUTTON_STYLE.PRIMARY)
+		const statusElement = document.createElement("div")
+		statusElement.textContent = "Ready"
+		statusElement.id = "idmu-status"
+		statusElement.style = "width: 200px"
 		document.body.appendChild(overlayElement)
 		document.body.appendChild(alertsWrapperElement)
 		menuElement.appendChild(unsendThreadMessagesButton)
-		menuElement.appendChild(loadThreadMessagesButton)
-		menuElement.appendChild(loadAllMessagesButton)
+		menuElement.appendChild(statusElement)
 		root.appendChild(menuElement)
-		const ui = new UI(document, root, overlayElement, menuElement, unsendThreadMessagesButton, loadThreadMessagesButton)
+		const ui = new UI(document, root, overlayElement, menuElement, unsendThreadMessagesButton, statusElement)
 		document.addEventListener("keydown", (event) => ui.#onWindowKeyEvent(event)) // TODO test
 		document.addEventListener("keyup", (event) => ui.#onWindowKeyEvent(event)) // TODO test
 		unsendThreadMessagesButton.addEventListener("click", (event) => ui.#onUnsendThreadMessagesButtonClick(event))
-		loadThreadMessagesButton.addEventListener("click", (event) => ui.#onLoadThreadMessagesButtonClick(event)) // TODO test
-		loadAllMessagesButton.addEventListener("click", (event) => ui.#onLoadAllMessagesButtonClick(event))
-		new MutationObserver((mutations) => ui.#onMutations(mutations, ui)).observe(document.body, { childList: true }) // TODO test
+		this._mutationObserver = new MutationObserver((mutations) => ui.#onMutations(ui, mutations))
+		this._mutationObserver.observe(document.body, { childList: true }) // TODO test
 		unsendThreadMessagesButton.dataTextContent = unsendThreadMessagesButton.textContent
 		unsendThreadMessagesButton.dataBackgroundColor = unsendThreadMessagesButton.style.backgroundColor
 		return ui
 	}
-
 	async #startUnsending() {
 		console.debug("User asked for messages unsending to start; UI interaction will be disabled in the meantime")
 		;[...this.menuElement.querySelectorAll("button")].filter(button => button !== this.unsendThreadMessagesButton).forEach(button => {
@@ -79,71 +87,27 @@ export default class UI {
 		this.overlayElement.focus()
 		this.unsendThreadMessagesButton.textContent = "Stop processing"
 		this.unsendThreadMessagesButton.style.backgroundColor = "#FA383E"
-		const batchSize = this.window.localStorage.getItem("IDMU_BATCH_SIZE") || BatchUnsendStrategy.DEFAULT_BATCH_SIZE
-		await this.strategy.run(batchSize)
+		await this.strategy.run()
 		this.#onUnsendingFinished()
-	}
-
-	#setBatchSize(batchSize) {
-		console.debug(`setBatchSize ${batchSize}`)
-		this.window.localStorage.setItem("IDMU_BATCH_SIZE", parseInt(batchSize))
-	}
-
-	#onUnsuccessfulWorkflows(unsuccessfulWorkflows) {
-		console.log(unsuccessfulWorkflows)
 	}
 
 	/**
 	 *
-	 * @param {Mutation[]} mutations
+	 * @param {UI} ui
 	 */
-	#onMutations(mutations, ui) {
+	#onMutations(ui) {
 		if(ui.root.ownerDocument.querySelector("[id^=mount] > div > div > div") !== null && ui) {
-			new MutationObserver(ui.#onMutations.bind(this)).observe(ui.root.ownerDocument.querySelector("[id^=mount] > div > div > div"), { childList: true, attributes: true })
+			if(this._mutationObserver) {
+				this._mutationObserver.disconnect()
+			}
+			this._mutationObserver = new MutationObserver(ui.#onMutations.bind(this, ui))
+			this._mutationObserver.observe(ui.root.ownerDocument.querySelector("[id^=mount] > div > div > div"), { childList: true, attributes: true })
 		}
 		if(this.window.location.pathname.startsWith("/direct/t/")) {
 			this.root.style.display = ""
 		} else {
 			this.root.style.display = "none"
 			this.strategy.stop()
-		}
-	}
-
-	/**
-	 *
-	 * @param {UI} ui
-	 * @param {Event} event
-	 */
-	#onLoadThreadMessagesButtonClick() {
-		console.debug("loadThreadMessagesButton click")
-		try {
-			const batchSize = parseInt(
-				this.window.prompt("How many pages should we load before each unsending? ",
-					this.window.localStorage.getItem("IDMU_BATCH_SIZE")
-				|| BatchUnsendStrategy.DEFAULT_BATCH_SIZE )
-			)
-			if(parseInt(batchSize)) {
-				this.#setBatchSize(batchSize)
-			}
-		} catch(ex) {
-			console.error(ex)
-		}
-	}
-
-	/**
-	 *
-	 * @param {UI} ui
-	 * @param {Event} event
-	 */
-	async #onLoadAllMessagesButtonClick() {
-		console.debug("loadThreadMessagesButton click")
-		try {
-			let done = false
-			while(!done) {
-				done = await this.idmu.fetchAndRenderThreadNextMessagePage()
-			}
-		} catch(ex) {
-			console.error(ex)
 		}
 	}
 
@@ -165,10 +129,11 @@ export default class UI {
 	/**
 	 *
 	 * @param {Event} event
+	 * @returns {boolean}
 	 */
 	#onWindowKeyEvent(event) {
 		if(this.strategy.isRunning()) {
-			console.info("User interaction is disabled as the unsending is still running; Please stop the execution first.")
+			this.window.alert("User interaction is disabled as the unsending is still running; Please stop the execution first.")
 			event.stopImmediatePropagation()
 			event.preventDefault()
 			event.stopPropagation()
@@ -190,6 +155,15 @@ export default class UI {
 			this.window.alert("IDMU: Finished")
 		}
 	}
+
+	/**
+	 *
+	 * @param {string} text
+	 */
+	onStatusText(text) {
+		this.statusElement.textContent = text
+	}
+
 
 
 	/**
@@ -242,6 +216,14 @@ export default class UI {
 
 	/**
 	 * @readonly
+	 * @type {HTMLDivElement}
+	 */
+	get statusElement() {
+		return this._statusElement
+	}
+
+	/**
+	 * @readonly
 	 * @type {HTMLButtonElement}
 	 */
 	get loadThreadMessagesButton() {
@@ -265,3 +247,5 @@ export default class UI {
 	}
 
 }
+
+export default UI

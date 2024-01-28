@@ -1,3 +1,7 @@
+/** @module default-ui Provide a fake instagram UI. */
+
+import { findMessages } from "../src/ui/default/dom-lookup.js"
+
 /**
  *
  * @param {Document} document
@@ -23,10 +27,11 @@ export function createMountElement(document) {
 /**
  *
  * @param {Document} document
- * @param {object[]} [pages=[]]
+ * @param {int} [totalPages=1]
+ * @param {int} [itemsPerPage=1]
  * @returns {HTMLDivElement}
  */
-export function createMessagesWrapperElement(document, pages=[]) {
+export function createMessagesWrapperElement(document, totalPages=0, itemsPerPage=0) {
 	console.debug("createMessagesWrapperElement", arguments)
 	const element = document.createElement("div")
 	element.setAttribute("role", "grid")
@@ -52,19 +57,34 @@ export function createMessagesWrapperElement(document, pages=[]) {
 	})
 	messageWrapperElement.scrollIntoView = () => {}
 	messageWrapperElement.currentPage = 0
-	messageWrapperElement.addEventListener("scroll", (event) => {
+	for(let i =0; i < itemsPerPage;i++) {
+		const messageElement = createMessageElement.call(null, document, `Item ${i}`)
+		messageWrapperElement.append(messageElement)
+	}
+	messageWrapperElement.addEventListener("scroll", async (event) => {
 		if(event.target.scrollTop === 0) {
-			const page = pages.find(page => page.page === event.target.currentPage)
-			if(page) {
-				event.target.innerHTML += `<div role="progressbar"></div>`
-				setTimeout(() => {
-					if(pages.find(nextPage => nextPage.page === event.target.currentPage + 1)) {
-						event.target.scrollTop = 5
-					}
-					console.debug("messageWrapperElement loading page", page)
-					page.items.forEach(item => event.target.append(item))
-					event.target.querySelector("[role=progressbar]").remove()
-				})
+			console.debug("scroll event")
+			const hasNextPage = event.target.currentPage + 1 <= totalPages
+			console.debug("hasNextPage", hasNextPage, event.target.currentPage, totalPages)
+			if(hasNextPage) {
+				const progressBar = document.createElement("div")
+				progressBar.setAttribute("role", "progressbar")
+				event.target.appendChild(progressBar)
+				const hasMorePages = event.target.currentPage + 2 <= totalPages
+				console.debug("hasMorePages", hasMorePages)
+				if(hasMorePages) {
+					event.target.scrollTop = 5
+				}
+				console.debug("messageWrapperElement loading page", event.target.currentPage)
+				for(const messageElement of await findMessages(document.body)) { // Mocks instagram removing elements outside the viewport
+					messageElement.remove()
+				}
+				console.debug("event.target.children.length", event.target.children.length)
+				for(let i =0; i < itemsPerPage;i++) {
+					const messageElement = createMessageElement.call(null, document, `Item ${i}`)
+					messageWrapperElement.append(messageElement)
+				}
+				progressBar.remove()
 				event.target.currentPage++
 			}
 		}
@@ -75,6 +95,7 @@ export function createMessagesWrapperElement(document, pages=[]) {
 /**
  *
  * @param {Document} document
+ * @param {string} [text=""]
  * @param {boolean} [includesUnsend=true]
  * @param {boolean} [ignored=false]
  * @param {number} [eventsTimeout=0]
@@ -90,11 +111,13 @@ export function createMessageElement(document, text="", includesUnsend=true, ign
 	element.scrollIntoView = () => {}
 	element.innerHTML = `<span>${text}</span>`
 	element.addEventListener("mouseover", event => {
+		console.debug(`message ${text} mouseover`)
 		setTimeout(() => {
 			const moreElement = event.target.ownerDocument.createElement("div")
 			moreElement.setAttribute("aria-label", "More")
 			event.target.appendChild(moreElement)
 			event.target.addEventListener("click", () => { // Listen for event of parent instead of moreElement because instagram use a svg Element
+				console.debug(`moreElement clicked`)
 				setTimeout(() => {
 					if(event.target.messageActionsMenuElement) {
 						event.target.messageActionsMenuElement.remove()
@@ -110,11 +133,9 @@ export function createMessageElement(document, text="", includesUnsend=true, ign
 		})
 	})
 	element.addEventListener("mouseout", () => {
-		setTimeout(() => {
-			if(element.querySelector("[aria-label]")) {
-				element.querySelector("[aria-label]").remove()
-			}
-		}	,eventsTimeout)
+		if(element.querySelector("[aria-label]")) {
+			element.querySelector("[aria-label]").remove()
+		}
 	})
 	return element
 }
@@ -142,29 +163,52 @@ export function createMessageActionsMenuElement(document, includesUnsend=true, e
 	console.debug("createMessageActionsMenuElement", arguments)
 	const element = document.createElement("div")
 	element.setAttribute("role", "dialog")
-	const htmlMenu = `<div role="menu">
-				<div role=""><div role="menuitem">Bar</div></div>
-				<div role=""><div role="me-1 nuitem">Foo</div></div>
-				${includesUnsend ? `<div role=""><div id="unsend" role="menuitem">Unsend</div></div>` : ``}
-			</div>`
-	const htmlConfirm = `<div><button id="confirmUnsend"></button><button id="cancelUnsend"></button></div>`
-	;(function toggleHTML() {
-		element.innerHTML = htmlMenu
-	})()
+	const menuElement = document.createElement("div")
+	menuElement.id = "menu"
+	menuElement.setAttribute("role", "menu")
+	const menuItem1 = document.createElement("div")
+	menuItem1.setAttribute("role", "")
+	const barElement = document.createElement("div")
+	barElement.setAttribute("role", "menuitem")
+	barElement.textContent = "Bar"
+	menuItem1.appendChild(barElement)
+	const menuItem2 = document.createElement("div")
+	menuItem2.setAttribute("role", "")
+	const fooElement = document.createElement("div")
+	fooElement.setAttribute("role", "menuitem")
+	fooElement.textContent = "Foo"
+	menuItem2.appendChild(fooElement)
+	menuElement.appendChild(menuItem1)
+	menuElement.appendChild(menuItem2)
+	element.appendChild(menuElement)
 	if(includesUnsend) {
+		const menuItem3 = document.createElement("div")
+		menuItem3.setAttribute("role", "")
+		const unsendElement = document.createElement("div")
+		unsendElement.setAttribute("role", "menuitem")
+		unsendElement.textContent = "Unsend"
+		unsendElement.id = "unsend"
+		menuItem3.appendChild(unsendElement)
+		menuElement.appendChild(menuItem3)
 		element.querySelector("#unsend").addEventListener("click", () => {
-			setTimeout(() => {
-				element.innerHTML = htmlConfirm
-				element.querySelector("#confirmUnsend").addEventListener("click", () => {
-					setTimeout(() => {
-						if(!document.defaultView.FAKE_FAIL_UNSEND) {
-							element.messageElement.remove()
-						}
-						element.remove()
-					}, eventsTimeout)
-				})
-			}, eventsTimeout)
+			console.debug("#unsend button clicked")
+			const confirmElement = document.createElement("div")
+			confirmElement.setAttribute("role", "dialog")
+			const confirmUnsend = document.createElement("button")
+			confirmUnsend.id = "confirmUnsend"
+			confirmElement.appendChild(confirmUnsend)
+			const cancelUnsend = document.createElement("button")
+			cancelUnsend.id = "cancelUnsend"
+			confirmElement.appendChild(cancelUnsend)
+			menuElement.replaceWith(confirmElement)
+			console.debug("Creating htmlConfirm modal and setting listener")
+			element.querySelector("#confirmUnsend").addEventListener("click", () => {
+				console.debug("#confirmUnsend clicked")
+				element.messageElement.remove()
+				element.remove()
+			})
 		})
 	}
 	return element
 }
+

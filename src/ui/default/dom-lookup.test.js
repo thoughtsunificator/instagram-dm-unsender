@@ -1,5 +1,5 @@
-import { test } from "../../../test/test.js"
-import { createMessageElement, createMessagesWrapperElement, createDummyMessageElement } from "../../../test/default-ui.js"
+import { test } from "../../../test/setup.js"
+import { createMessageElement, createMessagesWrapperElement, createDummyMessageElement } from "../../../test/fake-ui.js"
 import { findMessagesWrapper, loadMoreMessages, findMessages } from "./dom-lookup.js"
 
 test("findMessages", async t => {
@@ -87,5 +87,24 @@ test("loadMoreMessages not done", async t => {
 	messagesWrapperElement.scrollTop = 1
 	messagesWrapperElement.querySelector("[role=progressbar]").remove()  // FIXME subject to change
 	t.is(await result, false)
+})
+
+test("loadMoreMessages multiple pages", async t => {
+	t.plan(7)
+	const totalPages = 2
+	const itemsPerPage = 5
+	t.context.mountElement.append(createMessagesWrapperElement(t.context.document, totalPages, itemsPerPage))
+	const messagesWrapperElement = findMessagesWrapper(t.context.window)
+	let result
+	for(let i = 0; i < totalPages;i ++) {
+		t.is((await findMessages(t.context.document.body)).length, itemsPerPage)
+		result = await loadMoreMessages(messagesWrapperElement)
+		t.is((await findMessages(t.context.document.body)).length, itemsPerPage)
+		if(i === 0) {
+			t.is(result, false)
+		}
+	}
+	t.is(result, true)
+	t.is(messagesWrapperElement.currentPage, totalPages)
 })
 

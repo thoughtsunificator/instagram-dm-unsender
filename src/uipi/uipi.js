@@ -1,6 +1,16 @@
+/** @module uipi API for UI */
+
 import getUI from "../ui/get-ui.js"
 
-export default class UIPI {
+// eslint-disable-next-line no-unused-vars
+import UI from "../ui/ui.js"
+// eslint-disable-next-line no-unused-vars
+import UIPIMessage from "./uipi-message.js"
+
+/**
+ * UI Interface API
+ */
+class UIPI {
 
 	/**
 	 *
@@ -17,8 +27,7 @@ export default class UIPI {
 	 */
 	static create(window) {
 		console.debug("UIPI.create")
-		const UI = getUI()
-		const ui = UI.create(window)
+		const ui = getUI().create(window)
 		return new UIPI(ui)
 	}
 
@@ -41,6 +50,7 @@ export default class UIPI {
 	}
 
 	/**
+	 *
 	 * @type {UI}
 	 */
 	get ui() {
@@ -48,3 +58,5 @@ export default class UIPI {
 	}
 
 }
+
+export default UIPI

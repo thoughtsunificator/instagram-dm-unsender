@@ -30,6 +30,8 @@
   ],
 	"rules": {
 		"require-await": "warn",
+		"require-jsdoc": "warn",
+		"valid-jsdoc": ["warn", { "requireParamDescription": false, "requireReturn": false, "requireReturnDescription": false }],
 		"comma-style": [1, "last"],
 		"curly": [1, "multi-line"],
 		"eol-last": [1, "always"],

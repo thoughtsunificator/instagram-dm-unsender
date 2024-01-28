@@ -1,6 +1,6 @@
-import { test } from "../../../test/test.js"
+import { test } from "../../../test/setup.js"
 import UIMessagesWrapper from "./ui-messages-wrapper.js"
-import { createMessagesWrapperElement } from "../../../test/default-ui.js"
+import { createMessagesWrapperElement } from "../../../test/fake-ui.js"
 import { findMessagesWrapper } from "./dom-lookup.js"
 
 test("UIMessagesWrapper", t => {

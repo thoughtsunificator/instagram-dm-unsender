@@ -1,6 +1,6 @@
-import { test } from "../../test/test.js"
+import { test } from "../../test/setup.js"
 import DefaultUI from "../ui/default/default-ui.js"
-import { createMessageElement, createMessagesWrapperElement } from "../../test/default-ui.js"
+import { createMessageElement, createMessagesWrapperElement } from "../../test/fake-ui.js"
 import UIPIMessage from "./uipi-message.js"
 import UIMessage from "../ui/default/ui-message.js"
 import UIPI from "./uipi.js"

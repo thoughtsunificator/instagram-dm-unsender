@@ -1,10 +1,11 @@
+/** @module main Main module */
+
 import UI from "./ui/ui.js"
 
+/**
+ * @param {Window} window
+ */
 export function main(window) {
-	if(!window.IDMU_DEBUG) {
-		console.debug = () => {}
-	}
-
 	UI.render(window)
 }
 

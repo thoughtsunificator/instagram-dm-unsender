@@ -1,3 +1,5 @@
+/** @module async-events Utils module for finding elements asynchronously in the DOM */
+
 /**
  *
  * @callback getElement
@@ -8,21 +10,37 @@
  *
  * @param {Element} target
  * @param {getElement} getElement
+ * @param {AbortController} controller
  * @returns {Promise<Element>}
  */
-export function waitForElement(target, getElement) {
-	return new Promise((resolve) => {
+export function waitForElement(target, getElement, controller=new AbortController()) {
+	if (controller.signal?.aborted){
+		return Promise.reject(new DOMException("Aborted", "AbortError"))
+	}
+	return new Promise((resolve, reject) => {
+		let mutationObserver
+		const abortHandler = () => {
+			console.debug("abortController")
+			reject(new DOMException("Aborted", "AbortError"))
+			if(mutationObserver) {
+				mutationObserver.disconnect()
+			}
+		}
+		controller.signal?.addEventListener("abort", abortHandler)
 		let element = getElement()
 		if(element) {
 			resolve(element)
+			controller.signal?.removeEventListener("abort", abortHandler)
 		} else {
-			new MutationObserver((mutations, observer) => {
+			mutationObserver = new MutationObserver((mutations, observer) => {
 				element = getElement()
 				if(element) {
 					observer.disconnect()
 					resolve(element)
+					controller.signal?.removeEventListener("abort", abortHandler)
 				}
-			}).observe(target, { subtree: true, childList:true })
+			})
+			mutationObserver.observe(target, { subtree: true, childList:true })
 		}
 	})
 }

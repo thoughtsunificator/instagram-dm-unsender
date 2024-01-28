@@ -1,14 +1,18 @@
+/** @module ui-messages-wrapper UI element representing the messages wrapper */
+
 import { loadMoreMessages } from "./dom-lookup.js"
 import UIComponent from "../ui-component.js"
 
-export default class UIMessagesWrapper extends UIComponent {
+class UIMessagesWrapper extends UIComponent {
 
 	/**
 	 *
-	 * @returns {Promise>}
+	 * @returns {Promise}
 	 */
 	fetchAndRenderThreadNextMessagePage() {
 		return loadMoreMessages(this.root)
 	}
 
 }
+
+export default UIMessagesWrapper

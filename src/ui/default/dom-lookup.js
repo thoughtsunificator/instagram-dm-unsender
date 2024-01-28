@@ -1,3 +1,5 @@
+/** @module dom-lookup Utils module for looking up elements on the default UI */
+
 import UIMessage from "./ui-message.js"
 import { waitForElement } from "../../dom/async-events.js"
 
@@ -42,26 +44,39 @@ export async function loadMoreMessages(root) {
 	console.debug("loadMoreMessages")
 	root.scrollTop = 0
 	let findLoaderTimeout
-	console.debug("loadMoreMessages looking for loader... ", root.ownerDocument.defaultView.IDMU_SCROLL_DETECTION_TIMEOUT)
-	const loadingElement = await Promise.race([
-		waitForElement(root, () => {
-			if(root.querySelector(`[role=progressbar]`) === null) {
-				root.scrollTop = 0
-			}
-			return root.querySelector(`[role=progressbar]`)
-		}),
-		new Promise(resolve => {
-			findLoaderTimeout = setTimeout(resolve, root.ownerDocument.defaultView.IDMU_SCROLL_DETECTION_TIMEOUT)
-		})
-	])
+	console.debug("loadMoreMessages looking for loader... ")
+	const controller = new AbortController()
+	let loadingElement
+	try {
+		loadingElement = await Promise.race([
+			waitForElement(root, () => {
+				if(root.querySelector(`[role=progressbar]`) === null) {
+					root.scrollTop = 0
+				}
+				return root.querySelector(`[role=progressbar]`)
+			}, controller),
+			new Promise(resolve => {
+				findLoaderTimeout = setTimeout(() => { // TODO Replace with fetch override
+					controller.abort()
+					resolve()
+				}, 10000) // IDMU_SCROLL_DETECTION_TIMEOUT
+			})
+		])
+	} catch(ex) {
+		console.error(ex)
+	}
 	clearTimeout(findLoaderTimeout)
 	if(loadingElement) {
 		console.debug("loadMoreMessages: Found loader; Stand-by until it is removed")
 		console.debug("loadMoreMessages: scrollTop", root.scrollTop)
 		await waitForElement(root, () => root.querySelector(`[role=progressbar]`) === null)
 		console.debug("loadMoreMessages: Loader was removed, older messages loading completed")
-		console.debug(`loadMoreMessages: scrollTop is ${root.scrollTop} we ${root.scrollTop === 0 ? "reached last page" : " did not reach last page and will begin loading older messages shortly"}`, )
-		return root.scrollTop === 0
+		console.debug(`loadMoreMessages: scrollTop is ${root.scrollTop} we ${root.scrollTop === 0 ? "reached last page" : "did not reach last page and will begin loading older messages shortly"}`, )
+		const done = root.scrollTop === 0
+		if(done) {
+			root.scrollTop = root.scrollHeight - root.clientHeight
+		}
+		return done
 	} else {
 		console.debug("loadMoreMessages: Could not find loader")
 		return true
