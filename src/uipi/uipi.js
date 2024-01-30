@@ -32,21 +32,21 @@ class UIPI {
 	}
 
 	/**
-	 *
+	 * @param {AbortController} abortController
 	 * @returns {Promise}
 	 */
-	fetchAndRenderThreadNextMessagePage() {
+	fetchAndRenderThreadNextMessagePage(abortController) {
 		console.debug("UIPI fetchAndRenderThreadNextMessagePage")
-		return this.ui.fetchAndRenderThreadNextMessagePage()
+		return this.ui.fetchAndRenderThreadNextMessagePage(abortController)
 	}
 
 	/**
-	 *
-	 * @returns {Promise<UIPIMessage[]>}
+	 * @param {AbortController} abortController
+	 * @returns {Promise<UIPIMessage>}
 	 */
-	createUIPIMessages() {
-		console.debug("UIPI createUIPIMessages")
-		return this.ui.createUIPIMessages()
+	getNextUIPIMessage(abortController) {
+		console.debug("UIPI getNextUIPIMessage")
+		return this.ui.getNextUIPIMessage(abortController)
 	}
 
 	/**

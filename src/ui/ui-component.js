@@ -17,10 +17,11 @@ export class UIComponent {
 	 *
 	 * @param {Element} target
 	 * @param {function} getElement
+	 * @param {AbortController} abortController
 	 * @returns {Promise<Element>}
 	 */
-	waitForElement(target, getElement) {
-		return getElement() || waitForElement(target, getElement)
+	waitForElement(target, getElement, abortController) {
+		return getElement() || waitForElement(target, getElement, abortController)
 	}
 
 	/**
@@ -28,10 +29,11 @@ export class UIComponent {
 	 * @param {Element} clickTarget
 	 * @param {Element} target
 	 * @param {function} getElement
+	 * @param {AbortController} abortController
 	 * @returns {Promise<Element>}
 	 */
-	clickElementAndWaitFor(clickTarget, target, getElement) {
-		return clickElementAndWaitFor(clickTarget, target, getElement)
+	clickElementAndWaitFor(clickTarget, target, getElement, abortController) {
+		return clickElementAndWaitFor(clickTarget, target, getElement, abortController)
 	}
 
 }

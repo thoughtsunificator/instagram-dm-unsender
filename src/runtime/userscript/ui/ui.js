@@ -5,13 +5,13 @@
 import { createMenuButtonElement } from "./menu-button.js"
 import { createMenuElement } from "./menu.js"
 import IDMU from "../../../idmu/idmu.js"
-import { DefaultStrategy } from "../unsend-strategy.js"
+import { DefaultStrategy } from "../../../ui/default/unsend-strategy.js"
 import { createAlertsWrapperElement } from "./alert.js"
 import { createOverlayElement } from "./overlay.js"
 import { BUTTON_STYLE } from "./style/instagram.js"
 
 // eslint-disable-next-line no-unused-vars
-import { UnsendStrategy } from "../unsend-strategy.js"
+import { UnsendStrategy } from "../../../ui/unsend-strategy.js"
 
 class UI {
 	/**
@@ -133,7 +133,7 @@ class UI {
 	 */
 	#onWindowKeyEvent(event) {
 		if(this.strategy.isRunning()) {
-			this.window.alert("User interaction is disabled as the unsending is still running; Please stop the execution first.")
+			console.log("User interaction is disabled as the unsending is still running; Please stop the execution first.")
 			event.stopImmediatePropagation()
 			event.preventDefault()
 			event.stopPropagation()
@@ -151,9 +151,6 @@ class UI {
 		this.unsendThreadMessagesButton.textContent = this.unsendThreadMessagesButton.dataTextContent
 		this.unsendThreadMessagesButton.style.backgroundColor = this.unsendThreadMessagesButton.dataBackgroundColor
 		this.overlayElement.style.display = "none"
-		if(!this.strategy._stopped) {
-			this.window.alert("IDMU: Finished")
-		}
 	}
 
 	/**

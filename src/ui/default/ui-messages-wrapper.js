@@ -6,11 +6,11 @@ import UIComponent from "../ui-component.js"
 class UIMessagesWrapper extends UIComponent {
 
 	/**
-	 *
+	 * @param {AbortController} abortController
 	 * @returns {Promise}
 	 */
-	fetchAndRenderThreadNextMessagePage() {
-		return loadMoreMessages(this.root)
+	fetchAndRenderThreadNextMessagePage(abortController) {
+		return loadMoreMessages(this.root, abortController)
 	}
 
 }

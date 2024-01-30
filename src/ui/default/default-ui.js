@@ -8,6 +8,11 @@ import UIMessagesWrapper from "./ui-messages-wrapper.js"
 
 class DefaultUI extends UI {
 
+	constructor(root, identifier={}) {
+		super(root, identifier)
+		this.lastScrollTop = null
+	}
+
 	/**
 	 * @param {Window} window
 	 * @returns {DefaultUI}
@@ -25,30 +30,36 @@ class DefaultUI extends UI {
 	}
 
 	/**
-	*
+	* @param {AbortController} abortController
 	* @returns {Promise}
 	*/
-	async fetchAndRenderThreadNextMessagePage() {
+	async fetchAndRenderThreadNextMessagePage(abortController) {
 		console.debug("UI fetchAndRenderThreadNextMessagePage")
-		return await this.identifier.uiMessagesWrapper.fetchAndRenderThreadNextMessagePage(this.domMapper)
+		return await this.identifier.uiMessagesWrapper.fetchAndRenderThreadNextMessagePage(abortController)
 	}
 
 	/**
-	 *
-	 * @returns {Promise<UIPIMessage[]>}
+	 * @param {AbortController} abortController
+	 * @returns {Promise<UIPIMessage>}
 	 */
-	async createUIPIMessages() {
-		console.debug("UI createUIPIMessages")
-		const uipiMessages = []
-		const messageElements = await findMessages(this.identifier.uiMessagesWrapper.root)
-		for(const messageElement of messageElements) {
-			// FIX Instagram removing messages from the DOM after scrolling
-			messageElement.oldRemove = messageElement.remove
-			messageElement.remove = () => {}
-			const uiMessage = new UIMessage(messageElement)
-			uipiMessages.push(new UIPIMessage(uiMessage))
+	async getNextUIPIMessage(abortController) {
+		console.debug("UI getNextUIPIMessage", this.lastScrollTop)
+		const uiMessagesWrapperRoot = this.identifier.uiMessagesWrapper.root
+		const startScrollTop = this.lastScrollTop || uiMessagesWrapperRoot.scrollHeight - uiMessagesWrapperRoot.clientHeight
+		for(let i = startScrollTop;i > 0;i = i - 1 ) { // TODO scroll and map element to scrollTop
+			if(abortController.signal.aborted) {
+				break
+			}
+			this.lastScrollTop = i
+			uiMessagesWrapperRoot.scrollTop = i
+			uiMessagesWrapperRoot.dispatchEvent(new this.root.Event("scroll"))
+			await new Promise(resolve => setTimeout(resolve, 200)) // IDMU_MESSAGE_QUEUE_DELAY
+			const messageElement = (await findMessages(uiMessagesWrapperRoot, abortController)).pop()
+			if(messageElement) {
+				const uiMessage = new UIMessage(messageElement)
+				return new UIPIMessage(uiMessage)
+			}
 		}
-		return uipiMessages
 	}
 
 }

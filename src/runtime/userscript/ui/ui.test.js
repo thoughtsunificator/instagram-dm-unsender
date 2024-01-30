@@ -2,7 +2,7 @@ import { test } from "../../../../test/setup.js"
 import UI from "./ui.js"
 import { createMessagesWrapperElement } from "../../../../test/fake-ui.js"
 import IDMU from "../../../idmu/idmu.js"
-import { DefaultStrategy } from "../unsend-strategy.js"
+import { DefaultStrategy } from "../../../ui/default/unsend-strategy.js"
 
 test("userscript ui", t => {
 	const ui = UI.render(t.context.window)

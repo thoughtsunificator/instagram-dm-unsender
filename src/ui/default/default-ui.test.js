@@ -17,7 +17,7 @@ test("UI fetchAndRenderThreadNextMessagePage", async t => {
 	t.is(await result, true)
 })
 
-test("UI createUIPIMessages", async t => {
+test("UI getNextUIPIMessage", async t => {
 	const messageElement = createMessageElement(t.context.document, "Test")
 	const uiMessage = new UIMessage(messageElement)
 	const messagesWrapperElement = createMessagesWrapperElement(t.context.document)
@@ -25,6 +25,6 @@ test("UI createUIPIMessages", async t => {
 	const ui = new UI(t.context.window)
 	ui.identifier.uiMessagesWrapper = new UIWrapper(messagesWrapperElement)
 	t.context.mountElement.append(messagesWrapperElement)
-	const uipiMessages = await ui.createUIPIMessages()
-	t.deepEqual(uipiMessages, [new UIPIMessage(uiMessage)])
+	const uipiMessage = await ui.getNextUIPIMessage()
+	t.deepEqual(uipiMessage, new UIPIMessage(uiMessage))
 })

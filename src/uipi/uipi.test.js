@@ -31,18 +31,18 @@ test("UIPI fetchAndRenderThreadNextMessagePage", async t => {
 	t.is(await result, true)
 })
 
-test("UIPI createUIPIMessages", async t => {
+test("UIPI getNextUIPIMessage", async t => {
 	const messageElement = createMessageElement(t.context.document, "Test")
 	const uiMessage = new UIMessage(messageElement)
 	const messagesWrapperElement = createMessagesWrapperElement(t.context.document)
 	t.context.mountElement.append(messagesWrapperElement)
 	const uipi = UIPI.create(t.context.window)
 	uipi.ui.identifier.uiMessagesWrapper.root.appendChild(messageElement)
-	const uiMessages = await uipi.createUIPIMessages()
+	const uiMessages = await uipi.getNextUIPIMessage()
 	t.deepEqual(uiMessages, [new UIPIMessage(uiMessage)])
 })
 
-test("UIPI createUIPIMessages multiple", async t => {
+test("UIPI getNextUIPIMessage multiple", async t => {
 	const messagesWrapperElement = createMessagesWrapperElement(t.context.document)
 	t.context.mountElement.append(messagesWrapperElement)
 	const uipi = UIPI.create(t.context.window)
@@ -52,6 +52,6 @@ test("UIPI createUIPIMessages multiple", async t => {
 	uipi.ui.identifier.uiMessagesWrapper.root.appendChild(createMessageElement(t.context.document, "Ignore_me", false))
 	uipi.ui.identifier.uiMessagesWrapper.root.appendChild(createMessageElement(t.context.document, "Ignore_me", false))
 	uipi.ui.identifier.uiMessagesWrapper.root.appendChild(createMessageElement(t.context.document, "Test2"))
-	t.deepEqual((await uipi.createUIPIMessages()).map(uipiMessage => uipiMessage.uiMessage.root.textContent), ["Test", "Test1", "Test2"])
-	t.deepEqual((await uipi.createUIPIMessages()).map(uipiMessage => uipiMessage.uiMessage.root.textContent), ["Test", "Test1", "Test2"])
+	t.deepEqual((await uipi.getNextUIPIMessage()).map(uipiMessage => uipiMessage.uiMessage.root.textContent), ["Test", "Test1", "Test2"])
+	t.deepEqual((await uipi.getNextUIPIMessage()).map(uipiMessage => uipiMessage.uiMessage.root.textContent), ["Test", "Test1", "Test2"])
 })

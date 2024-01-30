@@ -16,17 +16,18 @@ class UI extends UIComponent {
 	/**
 	 *
 	 * @abstract
+	 * @param {AbortController} abortController
 	 * @returns {Promise}
 	 */
-	async fetchAndRenderThreadNextMessagePage() {
+	async fetchAndRenderThreadNextMessagePage(abortController) {
 	}
 
 	/**
 	 *
 	 * @abstract
-	 * @returns {Promise<UIPIMessage[]>}
+	 * @returns {Promise<UIPIMessage>}
 	 */
-	async createUIPIMessages() {
+	async getNextUIPIMessage() {
 	}
 
 }

@@ -19,11 +19,11 @@ class IDMU {
 	}
 
 	/**
-	 *
-	 * @returns {Promise<UIPIMessage[]>}
+	 * @param {AbortController} abortController
+	 * @returns {Promise<UIPIMessage>}
 	 */
-	createUIPIMessages() {
-		return this.#getUIPI().createUIPIMessages()
+	getNextUIPIMessage(abortController) {
+		return this.uipi.getNextUIPIMessage(abortController)
 	}
 
 	/**
@@ -37,21 +37,19 @@ class IDMU {
 
 	/**
 	 *
+	 * @param {AbortController} abortController
 	 * @returns {Promise}
 	 */
-	fetchAndRenderThreadNextMessagePage() {
-		return this.#getUIPI().fetchAndRenderThreadNextMessagePage()
+	fetchAndRenderThreadNextMessagePage(abortController) {
+		return this.uipi.fetchAndRenderThreadNextMessagePage(abortController)
 	}
 
 	/**
-	 *
-	 * @returns {UIPI}
+	 * Map Instagram UI
 	 */
-	#getUIPI() {
-		if(this.uipi === null) {
-			this.uipi = UIPI.create(this.window)
-		}
-		return this.uipi
+	loadUIPI() {
+		console.debug("loadUIPI")
+		this.uipi = UIPI.create(this.window)
 	}
 
 

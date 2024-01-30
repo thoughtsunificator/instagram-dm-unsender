@@ -10,34 +10,32 @@
  *
  * @param {Element} target
  * @param {getElement} getElement
- * @param {AbortController} controller
+ * @param {AbortController} abortController
  * @returns {Promise<Element>}
  */
-export function waitForElement(target, getElement, controller=new AbortController()) {
-	if (controller.signal?.aborted){
-		return Promise.reject(new DOMException("Aborted", "AbortError"))
-	}
+export function waitForElement(target, getElement, abortController) {
 	return new Promise((resolve, reject) => {
 		let mutationObserver
 		const abortHandler = () => {
-			console.debug("abortController")
-			reject(new DOMException("Aborted", "AbortError"))
 			if(mutationObserver) {
+				reject(new DOMException("Aborted: Disconnecting mutation observer...", "AbortError"))
 				mutationObserver.disconnect()
+			} else {
+				reject(new DOMException("Aborted", "AbortError"))
 			}
 		}
-		controller.signal?.addEventListener("abort", abortHandler)
+		abortController.signal.addEventListener("abort", abortHandler)
 		let element = getElement()
 		if(element) {
 			resolve(element)
-			controller.signal?.removeEventListener("abort", abortHandler)
+			abortController.signal.removeEventListener("abort", abortHandler)
 		} else {
 			mutationObserver = new MutationObserver((mutations, observer) => {
 				element = getElement()
 				if(element) {
 					observer.disconnect()
 					resolve(element)
-					controller.signal?.removeEventListener("abort", abortHandler)
+					abortController.signal.removeEventListener("abort", abortHandler)
 				}
 			})
 			mutationObserver.observe(target, { subtree: true, childList:true })
@@ -50,10 +48,11 @@ export function waitForElement(target, getElement, controller=new AbortControlle
  * @param {Element} clickTarget
  * @param {Element} target
  * @param {getElement} getElement
+ * @param {AbortController} abortController
  * @returns {Element|Promise<Element>}
  */
-export function clickElementAndWaitFor(clickTarget, target, getElement) {
-	const promise = waitForElement(target, getElement)
+export function clickElementAndWaitFor(clickTarget, target, getElement, abortController) {
+	const promise = waitForElement(target, getElement, abortController)
 	clickTarget.click()
 	return getElement() || promise
 }

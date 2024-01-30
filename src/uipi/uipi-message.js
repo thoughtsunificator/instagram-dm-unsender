@@ -8,7 +8,6 @@ class FailedWorkflowException extends Error {}
 class UIPIMessage {
 
 	/**
-	 *
 	 * @param {UIMessage} uiMessage
 	 */
 	constructor(uiMessage) {
@@ -16,31 +15,27 @@ class UIPIMessage {
 	}
 
 	/**
-	 *
+	 * @param {AbortController} abortController
 	 * @returns {Promise<boolean>}
 	 */
-	async unsend() {
+	async unsend(abortController) { // TODO abort UIPI / waitForElement etc..
 		console.debug("UIPIMessage unsend")
 		let actionButton
 		let actionsMenuElement
 		try {
-			this.uiMessage.scrollIntoView()
-			actionButton = await this.uiMessage.showActionsMenuButton()
-			actionsMenuElement = await this.uiMessage.openActionsMenu(actionButton)
+			actionButton = await this.uiMessage.showActionsMenuButton(abortController)
+			actionsMenuElement = await this.uiMessage.openActionsMenu(actionButton, abortController)
 			console.debug("actionsMenuElement", actionsMenuElement)
-			const dialogButton = await this.uiMessage.openConfirmUnsendModal()
-			if(this.uiMessage.root.oldRemove) {
-				this.uiMessage.root.remove = this.uiMessage.root.oldRemove
-			}
-			await this.uiMessage.confirmUnsend(dialogButton)
+			const dialogButton = await this.uiMessage.openConfirmUnsendModal(abortController)
+			await this.uiMessage.confirmUnsend(dialogButton, abortController)
 			this.uiMessage.root.setAttribute("data-idmu-unsent", "")
 			return true
 		} catch(ex) {
 			console.error(ex)
 			if(actionButton && actionsMenuElement) {
-				await this.uiMessage.closeActionsMenu(actionButton, actionsMenuElement)
+				await this.uiMessage.closeActionsMenu(actionButton, actionsMenuElement, abortController)
 			}
-			await this.uiMessage.hideActionMenuButton()
+			await this.uiMessage.hideActionMenuButton(abortController)
 			throw new FailedWorkflowException("Failed to execute workflow for this message")
 		}
 	}

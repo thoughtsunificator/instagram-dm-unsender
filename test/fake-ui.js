@@ -55,7 +55,6 @@ export function createMessagesWrapperElement(document, totalPages=0, itemsPerPag
 			messageWrapperElement.dispatchEvent(new document.defaultView.Event("scroll"))
 		}
 	})
-	messageWrapperElement.scrollIntoView = () => {}
 	messageWrapperElement.currentPage = 0
 	for(let i =0; i < itemsPerPage;i++) {
 		const messageElement = createMessageElement.call(null, document, `Item ${i}`)
@@ -108,7 +107,6 @@ export function createMessageElement(document, text="", includesUnsend=true, ign
 	if(ignored) {
 		element.setAttribute("data-idmu-ignore", "true")
 	}
-	element.scrollIntoView = () => {}
 	element.innerHTML = `<span>${text}</span>`
 	element.addEventListener("mouseover", event => {
 		console.debug(`message ${text} mouseover`)
