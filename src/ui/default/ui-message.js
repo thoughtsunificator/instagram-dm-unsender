@@ -17,21 +17,18 @@ class UIMessage extends UIComponent {
 		element.querySelector(`[aria-label="Close details and actions"]`)?.click()
 		element.dispatchEvent(new MouseEvent("mouseout", { bubbles: true }))
 		const uiMessage = new UIMessage(element)
-		let timeout
-		const actionButton = await Promise.race([
-			uiMessage.showActionsMenuButton(abortController),
-			new Promise(resolve => {
-				timeout = setTimeout(resolve, 200) // IDMU_MESSAGE_DETECTION_ACTION_MENU_TIMEOUT
-			})
-		])
-		clearTimeout(timeout)
+		const actionButton = await uiMessage.showActionsMenuButton(abortController)
 		if(actionButton) {
 			console.debug("isMyOwnMessage: actionButton found looking for unsend action in actionsMenu")
 			const actionsMenuElement = await uiMessage.openActionsMenu(actionButton, abortController)
-			await uiMessage.closeActionsMenu(actionButton, actionsMenuElement, abortController)
-			await uiMessage.hideActionMenuButton(abortController)
-			console.debug(`isMyOwnMessage:  ${actionsMenuElement}, ${actionsMenuElement.textContent}`)
-			return actionsMenuElement && actionsMenuElement.textContent.toLocaleLowerCase() === "unsend"
+			if(actionsMenuElement) {
+				await uiMessage.closeActionsMenu(actionButton, actionsMenuElement, abortController)
+				await uiMessage.hideActionMenuButton(abortController)
+				console.debug(`isMyOwnMessage:  ${actionsMenuElement}, ${actionsMenuElement.textContent}`)
+				return true
+			} else {
+				console.debug("isMyOwnMessage: Did not find actionsMenuElement")
+			}
 		} else {
 			console.debug("isMyOwnMessage: Did not find actionButton")
 		}
@@ -42,25 +39,63 @@ class UIMessage extends UIComponent {
 	 * @param {AbortController} abortController
 	 * @returns {Promise<HTMLButtonElement>}
 	 */
-	showActionsMenuButton(abortController) {
+	async showActionsMenuButton(abortController) {
 		console.debug("Workflow step 1 : showActionsMenuButton", this.root)
 		this.root.dispatchEvent(new MouseEvent("mousemove", { bubbles: true }))
 		this.root.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }))
 		this.root.dispatchEvent(new MouseEvent("mousenter", { bubbles: true }))
-		// Some rows are empty and we do want the entire run to fail
-		return this.waitForElement(this.root, () => this.root.querySelector("[aria-label=More]")?.parentNode, abortController) // TODO i18n
+		const waitAbortController = new AbortController()
+		let promiseTimeout
+		let resolveTimeout
+		const abortHandler = () => {
+			waitAbortController.abort()
+			clearTimeout(promiseTimeout)
+			if(resolveTimeout) {
+				resolveTimeout()
+			}
+		}
+		abortController.signal.addEventListener("abort", abortHandler)
+		const actionButton = await Promise.race([
+			this.waitForElement(this.root, () => this.root.querySelector("[aria-label=More]")?.parentNode, waitAbortController),
+			new Promise((resolve, reject) => {
+				promiseTimeout = setTimeout(() => reject("Timeout showActionsMenuButton"), 200)
+			})
+		])
+		waitAbortController.abort()
+		clearTimeout(promiseTimeout)
+		return actionButton
 	}
 
 	/**
 	 * @param {AbortController} abortController
 	 * @returns {Promise<boolean>}
 	 */
-	hideActionMenuButton(abortController) { // FIXME
+	async hideActionMenuButton(abortController) { // FIXME
 		console.debug("hideActionMenuButton", this.root)
 		this.root.dispatchEvent(new MouseEvent("mousemove", { bubbles: true }))
 		this.root.dispatchEvent(new MouseEvent("mouseout", { bubbles: true }))
 		this.root.dispatchEvent(new MouseEvent("mouseleave", { bubbles: true }))
-		return this.waitForElement(this.root, () => this.root.querySelector("[aria-label=More]") === null, abortController) // TODO i18n
+		const waitAbortController = new AbortController()
+		let promiseTimeout
+		let resolveTimeout
+		const abortHandler = () => {
+			waitAbortController.abort()
+			clearTimeout(promiseTimeout)
+			if(resolveTimeout) {
+				resolveTimeout()
+			}
+		}
+		abortController.signal.addEventListener("abort", abortHandler)
+		const result = await Promise.race([
+			this.waitForElement(this.root, () => this.root.querySelector("[aria-label=More]") === null, waitAbortController),
+			new Promise((resolve, reject) => {
+				resolveTimeout = resolve
+				promiseTimeout = setTimeout(() => reject("Timeout hideActionMenuButton"), 200)
+			})
+		])
+		waitAbortController.abort()
+		clearTimeout(promiseTimeout)
+		return result
 	}
 
 	/**
@@ -71,24 +106,41 @@ class UIMessage extends UIComponent {
 	 */
 	async openActionsMenu(actionButton, abortController) {
 		console.debug("Workflow step 2 : Clicking actionButton and waiting for unsend menu item to appear", actionButton)
-		const actionMenuElement = await this.clickElementAndWaitFor(
-			actionButton,
-			this.root.ownerDocument.body,
-			() => {
-				const menuElements = [...this.root.ownerDocument.querySelectorAll("[role=menu] [role=menuitem]")]
-				console.debug("Workflow step 2 : ", menuElements.map(menuElement => menuElement.textContent))
-				console.debug("Workflow step 2 : ", menuElements.find(node => node.textContent.trim().toLocaleLowerCase() === "unsend"))
-				return menuElements.find(node => node.textContent.trim().toLocaleLowerCase() === "unsend") || menuElements.shift() // TODO i18n
-			},
-			abortController
-		)
-			;[...actionMenuElement.parentNode.parentNode.querySelectorAll("[role=menuitem]")].forEach(element => {
-			if(element !== actionMenuElement) {
-				element.remove()
+		const waitAbortController = new AbortController()
+		let promiseTimeout
+		let resolveTimeout
+		const abortHandler = () => {
+			waitAbortController.abort()
+			clearTimeout(promiseTimeout)
+			if(resolveTimeout) {
+				resolveTimeout()
 			}
-		})
-		return actionMenuElement
-
+		}
+		abortController.signal.addEventListener("abort", abortHandler)
+		const unsendButton = await Promise.race([
+			this.clickElementAndWaitFor(
+				actionButton,
+				this.root.ownerDocument.body,
+				(mutations) => {
+					if(mutations) {
+						const addedNodes = [ ...mutations.map(mutation => [...mutation.addedNodes]) ].flat().filter(node => node.nodeType === 1)
+						console.debug("Workflow step 2 : ", addedNodes, addedNodes.find(node => node.textContent.trim().toLocaleLowerCase() === "unsend"))
+						for(const addedNode of addedNodes) {
+							const node = [...addedNode.querySelectorAll("span,div")].find(node => node.textContent.trim().toLocaleLowerCase() === "unsend" && node.firstChild?.nodeType === 3)
+							return node
+						}
+					}
+				},
+				waitAbortController
+			),
+			new Promise((resolve, reject) => {
+				promiseTimeout = setTimeout(() => reject("Timeout openActionsMenu"), 200)
+			})
+		])
+		console.debug("Workflow step 2 : Found unsendButton", unsendButton)
+		waitAbortController.abort()
+		clearTimeout(promiseTimeout)
+		return unsendButton
 	}
 
 	/**
@@ -100,29 +152,28 @@ class UIMessage extends UIComponent {
 	 */
 	closeActionsMenu(actionButton, actionsMenuElement, abortController) {
 		console.debug("closeActionsMenu")
-		return this.clickElementAndWaitFor(
-			actionButton,
-			this.root.ownerDocument.body,
-			() => this.root.ownerDocument.body.contains(actionsMenuElement) === false,
-			abortController
-		)
+		return Promise.race([
+			this.clickElementAndWaitFor(
+				actionButton,
+				this.root.ownerDocument.body,
+				() => this.root.ownerDocument.body.contains(actionsMenuElement) === false,
+				abortController
+			),
+			new Promise(resolve => setTimeout(resolve, 200))
+		])
+
 	}
 
 	/**
 	 * Click unsend button
+	 * @param {HTMLSpanElement} unsendButton
 	 * @param {AbortController} abortController
 	 * @returns {Promise<HTMLButtonElement>|Promise<Error>}
 	 */
-	async openConfirmUnsendModal(abortController) {
-		console.debug("Workflow step 3 : openConfirmUnsendModal")
-		const unSendButton = await this.waitForElement(
-			this.root.ownerDocument.body,
-			() => [...this.root.ownerDocument.querySelectorAll("[role=dialog] [role=menu] [role=menuitem]")].filter(node => node.textContent.toLocaleLowerCase() === "unsend").pop(), // TODO i18n
-			abortController
-		)
-		console.debug("Workflow step 3.5 : Found unsendButton; Clicking unsendButton and waiting for dialog to appear...")
+	openConfirmUnsendModal(unsendButton, abortController) {
+		console.debug("Workflow step 3 : Clicking unsendButton and waiting for dialog to appear...")
 		return this.clickElementAndWaitFor(
-			unSendButton,
+			unsendButton,
 			this.root.ownerDocument.body,
 			() => this.root.ownerDocument.querySelector("[role=dialog] button"),
 			abortController

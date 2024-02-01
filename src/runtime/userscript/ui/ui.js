@@ -107,7 +107,9 @@ class UI {
 			this.root.style.display = ""
 		} else {
 			this.root.style.display = "none"
-			this.strategy.stop()
+			if(this.strategy.isRunning()) {
+				this.strategy.stop()
+			}
 		}
 	}
 

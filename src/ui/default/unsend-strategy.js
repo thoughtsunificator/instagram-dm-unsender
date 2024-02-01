@@ -3,6 +3,7 @@
 // eslint-disable-next-line no-unused-vars
 import IDMU from "../../idmu/idmu.js"
 import { UnsendStrategy } from "../unsend-strategy.js"
+import { FailedWorkflowException } from "../../uipi/uipi-message.js"
 
 /**
  * Loads multiple pages before unsending message
@@ -54,15 +55,17 @@ class DefaultStrategy extends UnsendStrategy {
 			} else {
 				await this.#loadNextPage()
 			}
+			if(this._abortController.signal.aborted) {
+				this.idmu.setStatusText(`Aborted. ${this._unsentCount} message(s) unsent.`)
+				console.debug("DefaultStrategy aborted")
+			} else {
+				this.idmu.setStatusText(`Done. ${this._unsentCount} message(s) unsent.`)
+				console.debug("DefaultStrategy done")
+			}
 		} catch(ex) {
 			console.error(ex)
-		}
-		if(this._abortController.signal.aborted) {
-			this.idmu.setStatusText(`Aborted. ${this._unsentCount} message(s) unsent.`)
-			console.debug("DefaultStrategy aborted")
-		} else {
-			this.idmu.setStatusText(`Done. ${this._unsentCount} message(s) unsent.`)
-			console.debug("DefaultStrategy done")
+			this.idmu.setStatusText(`Errored. ${this._unsentCount} message(s) unsent.`)
+			console.debug("DefaultStrategy errored")
 		}
 		this._running = false
 	}
@@ -75,14 +78,18 @@ class DefaultStrategy extends UnsendStrategy {
 			return
 		}
 		this.idmu.setStatusText("Loading next page...")
-		const done = await this.idmu.fetchAndRenderThreadNextMessagePage(this._abortController)
-		if(done) {
-			this.idmu.setStatusText(`All pages loaded (${this._pagesLoadedCount} in total)...`)
-			this._allPagesLoaded = true
-			await this.#unsendNextMessage()
-		} else {
-			this._pagesLoadedCount++
-			await this.#loadNextPage()
+		try {
+			const done = await this.idmu.fetchAndRenderThreadNextMessagePage(this._abortController)
+			if(done) {
+				this.idmu.setStatusText(`All pages loaded (${this._pagesLoadedCount} in total)...`)
+				this._allPagesLoaded = true
+				await this.#unsendNextMessage()
+			} else {
+				this._pagesLoadedCount++
+				await this.#loadNextPage()
+			}
+		} catch(ex) {
+			console.error(ex)
 		}
 	}
 
@@ -93,16 +100,20 @@ class DefaultStrategy extends UnsendStrategy {
 		if(this._abortController.signal.aborted) {
 			return
 		}
-		this.idmu.setStatusText("Retrieving next message...")
-		const uipiMessage = await this.idmu.getNextUIPIMessage(this._abortController)
-		if(uipiMessage) {
-			this.idmu.setStatusText("Unsending message...")
-			await new Promise(resolve => setTimeout(resolve, 1000)) // IDMU_MESSAGE_QUEUE_DELAY
-			await uipiMessage.unsend(this._abortController)
-			this._unsentCount++
-			this.idmu.setStatusText("Waiting 1 second before unsending next message...")
-			await this.#unsendNextMessage()
+		try {
+			this.idmu.setStatusText("Retrieving next message...")
+			const uipiMessage = await this.idmu.getNextUIPIMessage(this._abortController)
+			if(uipiMessage) {
+				this.idmu.setStatusText("Unsending message...")
+				await uipiMessage.unsend(this._abortController)
+				this._unsentCount++
+			}
+		} catch(ex) {
+			console.error(ex)
 		}
+		await new Promise(resolve => setTimeout(resolve, 1000)) // IDMU_MESSAGE_QUEUE_DELAY
+		this.idmu.setStatusText("Waiting 1 second before unsending next message...")
+		await this.#unsendNextMessage()
 	}
 
 }

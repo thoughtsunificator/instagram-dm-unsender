@@ -31,7 +31,7 @@ export function waitForElement(target, getElement, abortController) {
 			abortController.signal.removeEventListener("abort", abortHandler)
 		} else {
 			mutationObserver = new MutationObserver((mutations, observer) => {
-				element = getElement()
+				element = getElement(mutations)
 				if(element) {
 					observer.disconnect()
 					resolve(element)
