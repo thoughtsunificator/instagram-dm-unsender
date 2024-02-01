@@ -53,7 +53,7 @@ class DefaultUI extends UI {
 			this.lastScrollTop = i
 			uiMessagesWrapperRoot.scrollTop = i
 			uiMessagesWrapperRoot.dispatchEvent(new this.root.Event("scroll"))
-			await new Promise(resolve => setTimeout(resolve, 200)) // IDMU_MESSAGE_QUEUE_DELAY
+			await new Promise(resolve => setTimeout(resolve, 20)) // IDMU_MESSAGE_QUEUE_DELAY
 			try {
 				const messageElement = (await findMessages(uiMessagesWrapperRoot, abortController)).pop()
 				if(messageElement) {

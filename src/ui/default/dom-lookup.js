@@ -11,7 +11,6 @@ import { waitForElement } from "../../dom/async-events.js"
  */
 export async function findMessages(root, abortController) {
 	const elements = [...root.querySelectorAll("div[role=row]:not([data-idmu-ignore])")]
-	console.debug("findMessages elements ", elements)
 	const messageElements = []
 	for(const element of elements) {
 		if(element.style.display === "none" || root.ownerDocument.defaultView.getComputedStyle(element).display === "none") {
