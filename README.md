@@ -1,23 +1,23 @@
 # instagram-dm-unsender (idmu)
 
-As of 2023 [instagram.com](https://www.instagram.com) does not allow batch unsending of messages which is why this project came to be.
+As of 2023 [instagram.com](https://www.instagram.com) doesn't allow batch unsending of messages which is why this project came to be.
 
-The userscript allow a user to batch unsend DM in a thread on the web version of [instagram.com](https://www.instagram.com) 
+The userscript allows a user to batch unsend DMs in a thread on the web version of [instagram.com](https://www.instagram.com) 
 
-⚠️ Only English language is supported as of yet so please set your UI language to English before running the script.
+⚠️ Only English is supported as of yet so please set your UI language to English before running the script.
 
 ⚠️ [This might not work](#this-might-not-work)
 
 
 ## Use cases
 
-- One possible use case would be people wanting to switch to fediverse and want to "remove" all their messages from Meta's platform.
+- One potential use case would be when individuals seek to transition to Fediverse and would want to "remove" their messages from Meta's database.
 
 ## What's the difference between deleting and unsending?
 
-Deleting a thread will only delete messages on your end, the other party will still be able to read your messages.
+Deleting a thread will only delete messages on your end but the other party will still be able to read your messages.
 
-Unsending a thread on the other hand will delete messages on both ends, the other party will no longer be able to read your messages.
+On the other hand, unsending of a thread will result in the deletion of messages on both ends, rendering the other party unable to read your messages.
 
 ## How does it work / How can I use it?
 
@@ -27,7 +27,7 @@ This script is meant to be run on the page that lists the message threads.
 
 ![UI Preview](preview.png)
 
-From here three buttons are available :
+From here on out, three buttons will be made available :
 
 - Unsend all DMs - Start the unsending workflow
 - Batch size - Change the number of page to load between unsending
@@ -44,16 +44,16 @@ The workflow works as follow:
         Click the three dots button to open the message actions.
 
      - ### Open unsend confirm modal:
-        Click the "Unsend" action button, a modal will open with a dialog that asks user to confirm the intent.
+        Click the "Unsend" action button, a modal will open with a dialog that asks the user to confirm the intent.
 
      - ### Click "confirm":
         Click the "confirm" button inside the modal.
 
 
 
-There is no concurrency, message are unsent one after another by using a queue.
+There is no concurrency. Messages are unsent one after the other by using a queue.
 
-⚠️ Instagram has a rate limits, after a certain of messages you might get blocked from unsending message for a period of time.
+⚠️ Instagram has rate limits. After a certain number of messages, you might get blocked from unsending another message for a period of time.
 
 ## Installing
 
@@ -72,7 +72,7 @@ Finally, install the userscript from OpenUserJS :
 
 ## Development
 
-I recommend using [Violentmonkey](https://violentmonkey.github.io/) or similar and enable userscript autoreloading as explained in here https://violentmonkey.github.io/posts/how-to-edit-scripts-with-your-favorite-editor/ 
+I recommend using [Violentmonkey](https://violentmonkey.github.io/) or something similar and enabling userscript autoreloading as explained here : https://violentmonkey.github.io/posts/how-to-edit-scripts-with-your-favorite-editor/ 
 
 Install dependencies:
 - ``npm install``
@@ -89,7 +89,7 @@ You can also do a one-time build with:
 
 ## This might not work
 
-Instagram web app is serving different UIs probably based on the user location. [Yours might not be supported](https://github.com/thoughtsunificator/instagram-dm-unsender/issues/1)
+Instagram web app is serving different UIs, probably based on the user location. [Yours might not be supported](https://github.com/thoughtsunificator/instagram-dm-unsender/issues/1)
 
 Link to the issue : [https://github.com/thoughtsunificator/instagram-dm-unsender/issues/1](https://github.com/thoughtsunificator/instagram-dm-unsender/issues/1)
 
