@@ -1,6 +1,6 @@
 /** @module default-ui Provide a fake instagram UI. */
 
-import { findMessages } from "../src/ui/default/dom-lookup.js"
+import { getFirstVisibleMessage } from "../src/ui/default/dom-lookup.js"
 
 /**
  *
@@ -75,7 +75,7 @@ export function createMessagesWrapperElement(document, totalPages=0, itemsPerPag
 					event.target.scrollTop = 5
 				}
 				console.debug("messageWrapperElement loading page", event.target.currentPage)
-				for(const messageElement of await findMessages(document.body)) { // Mocks instagram removing elements outside the viewport
+				for(const messageElement of await getFirstVisibleMessage(document.body)) { // Mocks instagram removing elements outside the viewport
 					messageElement.remove()
 				}
 				console.debug("event.target.children.length", event.target.children.length)

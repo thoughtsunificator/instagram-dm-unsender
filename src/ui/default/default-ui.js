@@ -1,7 +1,7 @@
 /** @module default-ui Default UI / English UI */
 
 import UI from "../ui.js"
-import { findMessagesWrapper, findMessages } from "./dom-lookup.js"
+import { findMessagesWrapper, getFirstVisibleMessage } from "./dom-lookup.js"
 import UIPIMessage from "../../uipi/uipi-message.js"
 import UIMessage from "./ui-message.js"
 import UIMessagesWrapper from "./ui-messages-wrapper.js"
@@ -46,16 +46,16 @@ class DefaultUI extends UI {
 		console.debug("UI getNextUIPIMessage", this.lastScrollTop)
 		const uiMessagesWrapperRoot = this.identifier.uiMessagesWrapper.root
 		const startScrollTop = this.lastScrollTop || uiMessagesWrapperRoot.scrollHeight - uiMessagesWrapperRoot.clientHeight
-		for(let i = startScrollTop;i > 0;i = i - 1 ) { // TODO scroll and map element to scrollTop
+		for(let i = startScrollTop;i > 0;i = i - 30 ) {
 			if(abortController.signal.aborted) {
 				break
 			}
 			this.lastScrollTop = i
 			uiMessagesWrapperRoot.scrollTop = i
 			uiMessagesWrapperRoot.dispatchEvent(new this.root.Event("scroll"))
-			await new Promise(resolve => setTimeout(resolve, 20)) // IDMU_MESSAGE_QUEUE_DELAY
+			await new Promise(resolve => setTimeout(resolve, 20))
 			try {
-				const messageElement = (await findMessages(uiMessagesWrapperRoot, abortController)).pop()
+				const messageElement = getFirstVisibleMessage(uiMessagesWrapperRoot, abortController)
 				if(messageElement) {
 					const uiMessage = new UIMessage(messageElement)
 					return new UIPIMessage(uiMessage)
@@ -64,6 +64,7 @@ class DefaultUI extends UI {
 				console.error(ex)
 			}
 		}
+		return false // end of scroll reached
 	}
 
 }

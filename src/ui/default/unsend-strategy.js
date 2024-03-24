@@ -3,14 +3,11 @@
 // eslint-disable-next-line no-unused-vars
 import IDMU from "../../idmu/idmu.js"
 import { UnsendStrategy } from "../unsend-strategy.js"
-import { FailedWorkflowException } from "../../uipi/uipi-message.js"
 
 /**
  * Loads multiple pages before unsending message
  */
 class DefaultStrategy extends UnsendStrategy {
-
-
 
 	/**
 	 * @param {IDMU} idmu
@@ -22,6 +19,7 @@ class DefaultStrategy extends UnsendStrategy {
 		this._pagesLoadedCount = 0
 		this._running = false
 		this._abortController = null
+		this._lastUnsendDate = null
 	}
 
 	/**
@@ -36,6 +34,14 @@ class DefaultStrategy extends UnsendStrategy {
 		console.debug("DefaultStrategy stop")
 		this.idmu.setStatusText("Stopping...")
 		this._abortController.abort()
+	}
+
+	reset() {
+		this._allPagesLoaded = false
+		this._unsentCount = 0
+		this._lastUnsendDate = null
+		this._pagesLoadedCount = 0
+		this.idmu.setStatusText("Ready")
 	}
 
 	/**
@@ -80,13 +86,15 @@ class DefaultStrategy extends UnsendStrategy {
 		this.idmu.setStatusText("Loading next page...")
 		try {
 			const done = await this.idmu.fetchAndRenderThreadNextMessagePage(this._abortController)
-			if(done) {
-				this.idmu.setStatusText(`All pages loaded (${this._pagesLoadedCount} in total)...`)
-				this._allPagesLoaded = true
-				await this.#unsendNextMessage()
-			} else {
-				this._pagesLoadedCount++
-				await this.#loadNextPage()
+			if(this._abortController.signal.aborted === false) {
+				if(done) {
+					this.idmu.setStatusText(`All pages loaded (${this._pagesLoadedCount} in total)...`)
+					this._allPagesLoaded = true
+					await this.#unsendNextMessage()
+				} else {
+					this._pagesLoadedCount++
+					await this.#loadNextPage()
+				}
 			}
 		} catch(ex) {
 			console.error(ex)
@@ -100,20 +108,33 @@ class DefaultStrategy extends UnsendStrategy {
 		if(this._abortController.signal.aborted) {
 			return
 		}
+		let canScroll = true
 		try {
 			this.idmu.setStatusText("Retrieving next message...")
 			const uipiMessage = await this.idmu.getNextUIPIMessage(this._abortController)
+			canScroll = uipiMessage !== false
 			if(uipiMessage) {
 				this.idmu.setStatusText("Unsending message...")
-				await uipiMessage.unsend(this._abortController)
+				if (this._lastUnsendDate !== null) {
+					const lastUnsendDateDiff = new Date().getTime() - this._lastUnsendDate.getTime()
+					if(lastUnsendDateDiff < 1000) {
+						this.idmu.setStatusText(`Waiting ${lastUnsendDateDiff}ms before unsending next message...`)
+						await new Promise(resolve => setTimeout(resolve, lastUnsendDateDiff))
+					}
+				}
+				const unsent = await uipiMessage.unsend(this._abortController)
+				// if(unsent) {
+				this._lastUnsendDate = new Date()
 				this._unsentCount++
+				// }
 			}
 		} catch(ex) {
 			console.error(ex)
+		} finally {
+			if(canScroll) {
+				await this.#unsendNextMessage()
+			}
 		}
-		await new Promise(resolve => setTimeout(resolve, 1000)) // IDMU_MESSAGE_QUEUE_DELAY
-		this.idmu.setStatusText("Waiting 1 second before unsending next message...")
-		await this.#unsendNextMessage()
 	}
 
 }

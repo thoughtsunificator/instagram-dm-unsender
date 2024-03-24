@@ -5,37 +5,6 @@ import UIComponent from "../ui-component.js"
 class UIMessage extends UIComponent {
 
 	/**
-	 * Run a partial workflow on a message in addition to the early filtering process in order to filter out any element that was wrongly picked up early on.
-	 * @param {HTMLDivElement} element
-	 * @param {AbortController} abortController
-	 * @returns {Promise<boolean>}
-	 */
-	static async isMyOwnMessage(element, abortController) {
-		console.debug("isMyOwnMessage", element)
-		// close menu in case it was left open
-		element.querySelector("[aria-label=More]")?.parentNode?.click()
-		element.querySelector(`[aria-label="Close details and actions"]`)?.click()
-		element.dispatchEvent(new MouseEvent("mouseout", { bubbles: true }))
-		const uiMessage = new UIMessage(element)
-		const actionButton = await uiMessage.showActionsMenuButton(abortController)
-		if(actionButton) {
-			console.debug("isMyOwnMessage: actionButton found looking for unsend action in actionsMenu")
-			const actionsMenuElement = await uiMessage.openActionsMenu(actionButton, abortController)
-			if(actionsMenuElement) {
-				await uiMessage.closeActionsMenu(actionButton, actionsMenuElement, abortController)
-				await uiMessage.hideActionMenuButton(abortController)
-				console.debug(`isMyOwnMessage:  ${actionsMenuElement}, ${actionsMenuElement.textContent}`)
-				return true
-			} else {
-				console.debug("isMyOwnMessage: Did not find actionsMenuElement")
-			}
-		} else {
-			console.debug("isMyOwnMessage: Did not find actionButton")
-		}
-		return false
-	}
-
-	/**
 	 * @param {AbortController} abortController
 	 * @returns {Promise<HTMLButtonElement>}
 	 */
@@ -150,18 +119,33 @@ class UIMessage extends UIComponent {
 	 * @param {AbortController} abortController
 	 * @returns {Promise<boolean>}
 	 */
-	closeActionsMenu(actionButton, actionsMenuElement, abortController) {
+	async closeActionsMenu(actionButton, actionsMenuElement, abortController) {
 		console.debug("closeActionsMenu")
-		return Promise.race([
+		const waitAbortController = new AbortController()
+		let promiseTimeout
+		let resolveTimeout
+		const abortHandler = () => {
+			waitAbortController.abort()
+			clearTimeout(promiseTimeout)
+			if(resolveTimeout) {
+				resolveTimeout()
+			}
+		}
+		abortController.signal.addEventListener("abort", abortHandler)
+		const result = await Promise.race([
 			this.clickElementAndWaitFor(
 				actionButton,
 				this.root.ownerDocument.body,
 				() => this.root.ownerDocument.body.contains(actionsMenuElement) === false,
 				abortController
 			),
-			new Promise(resolve => setTimeout(resolve, 200))
+			new Promise((resolve, reject) => {
+				promiseTimeout = setTimeout(() => reject("Timeout openActionsMenu"), 200)
+			})
 		])
-
+		waitAbortController.abort()
+		clearTimeout(promiseTimeout)
+		return result !== null
 	}
 
 	/**
