@@ -32,6 +32,13 @@ class UnsendStrategy {
 	 *
 	 * @abstract
 	 */
+	reset() {
+	}
+
+	/**
+	 *
+	 * @abstract
+	 */
 	async run() {
 	}
 

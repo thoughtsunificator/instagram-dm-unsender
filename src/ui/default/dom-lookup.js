@@ -1,6 +1,5 @@
 /** @module dom-lookup Utils module for looking up elements on the default UI */
 
-import UIMessage from "./ui-message.js"
 import { waitForElement } from "../../dom/async-events.js"
 
 /**
@@ -9,25 +8,29 @@ import { waitForElement } from "../../dom/async-events.js"
  * @param {AbortController} abortController
  * @returns {Promise<Element[]>}
  */
-export async function findMessages(root, abortController) {
+export function getFirstVisibleMessage(root, abortController) {
 	const elements = [...root.querySelectorAll("div[role=row]:not([data-idmu-ignore])")]
-	console.debug("findMessages elements ", elements)
-	const messageElements = []
+	elements.reverse()
 	for(const element of elements) {
-		if(element.style.display === "none" || root.ownerDocument.defaultView.getComputedStyle(element).display === "none") {
+		if(abortController.signal.aborted) {
+			break
+		}
+		const visibilityCheck = element.checkVisibility({
+			visibilityProperty: true,
+			contentVisibilityAuto: true,
+			opacityProperty: true,
+		})
+		if(visibilityCheck === false) {
+			continue
+		}
+		const isInView = element.getBoundingClientRect().y > 100
+		if(isInView === false) {
 			continue
 		}
 		element.setAttribute("data-idmu-ignore", "") // Next iteration should not include this message
-		const isMyOwnMessage = await UIMessage.isMyOwnMessage(element, abortController) // Test if the message is ours and not the interlocutor's
-		if(isMyOwnMessage) {
-			console.debug("findMessages adding ", element)
-			messageElements.push(element)
-		} else {
-			console.debug("findMessages ignoring ", element)
-		}
+		console.debug("Message in view, testing workflow...", element)
+		return element
 	}
-	console.debug("findMessages hits", messageElements)
-	return messageElements
 }
 
 /**

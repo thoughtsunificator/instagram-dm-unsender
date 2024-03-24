@@ -77,6 +77,7 @@ class UI {
 		unsendThreadMessagesButton.dataBackgroundColor = unsendThreadMessagesButton.style.backgroundColor
 		return ui
 	}
+
 	async #startUnsending() {
 		console.debug("User asked for messages unsending to start; UI interaction will be disabled in the meantime")
 		;[...this.menuElement.querySelectorAll("button")].filter(button => button !== this.unsendThreadMessagesButton).forEach(button => {
@@ -104,10 +105,13 @@ class UI {
 			this._mutationObserver.observe(ui.root.ownerDocument.querySelector("[id^=mount] > div > div > div"), { childList: true, attributes: true })
 		}
 		if(this.window.location.pathname.startsWith("/direct/t/")) {
+			this.strategy.reset()
 			this.root.style.display = ""
 		} else {
 			this.root.style.display = "none"
-			this.strategy.stop()
+			if(this.strategy.isRunning()) {
+				this.strategy.stop()
+			}
 		}
 	}
 
