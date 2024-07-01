@@ -5,6 +5,8 @@ import UIPI from "../uipi/uipi.js"
 import { findMessagesWrapper } from "../ui/default/dom-lookup.js"
 import IDMU from "./idmu.js"
 
+// TODO use mock instead of testing the same methods twice
+
 test("IDMU", t => {
 	const ui = new UI(t.context.window)
 	const uipi = new UIPI(ui)
@@ -17,7 +19,7 @@ test("IDMU fetchAndRenderThreadNextMessagePage", async t => {
 	const idmu = new IDMU(t.context.window, () => {})
 	idmu.loadUIPI()
 	messagesWrapperElement.innerHTML += `<div role="progressbar"></div>`
-	const result = idmu.fetchAndRenderThreadNextMessagePage()
+	const result = idmu.fetchAndRenderThreadNextMessagePage( new AbortController())
 	messagesWrapperElement.querySelector("[role=progressbar]").remove()
 	t.is(await result, true)
 })

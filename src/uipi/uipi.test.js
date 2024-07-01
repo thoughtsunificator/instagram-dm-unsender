@@ -26,7 +26,7 @@ test("UIPI fetchAndRenderThreadNextMessagePage", async t => {
 	const messagesWrapperElement = findMessagesWrapper(t.context.window)
 	const uipi = UIPI.create(t.context.window)
 	messagesWrapperElement.innerHTML += `<div role="progressbar"></div>`
-	const result = uipi.fetchAndRenderThreadNextMessagePage()
+	const result = uipi.fetchAndRenderThreadNextMessagePage( new AbortController())
 	messagesWrapperElement.querySelector("[role=progressbar]").remove()
 	t.is(await result, true)
 })
