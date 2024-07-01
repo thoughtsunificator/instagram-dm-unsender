@@ -95,6 +95,8 @@ Link to the issue : [https://github.com/thoughtsunificator/instagram-dm-unsender
 
 ## Testing
 
+> Please do set the  ``NODE_NO_WARNINGS=1`` to disable  ``punycode `` deprecation warnings.
+
 Use the ``DEBUG=idmu:test`` env to enable debug logs while testing.
 
 Lint files:
