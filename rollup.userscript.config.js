@@ -3,7 +3,6 @@
 import fs from "fs"
 import nodeResolve from "@rollup/plugin-node-resolve"
 import serve from "rollup-plugin-serve"
-import pkg from "./package.json" assert { type: "json" }
 
 const isProduction = process.env.BUILD === "production"
 const isDevelopment = !isProduction
@@ -20,9 +19,9 @@ export default {
 			buildStart(){
 				this.addWatchFile("./data/meta.json")
 			},
-			banner: async () => {
+			banner: () => {
 				const metadata = JSON.parse(fs.readFileSync("./data/meta.json"))
-				metadata.version = pkg.version
+				metadata.version = JSON.parse(fs.readFileSync("./package.json")).version
 				let str = "// ==UserScript==\n"
 				for(const property in metadata) {
 					str += `\n// @${property}\t\t\t\t${metadata[property]}`

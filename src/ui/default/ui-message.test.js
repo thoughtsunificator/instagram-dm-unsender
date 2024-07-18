@@ -2,6 +2,8 @@ import { test } from "../../../test/setup.js"
 import UIMessage from "./ui-message.js"
 import { createMessageElement, createMessageActionsMenuElement } from "../../../test/fake-ui.js"
 
+// TODO replace with mocks
+
 test("UIMessage", t => {
 	const messageElement = createMessageElement(t.context.document, "Test")
 	const uiMessage = new UIMessage(messageElement)
@@ -17,7 +19,7 @@ test("UIMessage showActionsMenuButton mouse events are sent", async t => {
 	messageElement.addEventListener("mousenter", event => events.push(event.type))
 	const uiMessage = new UIMessage(messageElement)
 	t.context.mountElement.append(uiMessage.root)
-	await uiMessage.showActionsMenuButton()
+	await uiMessage.showActionsMenuButton(new AbortController())
 	t.deepEqual(events, ["mousemove", "mouseover", "mousenter"])
 })
 
@@ -30,7 +32,7 @@ test("UIMessage hideActionMenuButton mouse events are sent", t => {
 	messageElement.addEventListener("mouseleave", event => events.push(event.type))
 	const uiMessage = new UIMessage(messageElement)
 	t.context.mountElement.append(uiMessage.root)
-	uiMessage.hideActionMenuButton()
+	uiMessage.hideActionMenuButton(new AbortController())
 	t.deepEqual(events, ["mousemove", "mouseout", "mouseleave"])
 })
 
@@ -39,10 +41,10 @@ test("UIMessage openActionsMenu", async t => {
 	const messageElement = createMessageElement(t.context.document, "Test")
 	const uiMessage = new UIMessage(messageElement)
 	t.context.mountElement.append(uiMessage.root)
-	await uiMessage.showActionsMenuButton()
+	await uiMessage.showActionsMenuButton(new AbortController())
 	const actionButton = uiMessage.root.querySelector("[aria-label]")
 	actionButton.addEventListener("click", event => events.push(event.type))
-	await uiMessage.openActionsMenu(actionButton)
+	await uiMessage.openActionsMenu(actionButton, new AbortController())
 	t.deepEqual(events, ["click"])
 })
 
@@ -52,11 +54,11 @@ test("UIMessage closeActionMenu", async t => {
 	messageElement.addEventListener("click", event => events.push(event.type))
 	const uiMessage = new UIMessage(messageElement)
 	t.context.mountElement.append(uiMessage.root)
-	const actionButton = await uiMessage.showActionsMenuButton()
+	const actionButton = await uiMessage.showActionsMenuButton(new AbortController())
 	t.is(t.context.document.querySelector("[role=dialog]"), null)
-	const actionsMenuElement = await uiMessage.openActionsMenu(uiMessage.root.querySelector("[aria-label]"))
+	const actionsMenuElement = await uiMessage.openActionsMenu(uiMessage.root.querySelector("[aria-label]"), new AbortController())
 	t.not(t.context.document.querySelector("[role=dialog]"), null)
-	await uiMessage.closeActionsMenu(actionButton, actionsMenuElement)
+	await uiMessage.closeActionsMenu(actionButton, actionsMenuElement, new AbortController())
 	t.is(t.context.document.querySelector("[role=dialog]"), null)
 	t.deepEqual(events, ["click", "click"])
 })
@@ -67,7 +69,16 @@ test("UIMessage openConfirmUnsendModal", async t => {
 	const uiMessage = new UIMessage(messageElement)
 	t.context.mountElement.append(uiMessage.root)
 	t.context.mountElement.append(messageActionsMenuElement)
-	const dialogButton = await uiMessage.openConfirmUnsendModal()
+	const unsendButton = t.context.document.createElement("button")
+	unsendButton.addEventListener("click", () => {
+		const element = t.context.document.createElement("div")
+		const elementButton = t.context.document.createElement("button")
+		element.setAttribute("role", "dialog")
+		element.append(elementButton)
+		t.context.document.body.append(element)
+	})
+	const dialogButton = await uiMessage.openConfirmUnsendModal(unsendButton, new AbortController())
+	// TODO replace with mock
 	t.deepEqual(dialogButton, t.context.document.querySelector("[role=dialog] button"))
 })
 
@@ -79,11 +90,12 @@ test("UIMessage workflow", async t => {
 	messageElement.addEventListener("mousemove", event => events.push(event.type))
 	messageElement.addEventListener("mouseover", event => events.push(event.type))
 	messageElement.addEventListener("mousenter", event => events.push(event.type))
-	await uiMessage.showActionsMenuButton()
+	await uiMessage.showActionsMenuButton(new AbortController())
 	const actionButton = uiMessage.root.querySelector("[aria-label]")
 	actionButton.addEventListener("click", event => events.push(event.type))
-	await uiMessage.openActionsMenu(actionButton)
-	const dialogButton = await uiMessage.openConfirmUnsendModal()
+	const unsendButton = await uiMessage.openActionsMenu(actionButton, new AbortController())
+	const dialogButton = await uiMessage.openConfirmUnsendModal(unsendButton, new AbortController())
+	// TODO replace with mock
 	t.deepEqual(events, ["mousemove", "mouseover", "mousenter", "click"])
 	t.deepEqual(dialogButton, t.context.document.querySelector("[role=dialog] button"))
 })
@@ -97,11 +109,11 @@ test("UIMessage batch workflow", async t => {
 		messageElement.addEventListener("mousemove", event => events.push(event.type))
 		messageElement.addEventListener("mouseover", event => events.push(event.type))
 		messageElement.addEventListener("mousenter", event => events.push(event.type))
-		await uiMessage.showActionsMenuButton()
+		await uiMessage.showActionsMenuButton(new AbortController())
 		const actionButton = uiMessage.root.querySelector("[aria-label]")
 		actionButton.addEventListener("click", event => events.push(event.type))
-		await uiMessage.openActionsMenu(actionButton)
-		const dialogButton = await uiMessage.openConfirmUnsendModal()
+		const unsendButton = await uiMessage.openActionsMenu(actionButton, new AbortController())
+		const dialogButton = await uiMessage.openConfirmUnsendModal(unsendButton, new AbortController())
 		t.deepEqual(events, ["mousemove", "mouseover", "mousenter", "click"])
 		t.deepEqual(dialogButton, t.context.document.querySelector("[role=dialog] button"))
 	}

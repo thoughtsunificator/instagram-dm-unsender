@@ -10,7 +10,7 @@ import { createAlertsWrapperElement } from "./alert.js"
 import { createOverlayElement } from "./overlay.js"
 import { BUTTON_STYLE } from "./style/instagram.js"
 
-// eslint-disable-next-line no-unused-vars
+ 
 import { UnsendStrategy } from "../../../ui/unsend-strategy.js"
 
 class UI {
