@@ -4,6 +4,6 @@
 |-----------|-------------|
 | dom       | Wrappers for DOM related operations                                                  |
 | idmu      | The application state                                                                |
-| runtime   | Context of the script (userscript or a browser extension) |
+| runtime   | Context of the script |
 | ui        | Instagram UI API implementations |
 | uipi      | Instagram UI API abstract class                                                                    |
