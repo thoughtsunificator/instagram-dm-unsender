@@ -11,6 +11,7 @@ import { waitForElement } from "../../dom/async-events.js"
 export function getFirstVisibleMessage(root, abortController) {
 	const elements = [...root.querySelectorAll("div[role=row]:not([data-idmu-ignore])")]
 	elements.reverse()
+	console.debug("getFirstVisibleMessage", elements.length, "elements")
 	for(const element of elements) {
 		if(abortController.signal.aborted) {
 			break
@@ -21,10 +22,12 @@ export function getFirstVisibleMessage(root, abortController) {
 			opacityProperty: true,
 		})
 		if(visibilityCheck === false) {
+			console.debug("visibilityCheck", visibilityCheck)
 			continue
 		}
 		const isInView = element.getBoundingClientRect().y > 100
 		if(isInView === false) {
+			console.debug("isInView", isInView)
 			continue
 		}
 		element.setAttribute("data-idmu-ignore", "") // Next iteration should not include this message

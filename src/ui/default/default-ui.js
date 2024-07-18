@@ -46,6 +46,7 @@ class DefaultUI extends UI {
 		console.debug("UI getNextUIPIMessage", this.lastScrollTop)
 		const uiMessagesWrapperRoot = this.identifier.uiMessagesWrapper.root
 		const startScrollTop = this.lastScrollTop || uiMessagesWrapperRoot.scrollHeight - uiMessagesWrapperRoot.clientHeight
+		console.debug("startScrollTop", startScrollTop)
 		for(let i = startScrollTop;i > 0;i = i - 30 ) {
 			if(abortController.signal.aborted) {
 				break
@@ -53,6 +54,7 @@ class DefaultUI extends UI {
 			this.lastScrollTop = i
 			uiMessagesWrapperRoot.scrollTop = i
 			uiMessagesWrapperRoot.dispatchEvent(new this.root.Event("scroll"))
+			console.debug("scroll")
 			await new Promise(resolve => setTimeout(resolve, 20))
 			try {
 				const messageElement = getFirstVisibleMessage(uiMessagesWrapperRoot, abortController)
@@ -64,6 +66,7 @@ class DefaultUI extends UI {
 				console.error(ex)
 			}
 		}
+		// TODO throw endOfScrollException
 		return false // end of scroll reached
 	}
 
