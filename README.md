@@ -1,5 +1,7 @@
 # instagram-dm-unsender (idmu)
 
+Userscript that allows you to mass unsend all your DMs on Instagram
+
 As of 2023 [instagram.com](https://www.instagram.com) doesn't allow batch unsending of messages which is why this project came to be.
 
 The userscript allows a user to batch unsend DMs in a thread on the web version of [instagram.com](https://www.instagram.com) 
@@ -26,12 +28,6 @@ This script is meant to be run on the page that lists the message threads.
 ** The UI will only appear once you select a message thread ** :
 
 ![UI Preview](preview.png)
-
-From here on out, three buttons will be made available :
-
-- Unsend all DMs - Start the unsending workflow
-- Batch size - Change the number of page to load between unsending
-- Load all DMs - Load all your thread messages
 
 The workflow works as follow:
 - Create a list of all messages by querying the DOM with an early messages detection strategy (we test the raw outputs of our ``find-messages-strategy`` against parts of the workflow).
@@ -100,13 +96,17 @@ Link to the issue : [https://github.com/thoughtsunificator/instagram-dm-unsender
 Use the ``DEBUG=idmu:test`` env to enable debug logs while testing.
 
 Lint files:
-- ``npm run eslint``
+- ``npm run lint:ecmascript``
 
 Run test with ava:
 - ``npm test``
 
 Coverage:
-- ``npm run c8``
+- ``npm run test:coverage``
+
+## Contributions
+
+Contributions are more than welcome.
 
 ## TODO 
 
