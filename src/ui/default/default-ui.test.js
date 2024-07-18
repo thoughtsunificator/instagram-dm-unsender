@@ -1,30 +1,52 @@
 import { test } from "../../../test/setup.js"
-import UI from "./default-ui.js"
+import DefaultUI from "./default-ui.js"
 import UIWrapper from "./ui-messages-wrapper.js"
 import { createMessageElement, createMessagesWrapperElement } from "../../../test/fake-ui.js"
 import UIPIMessage from "../../uipi/uipi-message.js"
 import UIMessage from "./ui-message.js"
-import { findMessagesWrapper } from "./dom-lookup.js"
+import { mock } from "node:test"
+import UIMessagesWrapper from "./ui-messages-wrapper.js"
+import UI from "../ui.js"
 
-test("UI fetchAndRenderThreadNextMessagePage", async t => {
-	t.context.mountElement.append(createMessagesWrapperElement(t.context.document))
-	const messagesWrapperElement = findMessagesWrapper(t.context.window)
-	const ui = new UI(t.context.window)
-	ui.identifier.uiMessagesWrapper = new UIWrapper(messagesWrapperElement)
-	messagesWrapperElement.innerHTML += `<div role="progressbar"></div>`
-	const result = ui.fetchAndRenderThreadNextMessagePage( new AbortController())
-	messagesWrapperElement.querySelector("[role=progressbar]").remove()
-	t.is(await result, true)
+test.beforeEach(t => {
+	t.context.messagesWrapperElement = createMessagesWrapperElement(t.context.document)
+	t.context.mountElement.append(t.context.messagesWrapperElement)
 })
 
-test("UI getNextUIPIMessage", async t => {
+test("DefaultUI", t => {
+	const defaultUI = new DefaultUI(t.context.window)
+	t.true(defaultUI instanceof UI)
+	t.is(defaultUI.lastScrollTop, null)
+})
+
+test("DefaultUI create", t => {
+	const defaultUI = DefaultUI.create(t.context.window)
+	t.is(defaultUI.lastScrollTop, null)
+	t.true(defaultUI instanceof DefaultUI)
+	t.true(defaultUI.identifier.uiMessagesWrapper instanceof UIMessagesWrapper)
+	// t.is(defaultUI.identifier.uiMessagesWrapper.root, t.context.messagesWrapperElement)
+})
+
+test("DefaultUI fetchAndRenderThreadNextMessagePage", t => {
+	const defaultUI = DefaultUI.create(t.context.window)
+	const uiMessagesWrapper = defaultUI.identifier.uiMessagesWrapper
+	mock.method(uiMessagesWrapper, "fetchAndRenderThreadNextMessagePage")
+	const abortController = new AbortController()
+	defaultUI.fetchAndRenderThreadNextMessagePage(abortController)
+	const call = uiMessagesWrapper.fetchAndRenderThreadNextMessagePage.mock.calls[0]
+	t.deepEqual(call.arguments, [abortController])
+	t.is(uiMessagesWrapper.fetchAndRenderThreadNextMessagePage.mock.callCount(), 1)
+})
+
+test("DefaultUI getNextUIPIMessage", async t => {
+	const defaultUI = DefaultUI.create(t.context.window)
 	const messageElement = createMessageElement(t.context.document, "Test")
+	messageElement.getBoundingClientRect = () => ({ y: 105 })
 	const uiMessage = new UIMessage(messageElement)
-	const messagesWrapperElement = createMessagesWrapperElement(t.context.document)
-	messagesWrapperElement.appendChild(messageElement)
-	const ui = new UI(t.context.window)
-	ui.identifier.uiMessagesWrapper = new UIWrapper(messagesWrapperElement)
-	t.context.mountElement.append(messagesWrapperElement)
-	const uipiMessage = await ui.getNextUIPIMessage()
+	defaultUI.identifier.uiMessagesWrapper.root.appendChild(messageElement)
+	Object.defineProperty(defaultUI.identifier.uiMessagesWrapper.root, "clientHeight", { value: 123 })
+	Object.defineProperty(defaultUI.identifier.uiMessagesWrapper.root, "scrollHeight", { value: 200 })
+	const abortController = new AbortController()
+	const uipiMessage = await defaultUI.getNextUIPIMessage(abortController)
 	t.deepEqual(uipiMessage, new UIPIMessage(uiMessage))
 })

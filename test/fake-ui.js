@@ -75,9 +75,6 @@ export function createMessagesWrapperElement(document, totalPages=0, itemsPerPag
 					event.target.scrollTop = 5
 				}
 				console.debug("messageWrapperElement loading page", event.target.currentPage)
-				for(const messageElement of await getFirstVisibleMessage(document.body, new AbortController())) { // Mocks instagram removing elements outside the viewport
-					messageElement.remove()
-				}
 				console.debug("event.target.children.length", event.target.children.length)
 				for(let i =0; i < itemsPerPage;i++) {
 					const messageElement = createMessageElement.call(null, document, `Item ${i}`)

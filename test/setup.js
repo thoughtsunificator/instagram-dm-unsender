@@ -24,6 +24,7 @@ test.beforeEach(t => {
 	const jsdom = new JSDOM("<!doctype html><html><body></body></html>", {
 		url: "http://localhost/",
 	})
+	jsdom.window.Element.prototype.checkVisibility = () => true
 	const virtualDOM = jsdom.window
 	const { document } = virtualDOM.window
 	const mountElement = createMountElement(document)

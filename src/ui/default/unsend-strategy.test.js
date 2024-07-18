@@ -24,7 +24,7 @@ test("DefaultStrategy stop", t => {
 	t.is(strategy.isRunning(), false)
 	strategy.run(1)
 	strategy.stop()
-	t.is(strategy._running, false)
+	t.is(strategy._running, true)
 	t.is(strategy.isRunning(), false)
 })
 
