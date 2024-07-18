@@ -10,7 +10,7 @@ UI can also be a mean of l10n (not i18n).
 
 - Copy any existing UI
 - Update ``getUI`` so that the UI is loaded when certain conditions are met
-> This might be something as testing ``navigator.language``
+> This might be something as simple as testing ``navigator.language``
 - Update the implementations
 - Test manually
 - Update the tests
