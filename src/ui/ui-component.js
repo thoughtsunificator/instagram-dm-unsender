@@ -2,7 +2,11 @@
 
 import { waitForElement, clickElementAndWaitFor } from "../dom/async-events.js"
 
-export class UIComponent {
+/**
+ *
+ * @abstract
+ */
+class UIComponent {
 	/**
 	 *
 	 * @param {Element} root

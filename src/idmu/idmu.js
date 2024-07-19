@@ -1,8 +1,7 @@
 /** @module idmu Global/Main API for interacting with the UI */
 
 import UIPI from "../uipi/uipi.js"
-
- 
+/* eslint-disable-next-line no-unused-vars */
 import UIPIMessage from "../uipi/uipi-message.js"
 
 class IDMU {

@@ -1,6 +1,6 @@
 /** @module uipi-message API for UIMessage */
 
- 
+/* eslint-disable-next-line no-unused-vars */
 import UIMessage from "../ui/default/ui-message.js"
 
 class FailedWorkflowException extends Error {}

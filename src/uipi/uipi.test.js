@@ -26,7 +26,7 @@ test("UIPI create", t => {
   	t.is(uiClass.create.mock.callCount(), 1)
 })
 
-test("UIPI fetchAndRenderThreadNextMessagePage", async t => {
+test("UIPI fetchAndRenderThreadNextMessagePage", t => {
 	const uipi = UIPI.create(t.context.window)
 	mock.method(uipi.ui, "fetchAndRenderThreadNextMessagePage")
 	const abortController = new AbortController()
@@ -36,7 +36,7 @@ test("UIPI fetchAndRenderThreadNextMessagePage", async t => {
 	t.is(uipi.ui.fetchAndRenderThreadNextMessagePage.mock.callCount(), 1)
 })
 
-test("UIPI getNextUIPIMessage", async t => {
+test("UIPI getNextUIPIMessage", t => {
 	const uipi = UIPI.create(t.context.window)
 	mock.method(uipi.ui, "getNextUIPIMessage")
 	const abortController = new AbortController()

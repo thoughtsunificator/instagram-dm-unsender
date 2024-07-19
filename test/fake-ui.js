@@ -1,7 +1,5 @@
 /** @module default-ui Provide a fake instagram UI. */
 
-import { getFirstVisibleMessage } from "../src/ui/default/dom-lookup.js"
-
 /**
  *
  * @param {Document} document
@@ -60,7 +58,7 @@ export function createMessagesWrapperElement(document, totalPages=0, itemsPerPag
 		const messageElement = createMessageElement.call(null, document, `Item ${i}`)
 		messageWrapperElement.append(messageElement)
 	}
-	messageWrapperElement.addEventListener("scroll", async (event) => {
+	messageWrapperElement.addEventListener("scroll", (event) => {
 		if(event.target.scrollTop === 0) {
 			console.debug("scroll event")
 			const hasNextPage = event.target.currentPage + 1 <= totalPages
@@ -151,10 +149,9 @@ export function createDummyMessageElement(document) {
  *
  * @param {Document} document
  * @param {boolean} [includesUnsend=true]
- * @param {number}  [eventsTimeout=0]
  * @returns {HTMLDivElement}
  */
-export function createMessageActionsMenuElement(document, includesUnsend=true, eventsTimeout) {
+export function createMessageActionsMenuElement(document, includesUnsend=true) {
 	console.debug("createMessageActionsMenuElement", arguments)
 	const element = document.createElement("div")
 	element.setAttribute("role", "dialog")
