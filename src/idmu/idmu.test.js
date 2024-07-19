@@ -17,7 +17,7 @@ test("IDMU", t => {
 	t.is(uipi.ui, ui)
 })
 
-test("IDMU loadUIPI", async t => {
+test("IDMU loadUIPI", t => {
 	const idmu = new IDMU(t.context.window, () => {})
 	mock.method(UIPI, "create")
 	idmu.loadUIPI()
@@ -26,7 +26,7 @@ test("IDMU loadUIPI", async t => {
 	t.is(UIPI.create.mock.callCount(), 1)
 })
 
-test("IDMU fetchAndRenderThreadNextMessagePage", async t => {
+test("IDMU fetchAndRenderThreadNextMessagePage", t => {
 	const idmu = new IDMU(t.context.window, () => {})
 	idmu.loadUIPI()
 	mock.method(idmu.uipi, "fetchAndRenderThreadNextMessagePage")
@@ -37,7 +37,7 @@ test("IDMU fetchAndRenderThreadNextMessagePage", async t => {
 	t.is(idmu.uipi.fetchAndRenderThreadNextMessagePage.mock.callCount(), 1)
 })
 
-test("IDMU getNextUIPIMessage", async t => {
+test("IDMU getNextUIPIMessage", t => {
 	const idmu = new IDMU(t.context.window, () => {})
 	idmu.loadUIPI()
 	mock.method(idmu.uipi, "getNextUIPIMessage")

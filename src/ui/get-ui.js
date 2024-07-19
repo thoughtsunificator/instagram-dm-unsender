@@ -4,10 +4,12 @@
  */
 
 import DefaultUI from "./default/default-ui.js"
+/* eslint-disable-next-line no-unused-vars */
+import UI from "./ui.js"
 
 /**
  *
- * @returns {DefaultUI}
+ * @returns {UI}
  */
 export default function getUI() {
 	return DefaultUI

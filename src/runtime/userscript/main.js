@@ -1,12 +1,12 @@
 /** @module main Main module */
 
-import UI from "./ui/ui.js"
+import OSD from "./osd/osd.js"
 
 /**
  * @param {Window} window
  */
 export function main(window) {
-	UI.render(window)
+	OSD.render(window)
 }
 
 if(typeof window !== "undefined") {

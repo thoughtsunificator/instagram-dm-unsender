@@ -9,11 +9,10 @@ import { DefaultStrategy } from "../../../ui/default/unsend-strategy.js"
 import { createAlertsWrapperElement } from "./alert.js"
 import { createOverlayElement } from "./overlay.js"
 import { BUTTON_STYLE } from "./style/instagram.js"
-
- 
+/* eslint-disable-next-line no-unused-vars */
 import { UnsendStrategy } from "../../../ui/unsend-strategy.js"
 
-class UI {
+class OSD {
 	/**
 	 *
 	 * @param {Document} document
@@ -31,17 +30,17 @@ class UI {
 		this._statusElement = statusElement
 		this._unsendThreadMessagesButton = unsendThreadMessagesButton
 		this._idmu = new IDMU(this.window, this.onStatusText.bind(this))
-		this._strategy = new DefaultStrategy(this._idmu)
+		this._strategy = new DefaultStrategy(this._idmu) // TODO move out
 	}
 
 	/**
 	 *
 	 * @param {window} window
-	 * @returns {UI}
+	 * @returns {OSD}
 	 */
 	static render(window) {
 		console.debug("render")
-		const ui = UI.create(window.document)
+		const ui = OSD.create(window.document)
 		window.document.body.appendChild(ui.root)
 		return ui
 	}
@@ -49,7 +48,7 @@ class UI {
 	/**
 	 *
 	 * @param   {Document} document
-	 * @returns {UI}
+	 * @returns {OSD}
 	 */
 	static create(document) {
 		const root = document.createElement("div")
@@ -67,7 +66,7 @@ class UI {
 		menuElement.appendChild(unsendThreadMessagesButton)
 		menuElement.appendChild(statusElement)
 		root.appendChild(menuElement)
-		const ui = new UI(document, root, overlayElement, menuElement, unsendThreadMessagesButton, statusElement)
+		const ui = new OSD(document, root, overlayElement, menuElement, unsendThreadMessagesButton, statusElement)
 		document.addEventListener("keydown", (event) => ui.#onWindowKeyEvent(event)) // TODO test
 		document.addEventListener("keyup", (event) => ui.#onWindowKeyEvent(event)) // TODO test
 		unsendThreadMessagesButton.addEventListener("click", (event) => ui.#onUnsendThreadMessagesButtonClick(event))
@@ -76,6 +75,14 @@ class UI {
 		unsendThreadMessagesButton.dataTextContent = unsendThreadMessagesButton.textContent
 		unsendThreadMessagesButton.dataBackgroundColor = unsendThreadMessagesButton.style.backgroundColor
 		return ui
+	}
+
+	/**
+	 *
+	 * @param {string} text
+	 */
+	onStatusText(text) {
+		this.statusElement.textContent = text
 	}
 
 	async #startUnsending() {
@@ -94,7 +101,7 @@ class UI {
 
 	/**
 	 *
-	 * @param {UI} ui
+	 * @param {OSD} ui
 	 */
 	#onMutations(ui) {
 		if(ui.root.ownerDocument.querySelector("[id^=mount] > div > div > div") !== null && ui) {
@@ -117,7 +124,7 @@ class UI {
 
 	/**
 	 *
-	 * @param {UI} ui
+	 * @param {OSD} ui
 	 * @param {Event} event
 	 */
 	#onUnsendThreadMessagesButtonClick() {
@@ -156,16 +163,6 @@ class UI {
 		this.unsendThreadMessagesButton.style.backgroundColor = this.unsendThreadMessagesButton.dataBackgroundColor
 		this.overlayElement.style.display = "none"
 	}
-
-	/**
-	 *
-	 * @param {string} text
-	 */
-	onStatusText(text) {
-		this.statusElement.textContent = text
-	}
-
-
 
 	/**
 	 * @readonly
@@ -225,17 +222,9 @@ class UI {
 
 	/**
 	 * @readonly
-	 * @type {HTMLButtonElement}
-	 */
-	get loadThreadMessagesButton() {
-		return this._loadThreadMessagesButton
-	}
-
-	/**
-	 * @readonly
 	 * @type {UnsendStrategy}
 	 */
-	get strategy() {
+	get strategy() { // TODO move out
 		return this._strategy
 	}
 
@@ -249,4 +238,4 @@ class UI {
 
 }
 
-export default UI
+export default OSD

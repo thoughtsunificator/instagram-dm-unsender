@@ -1,5 +1,5 @@
 import { test } from "../../../test/setup.js"
-import { createMessageElement, createMessagesWrapperElement, createDummyMessageElement } from "../../../test/fake-ui.js"
+import { createMessageElement, createMessagesWrapperElement } from "../../../test/fake-ui.js"
 import { findMessagesWrapper, loadMoreMessages, getFirstVisibleMessage } from "./dom-lookup.js"
 
 test("getFirstVisibleMessage", async t => {

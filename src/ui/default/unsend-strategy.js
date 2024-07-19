@@ -1,6 +1,6 @@
 /** @module unsend-strategy Various strategies for unsending messages */
 
- 
+/* eslint-disable-next-line no-unused-vars */
 import IDMU from "../../idmu/idmu.js"
 import { UnsendStrategy } from "../unsend-strategy.js"
 
@@ -123,10 +123,10 @@ class DefaultStrategy extends UnsendStrategy {
 					}
 				}
 				const unsent = await uipiMessage.unsend(this._abortController)
-				// if(unsent) {
-				this._lastUnsendDate = new Date()
-				this._unsentCount++
-				// }
+				if(unsent) {
+					this._lastUnsendDate = new Date()
+					this._unsentCount++
+				}
 			}
 		} catch(ex) {
 			console.error(ex)

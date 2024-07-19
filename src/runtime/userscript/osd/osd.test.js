@@ -1,11 +1,11 @@
 import { test } from "../../../../test/setup.js"
-import UI from "./ui.js"
+import OSD from "./osd.js"
 import { createMessagesWrapperElement } from "../../../../test/fake-ui.js"
 import IDMU from "../../../idmu/idmu.js"
 import { DefaultStrategy } from "../../../ui/default/unsend-strategy.js"
 
-test("userscript ui", t => {
-	const ui = UI.render(t.context.window)
+test("userscript osd", t => {
+	const ui = OSD.render(t.context.window)
 	t.is(ui._document, t.context.document)
 	t.is(ui._root, t.context.document.querySelector("#idmu-root"))
 	t.is(ui._overlayElement, t.context.document.querySelector("#idmu-overlay"))
@@ -17,14 +17,14 @@ test("userscript ui", t => {
 	t.pass()
 })
 
-test("userscript ui render", t => {
-	UI.render(t.context.window)
+test("userscript osd render", t => {
+	OSD.render(t.context.window)
 	t.is(t.context.window.document.querySelectorAll("button").length, 1)
 	t.pass()
 })
 
-test("userscript ui unsend button", t => {
-	UI.render(t.context.window)
+test("userscript osd unsend button", t => {
+	OSD.render(t.context.window)
 	let alerted = false
 	t.context.window.alert = () => { alerted = true }
 	const messagesWrapperElement = createMessagesWrapperElement(t.context.document)
@@ -49,7 +49,7 @@ test("userscript ui unsend button", t => {
 
 
 test("userscript status", t => {
-	const ui = UI.render(t.context.window)
+	const ui = OSD.render(t.context.window)
 	t.is(t.context.document.querySelector("#idmu-status").textContent, "Ready")
 	ui.onStatusText("test")
 	t.is(t.context.document.querySelector("#idmu-status").textContent, "test")

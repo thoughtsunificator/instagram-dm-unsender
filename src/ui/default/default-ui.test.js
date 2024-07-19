@@ -1,6 +1,5 @@
 import { test } from "../../../test/setup.js"
 import DefaultUI from "./default-ui.js"
-import UIWrapper from "./ui-messages-wrapper.js"
 import { createMessageElement, createMessagesWrapperElement } from "../../../test/fake-ui.js"
 import UIPIMessage from "../../uipi/uipi-message.js"
 import UIMessage from "./ui-message.js"
