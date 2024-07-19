@@ -30,7 +30,7 @@ class OSD {
 		this._statusElement = statusElement
 		this._unsendThreadMessagesButton = unsendThreadMessagesButton
 		this._idmu = new IDMU(this.window, this.onStatusText.bind(this))
-		this._strategy = new DefaultStrategy(this._idmu)
+		this._strategy = new DefaultStrategy(this._idmu) // TODO move out
 	}
 
 	/**
@@ -222,17 +222,9 @@ class OSD {
 
 	/**
 	 * @readonly
-	 * @type {HTMLButtonElement}
-	 */
-	get loadThreadMessagesButton() {
-		return this._loadThreadMessagesButton
-	}
-
-	/**
-	 * @readonly
 	 * @type {UnsendStrategy}
 	 */
-	get strategy() {
+	get strategy() { // TODO move out
 		return this._strategy
 	}
 
