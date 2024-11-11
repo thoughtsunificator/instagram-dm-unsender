@@ -7,6 +7,12 @@ assignees: ''
 
 ---
 
+**How impactful is the issue**
+
+<!--
+Minor, major or critical
+-->
+
 **Describe the bug**
 
 <!--
