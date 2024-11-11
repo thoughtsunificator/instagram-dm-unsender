@@ -13,11 +13,15 @@ assignees: ''
 Minor, major or critical
 -->
 
+(Write your answer here.)
+
 **Describe the bug**
 
 <!--
 A clear and concise description of what the bug is.
 -->
+
+(Write your answer here.)
 
 **Logs**
 
