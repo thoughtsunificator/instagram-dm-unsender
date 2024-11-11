@@ -23,6 +23,14 @@ A clear and concise description of what the bug is.
 
 (Write your answer here.)
 
+**How to reproduce the bug**
+
+<!--
+Explain how to bug can be reproduced.
+-->
+
+(Write your answer here.)
+
 **Logs**
 
 <!--
