@@ -26,7 +26,7 @@ A clear and concise description of what the bug is.
 **How to reproduce the bug**
 
 <!--
-Explain how to bug can be reproduced.
+Explain how the bug can be reproduced. Better yet, create a fake thread and try to reproduce the bug yourself, and put a screenshot here.
 -->
 
 (Write your answer here.)
