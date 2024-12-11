@@ -27,7 +27,7 @@ This script is meant to be run on the page that lists the message threads.
 
 ** The UI will only appear once you select a message thread ** :
 
-![UI Preview](preview.png)
+![UI Preview](preview.gif)
 
 The workflow works as follow:
 - Create a list of all messages by querying the DOM with an early messages detection strategy (we test the raw outputs of our ``find-messages-strategy`` against parts of the workflow).
