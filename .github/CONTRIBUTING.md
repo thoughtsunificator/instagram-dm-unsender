@@ -29,7 +29,7 @@ You can use issue labels to discover issues you could help out with:
 * [`blocked` issues](https://github.com/thoughtsunificator/instagram-dm-unsender/labels/blocked) need help getting unstuck
 * [`bug` issues](https://github.com/thoughtsunificator/instagram-dm-unsender/labels/bug) are known bugs we'd like to fix
 * [`enhancement` issues](https://github.com/thoughtsunificator/instagram-dm-unsender/labels/enhancement) are features we're open to including
-* [`performance` issues](https://github.com/thoughtsunificator/instagram-dm-unsender/labels/performance) track ideas on how to improve bookmarks's performance
+* [`performance` issues](https://github.com/thoughtsunificator/instagram-dm-unsender/labels/performance) track ideas on how to improve performances
 
 The [`help wanted`](https://github.com/thoughtsunificator/instagram-dm-unsender/labels/help%20wanted) and [`good for beginner`](https://github.com/thoughtsunificator/instagram-dm-unsender/labels/good%20for%20beginner) labels are especially useful.
 
