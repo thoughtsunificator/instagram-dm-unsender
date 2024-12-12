@@ -25,9 +25,11 @@ On the other hand, unsending of a thread will result in the deletion of messages
 
 This script is meant to be run on the page that lists the message threads. 
 
-** The UI will only appear once you select a message thread ** :
+⚠️ **The UI will only appear once you select a message thread**
 
 ![UI Preview](preview.gif)
+
+> This showcases a very simple case where two users are logged to instagram using two distinct browser windows, the user on the right side is the one that's unsending its messages, as you can see, they are removed as well for the user on the left side.
 
 The workflow works as follow:
 - Create a list of all messages by querying the DOM with an early messages detection strategy (we test the raw outputs of our ``find-messages-strategy`` against parts of the workflow).
