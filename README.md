@@ -31,10 +31,11 @@ This script is meant to be run on the page that lists the message threads.
 
 > This showcases a very simple case where two users are logged to instagram using two distinct browser windows, the user on the right side is the one that's unsending its messages, as you can see, they are removed as well for the user on the left side.
 
-The way it works is as follow
-- Load all the pages in the thread.
-- Once the pages are loaded, scroll until a message is visible. This is because Instagram hides messages as you scroll so that those outside of the viewport are actually hidden.
-- Once the first visible message is found, that is once certain steps are met, run the following workflow on the message:
+The way it works is as follow:
+
+1. Load all the pages in the thread.
+2. Once the pages are loaded, scroll until a message is visible. This is because Instagram hides messages as you scroll so that those outside of the viewport are actually hidden.
+3. Once the first visible message is found, that is once certain steps are met, run the following workflow on the message:
 
      1. Show action menu button:
         Dispatch a mouseover for this message so that the three dots button appears.
