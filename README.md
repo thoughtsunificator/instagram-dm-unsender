@@ -13,7 +13,7 @@ The userscript allows a user to batch unsend DMs in a thread on the web version 
 
 ## Use cases
 
-- One potential use case would be when individuals seek to transition to Fediverse and would want to "remove" their messages from Meta's database.
+Individuals seeking to transition to something like Fediverse and want to "remove" their messages from Meta's database.
 
 ## What's the difference between deleting and unsending?
 
