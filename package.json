@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "test": "ava",
-    "test:coverage": "c8 ava",
+    "test:coverage": "c8 -o dist/coverage ava",
     "start": "rollup --config rollup.userscript.config.js --environment BUILD:development --watch",
     "build": "rollup --config rollup.userscript.config.js --environment BUILD:production",
     "lint:ecmascript": "eslint",
