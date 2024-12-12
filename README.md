@@ -36,16 +36,16 @@ The way it works is as follow
 - Once the pages are loaded, scroll until a message is visible. This is because Instagram hides messages as you scroll so that those outside of the viewport are actually hidden.
 - Once the first visible message is found, that is once certain steps are met, run the following workflow on the message:
 
-     1. ### Show action menu button:
+     1. Show action menu button:
         Dispatch a mouseover for this message so that the three dots button appears.
 
-     2. ### Open action menu:
+     2. Open action menu:
         Click the three dots button to open the message actions.
 
-     3. ### Open unsend confirm modal:
+     3. Open unsend confirm modal:
         Click the "Unsend" action button, a modal will open with a dialog that asks the user to confirm the intent.
 
-     4. ### Click "confirm":
+     4. Click "confirm":
         Click the "confirm" button inside the modal.
         
 > There is no concurrency. Messages are unsent one after the other by using a queue.
@@ -108,12 +108,20 @@ Run test with ava:
 Coverage:
 - ``npm run test:coverage``
 
-## Contributions
+## 🧒 Contributions
 
-Contributions are more than welcome.
+Contributions [are more than welcome](./.github/CONTRIBUTING.md).
 
-## TODO 
+## 👾 Bug report 
 
-- [ ] i18n, make sure it works for all languages
-- [ ] l10n, make sure it works not only for the US version but also for the others.
-- [ ] alert system (for scenarios such as rate limits)
+❗Please search [the existing issues](https://github.com/thoughtsunificator/instagram-dm-unsender/labels/bug) and make sure the bug has not already been reported before making a new one.
+
+To report a bug please use [this link](https://github.com/thoughtsunificator/instagram-dm-unsender/issues/new?assignees=&labels=&projects=&template=BUG_REPORT.md&title=).
+
+## 💡 Feature request 
+
+❗Make sure your suggestion is not already on the [TODO.md](TODO.md) and hasn't [already been requested](https://github.com/thoughtsunificator/instagram-dm-unsender/labels/enhancement).
+
+To suggest an idea please use [this link](https://github.com/thoughtsunificator/instagram-dm-unsender/issues/new?assignees=&labels=&projects=&template=FEATURE_REQUEST.md&title=).
+       
+
