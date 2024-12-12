@@ -31,25 +31,27 @@ This script is meant to be run on the page that lists the message threads.
 
 > This showcases a very simple case where two users are logged to instagram using two distinct browser windows, the user on the right side is the one that's unsending its messages, as you can see, they are removed as well for the user on the left side.
 
-The workflow works as follow:
-- Create a list of all messages by querying the DOM with an early messages detection strategy (we test the raw outputs of our ``find-messages-strategy`` against parts of the workflow).
-  - For each message do the following:
+The way it works is as follow
+- Load all the pages in the thread.
+- Once the pages are loaded, scroll until a message is visible. This is because Instagram hides messages as you scroll so that those outside of the viewport are actually hidden.
+- Once the first visible message is found, that is once certain steps are met, run the following workflow on the message:
 
-     - ### Show action menu button:
+     1. ### Show action menu button:
         Dispatch a mouseover for this message so that the three dots button appears.
 
-     - ### Open action menu:
+     2. ### Open action menu:
         Click the three dots button to open the message actions.
 
-     - ### Open unsend confirm modal:
+     3. ### Open unsend confirm modal:
         Click the "Unsend" action button, a modal will open with a dialog that asks the user to confirm the intent.
 
-     - ### Click "confirm":
+     4. ### Click "confirm":
         Click the "confirm" button inside the modal.
+        
+> There is no concurrency. Messages are unsent one after the other by using a queue.
 
+>  Any of these can go wrong for various reasons, so if you're having an issue make sure to explain the particular of the message thread your trying to unsend is (without divulging any personal information please).
 
-
-There is no concurrency. Messages are unsent one after the other by using a queue.
 
 ⚠️ Instagram has rate limits. After a certain number of messages, you might get blocked from unsending another message for a period of time.
 
