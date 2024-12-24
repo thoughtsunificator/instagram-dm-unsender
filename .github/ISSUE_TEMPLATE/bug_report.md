@@ -68,7 +68,11 @@ Note: To capture XMLHttpRequests, click XHR.
 8. Save the file.
 -->
 
-(Paste the file here.)
+<details>
+ <summary>Content</summary>
+ (Paste the content here.)
+</details>
+
 
 **Screenshots**
 
