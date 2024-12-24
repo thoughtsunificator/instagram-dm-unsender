@@ -23,6 +23,26 @@ A clear and concise description of what the bug is.
 
 (Write your answer here.)
 
+**What does your thead look like**
+
+<!--
+Legends
+Y=You
+O=Other
+
+Thread
+O (text)
+O (text)
+O (like)
+Y (text)
+Y (text)
+Y (emoticon)
+Y (emoticon)
+Y (image)
+-->
+
+(Write your answer here.)
+
 **How to reproduce the bug**
 
 <!--
