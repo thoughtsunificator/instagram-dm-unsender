@@ -117,12 +117,12 @@ Contributions [are more than welcome](./.github/CONTRIBUTING.md).
 
 ❗Please search [the existing issues](https://github.com/thoughtsunificator/instagram-dm-unsender/labels/bug) and make sure the bug has not already been reported before making a new one.
 
-To report a bug please use [this link](https://github.com/thoughtsunificator/instagram-dm-unsender/issues/new?assignees=&labels=&projects=&template=BUG_REPORT.md&title=).
+To report a bug please use [this link](https://github.com/thoughtsunificator/instagram-dm-unsender/issues/new?template=bug_report.md).
 
 ## 💡 Feature request 
 
 ❗Make sure your suggestion is not already on the [TODO.md](TODO.md) and hasn't [already been requested](https://github.com/thoughtsunificator/instagram-dm-unsender/labels/enhancement).
 
-To suggest an idea please use [this link](https://github.com/thoughtsunificator/instagram-dm-unsender/issues/new?assignees=&labels=&projects=&template=FEATURE_REQUEST.md&title=).
+To suggest an idea please use [this link](https://github.com/thoughtsunificator/instagram-dm-unsender/issues/new?template=feature_request.md).
        
 
