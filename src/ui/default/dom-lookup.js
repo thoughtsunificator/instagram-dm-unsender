@@ -10,6 +10,7 @@ import { waitForElement } from "../../dom/async-events.js"
  */
 export function getFirstVisibleMessage(root, abortController) {
 	const elements = [...root.querySelectorAll("div[role=row]:not([data-idmu-ignore])")]
+		.filter(d => d.textContent.length > 3 && d.textContent.substring(0, 3) == "You");
 	elements.reverse()
 	console.debug("getFirstVisibleMessage", elements.length, "elements")
 	for(const element of elements) {
