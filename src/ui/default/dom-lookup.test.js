@@ -21,6 +21,13 @@ test("getFirstVisibleMessage ignore if already processed", async t => {
 	t.is(await getFirstVisibleMessage(t.context.document.body, new AbortController()), undefined)
 })
 
+test("getFirstVisibleMessage ignore if sent by someone else", async t => {
+	const messageElement = createMessageElement(t.context.document, "Test", false, true)
+	t.context.mountElement.append(messageElement)
+	messageElement.getBoundingClientRect = () => ({ y: 105 })
+	t.is(await getFirstVisibleMessage(t.context.document.body, new AbortController()), undefined)
+})
+
 test("findMessagesWrapper", t => {
 	const messagesWrapperElement = createMessagesWrapperElement(t.context.document)
 	t.context.mountElement.append(messagesWrapperElement)
