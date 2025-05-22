@@ -1,6 +1,6 @@
 /** @module ui IDMU's own ui/overlay
  * Provide a button to unsend messages
-*/
+ */
 
 import { createMenuButtonElement } from "./menu-button.js"
 import { createMenuElement } from "./menu.js"
@@ -70,8 +70,8 @@ class OSD {
 		document.addEventListener("keydown", (event) => ui.#onWindowKeyEvent(event)) // TODO test
 		document.addEventListener("keyup", (event) => ui.#onWindowKeyEvent(event)) // TODO test
 		unsendThreadMessagesButton.addEventListener("click", (event) => ui.#onUnsendThreadMessagesButtonClick(event))
-		this._mutationObserver = new MutationObserver((mutations) => ui.#onMutations(ui, mutations))
-		this._mutationObserver.observe(document.body, { childList: true }) // TODO test
+		ui._mutationObserver = new MutationObserver((mutations) => ui.#onMutations(ui, mutations))
+		ui._mutationObserver.observe(document.body, { childList: true }) // TODO test
 		unsendThreadMessagesButton.dataTextContent = unsendThreadMessagesButton.textContent
 		unsendThreadMessagesButton.dataBackgroundColor = unsendThreadMessagesButton.style.backgroundColor
 		return ui
@@ -86,7 +86,6 @@ class OSD {
 	}
 
 	async #startUnsending() {
-		console.debug("User asked for messages unsending to start; UI interaction will be disabled in the meantime")
 		;[...this.menuElement.querySelectorAll("button")].filter(button => button !== this.unsendThreadMessagesButton).forEach(button => {
 			button.style.visibility = "hidden"
 			button.disabled = true
@@ -95,6 +94,8 @@ class OSD {
 		this.overlayElement.focus()
 		this.unsendThreadMessagesButton.textContent = "Stop processing"
 		this.unsendThreadMessagesButton.style.backgroundColor = "#FA383E"
+		this.statusElement.style.color = "white"
+		this._mutationObserver.disconnect()
 		await this.strategy.run()
 		this.#onUnsendingFinished()
 	}
@@ -112,7 +113,9 @@ class OSD {
 			this._mutationObserver.observe(ui.root.ownerDocument.querySelector("[id^=mount] > div > div > div"), { childList: true, attributes: true })
 		}
 		if(this.window.location.pathname.startsWith("/direct/t/")) {
-			this.strategy.reset()
+			if(!this.strategy.isRunning()) {
+				this.strategy.reset()
+			}
 			this.root.style.display = ""
 		} else {
 			this.root.style.display = "none"
@@ -133,6 +136,7 @@ class OSD {
 			this.strategy.stop()
 			this.#onUnsendingFinished()
 		} else {
+			console.debug("User asked for messages unsending to start; UI interaction will be disabled in the meantime")
 			this.#startUnsending()
 		}
 	}
@@ -162,6 +166,8 @@ class OSD {
 		this.unsendThreadMessagesButton.textContent = this.unsendThreadMessagesButton.dataTextContent
 		this.unsendThreadMessagesButton.style.backgroundColor = this.unsendThreadMessagesButton.dataBackgroundColor
 		this.overlayElement.style.display = "none"
+		this.statusElement.style.color = ""
+		this._mutationObserver.observe(this._document.body, { childList: true }) // TODO test
 	}
 
 	/**
