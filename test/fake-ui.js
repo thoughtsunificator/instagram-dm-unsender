@@ -107,7 +107,7 @@ export function createMessageElement(document, text="", includesUnsend=true, ign
 		console.debug(`message ${text} mouseover`)
 		setTimeout(() => {
 			const moreElement = event.target.ownerDocument.createElement("div")
-			moreElement.setAttribute("aria-label", "More")
+			moreElement.setAttribute("aria-label", "See more options for message from foo")
 			event.target.appendChild(moreElement)
 			event.target.addEventListener("click", () => { // Listen for event of parent instead of moreElement because instagram use a svg Element
 				console.debug(`moreElement clicked`)
