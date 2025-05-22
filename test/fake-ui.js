@@ -102,7 +102,7 @@ export function createMessageElement(document, text="", includesUnsend=true, ign
 	if(ignored) {
 		element.setAttribute("data-idmu-ignore", "true")
 	}
-	element.innerHTML = `<span>${text}</span>`
+	element.innerHTML = `${includesUnsend?"<span>You sent</span>":""}<span>${text}</span>`
 	element.addEventListener("mouseover", event => {
 		console.debug(`message ${text} mouseover`)
 		setTimeout(() => {
