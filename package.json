@@ -1,6 +1,6 @@
 {
   "name": "idmu",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "Userscript that allows you to mass unsend all your DMs on Instagram",
   "short_name": " idmu",
   "type": "module",
