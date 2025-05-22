@@ -25,7 +25,7 @@ class UIMessage extends UIComponent {
 		}
 		abortController.signal.addEventListener("abort", abortHandler)
 		const actionButton = await Promise.race([
-			this.waitForElement(this.root, () => this.root.querySelector("[aria-label=More]")?.parentNode, waitAbortController),
+			this.waitForElement(this.root, () => this.root.querySelector("[aria-label^='See more options for message']")?.parentNode, waitAbortController),
 			new Promise((resolve, reject) => {
 				promiseTimeout = setTimeout(() => reject("Timeout showActionsMenuButton"), 200)
 			})

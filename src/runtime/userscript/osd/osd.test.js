@@ -3,6 +3,7 @@ import OSD from "./osd.js"
 import { createMessagesWrapperElement } from "../../../../test/fake-ui.js"
 import IDMU from "../../../idmu/idmu.js"
 import { DefaultStrategy } from "../../../ui/default/unsend-strategy.js"
+import { mock } from "node:test"
 
 test("userscript osd", t => {
 	const ui = OSD.render(t.context.window)
@@ -24,9 +25,7 @@ test("userscript osd render", t => {
 })
 
 test("userscript osd unsend button", t => {
-	OSD.render(t.context.window)
-	let alerted = false
-	t.context.window.alert = () => { alerted = true }
+	const ui = OSD.render(t.context.window)
 	const messagesWrapperElement = createMessagesWrapperElement(t.context.document)
 	const overlayElement = t.context.document.querySelector("#idmu-overlay")
 	t.context.mountElement.append(messagesWrapperElement)
@@ -38,12 +37,12 @@ test("userscript osd unsend button", t => {
 	t.is(button.style.backgroundColor, "rgb(250, 56, 62)")
 	t.is(button.textContent, "Stop processing")
 	t.is(overlayElement.style.display, "")
-	alerted = false
+	mock.method(ui._strategy, "isRunning", () => true)
+	ui._strategy._abortController = new t.context.window.AbortController()
 	button.click()
-	t.is(alerted, false)
+	t.is(button.textContent, "Unsend all DMs")
 	t.is(overlayElement.style.display, "none")
 	t.is(button.style.backgroundColor, "")
-	t.is(button.textContent, "Unsend all DMs")
 	t.is(overlayElement.style.display, "none")
 })
 

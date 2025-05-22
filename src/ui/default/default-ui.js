@@ -47,7 +47,7 @@ class DefaultUI extends UI {
 		const uiMessagesWrapperRoot = this.identifier.uiMessagesWrapper.root
 		const startScrollTop = this.lastScrollTop || uiMessagesWrapperRoot.scrollHeight - uiMessagesWrapperRoot.clientHeight
 		console.debug("startScrollTop", startScrollTop)
-		for(let i = startScrollTop;i > 0;i = i - 30 ) {
+		for(let i = Math.max(1, startScrollTop);i > 0;i = i - 30 ) {
 			if(abortController.signal.aborted) {
 				break
 			}
