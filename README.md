@@ -2,14 +2,13 @@
 
 Userscript that allows you to mass unsend all your DMs on Instagram
 
-As of 2023 [instagram.com](https://www.instagram.com) doesn't allow batch unsending of messages which is why this project came to be.
+As of 2023 [instagram.com](https://www.instagram.com) would not allow its users to batch unsend their messages which is why this project came to be.
 
 The userscript allows a user to batch unsend DMs in a thread on the web version of [instagram.com](https://www.instagram.com) 
 
-⚠️ Only English is supported as of yet so please set your UI language to English before running the script.
+⚠️ Only English is supported as of yet so **please set your UI language to English before running the script**.
 
 ⚠️ [This might not work](#this-might-not-work)
-
 
 ## Use cases
 
@@ -54,7 +53,7 @@ The way it works is as follow:
 >  Any of these can go wrong for various reasons, so if you're having an issue make sure to explain the particular of the message thread your trying to unsend is (without divulging any personal information please).
 
 
-⚠️ Instagram has rate limits. After a certain number of messages, you might get blocked from unsending another message for a period of time.
+⚠️ Instagram has rate limits. After a certain number of messages, you might get temporarily blocked from unsending another message for a period of time. You can confirm this by manually unsending a message, if it fails then you might have been temporarily blocked.
 
 ## Installing
 
