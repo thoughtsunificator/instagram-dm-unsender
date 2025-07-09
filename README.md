@@ -1,6 +1,10 @@
 # instagram-dm-unsender (idmu)
 
-Userscript that allows you to mass unsend all your DMs on Instagram
+Userscript that allows you to mass unsend all your DMs on Instagram. 
+
+In sum, it is a privacy tool that aim to empower Instagram users by giving them more control over their data.
+
+## State of Affairs
 
 As of 2023 [instagram.com](https://www.instagram.com) would not allow its users to batch unsend their messages which is why this project came to be.
 
