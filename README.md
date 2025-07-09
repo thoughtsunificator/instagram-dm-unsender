@@ -4,11 +4,13 @@ Userscript that allows you to mass unsend all your DMs on Instagram.
 
 In sum, it is a privacy tool that aim to empower Instagram users by giving them more control over their data.
 
-## State of Affairs
+## Why
 
 As of 2023 [instagram.com](https://www.instagram.com) would not allow its users to batch unsend their messages which is why this project came to be.
 
 The userscript allows a user to batch unsend DMs in a thread on the web version of [instagram.com](https://www.instagram.com) 
+
+## State of Affairs
 
 ⚠️ Only English is supported as of yet so **please set your UI language to English before running the script**.
 
