@@ -7,6 +7,10 @@ assignees: ''
 
 ---
 
+<!--
+Any information that is asked here is relevant to the issue so make sure to take the time to fill them.
+-->
+
 **How impactful is the issue**
 
 <!--
