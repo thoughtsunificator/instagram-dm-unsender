@@ -12,7 +12,7 @@ Important! Please read.
 
 Any information that is asked here is relevant to the issue so make sure to take the time to fill them.
 
-Sections that begin with "<!—" and ends with "—>" are examples and can be safely removed. Replace "(Write your answer here.)" with your answer.
+Sections that begin with "<!—" and ends with "—>" are examples and should be followed when writing your answer. Replace "(Write your answer here.)" with your answer.
 -->
 
 **How impactful is the issue**
