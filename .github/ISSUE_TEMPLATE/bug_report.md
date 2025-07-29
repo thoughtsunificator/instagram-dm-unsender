@@ -23,9 +23,11 @@ A clear and concise description of what the bug is.
 
 (Write your answer here.)
 
-**What does your thead look like**
+**What does your thread look like**
 
 <!--
+Provide the content type (whether it's text/image/emote) of messages and their positions in the thread. As per the given template below:
+
 Legends
 Y=You
 O=Other
@@ -39,6 +41,8 @@ Y (text)
 Y (emoticon)
 Y (emoticon)
 Y (image)
+
+Note: You need not to provide the content of your conversation that is not what is asked here.
 -->
 
 (Write your answer here.)
