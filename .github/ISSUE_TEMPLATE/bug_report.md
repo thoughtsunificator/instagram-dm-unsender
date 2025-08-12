@@ -29,6 +29,12 @@ Minor, major or critical
 A clear and concise description of what the bug is.
 -->
 
+**Userscript version**
+
+<!--
+I am running version 0.60 of the userscript.
+-->
+
 (Write your answer here.)
 
 **What does your thread look like**
