@@ -65,10 +65,12 @@ The way it works is as follow:
 > ⚠️ For this to work the chat should not have been deleted prior to running the script
 
 1. [Install the userscript](#installing)
-2. Go to your messages and select a chat 
-3. There a menu with a button titled "Unsend all DMs" should appears
+3. Go to your messages and select a chat 
+4. There a menu with a button titled "Unsend all DMs" should appears
 
 ## Installing
+
+> Don't know what a userscript is? Check out the following introduction: https://github.com/OpenUserJs/OpenUserJS.org/wiki/Userscript-beginners-HOWTO
 
 Install a Userscript manager for your browser :
 
