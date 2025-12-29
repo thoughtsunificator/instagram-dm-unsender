@@ -20,7 +20,7 @@ The userscript allows a user to batch unsend DMs in a thread on the web version 
 
 Individuals seeking to transition to something like Fediverse and want to "remove" their messages from Meta's database.
 
-> Important: While unsending prevents the other party to read your messages it does not always necessarily mean Instagram has deleted your data so make sure to send a data removal request according to the laws of the country you live in.
+> ⚠️ While unsending prevents the other party from reading your messages it does not always necessarily mean Instagram has deleted your data so make sure to send a data removal request according to the laws of the country you live in.
 
 ## What's the difference between deleting and unsending?
 
@@ -68,7 +68,7 @@ The way it works is as follow:
 
 1. [Install the userscript](#installing)
 3. Go to your messages and select a chat 
-4. There a menu with a button titled "Unsend all DMs" should appears
+4. There a menu with a button titled "Unsend all DMs" should appear
 
 ## Installing
 
