@@ -26,7 +26,7 @@ Deleting a thread will only delete messages on your end but the other party will
 
 On the other hand, unsending of a thread will result in the deletion of messages on both ends, rendering the other party unable to read your messages.
 
-## How does it work / How can I use it?
+## How does it work 
 
 This script is meant to be run on the page that lists the message threads. 
 
@@ -58,8 +58,15 @@ The way it works is as follow:
 
 >  Any of these can go wrong for various reasons, so if you're having an issue make sure to explain the particular of the message thread your trying to unsend is (without divulging any personal information please).
 
-
 ⚠️ Instagram has rate limits. After a certain number of messages, you might get temporarily blocked from unsending another message for a period of time. You can confirm this by manually unsending a message, if it fails then you might have been temporarily blocked.
+
+# How can I use it?
+
+> ⚠️ For this to work the chat should not have been deleted prior to running the script
+
+1. [Install the userscript](#installing)
+2. Go to your messages and select a chat 
+3. There a menu with a button titled "Unsend all DMs" should appears
 
 ## Installing
 
@@ -130,4 +137,3 @@ To report a bug please use [this link](https://github.com/thoughtsunificator/ins
 
 To suggest an idea please use [this link](https://github.com/thoughtsunificator/instagram-dm-unsender/issues/new?template=feature_request.md).
        
-
