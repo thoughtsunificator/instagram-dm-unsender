@@ -96,8 +96,17 @@ class OSD {
 		this.unsendThreadMessagesButton.style.backgroundColor = "#FA383E"
 		this.statusElement.style.color = "white"
 		this._mutationObserver.disconnect()
-		await this.strategy.run()
-		this.#onUnsendingFinished()
+		try {
+			await this.strategy.run()
+		} catch(error) {
+			console.error(error)
+			if(this.strategy.isRunning()) {
+				this.strategy.stop()
+			}
+			this.statusElement.innerHTML = `<span style="color: red">An error occured, <a href="https://github.com/thoughtsunificator/instagram-dm-unsender/issues/new?template=bug_report.md">please open an issue</a></span>`
+		} finally {
+			this.#onUnsendingFinished()
+		}
 	}
 
 	/**

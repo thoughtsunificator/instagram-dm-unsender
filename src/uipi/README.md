@@ -1,7 +1,5 @@
 # UIPI
 
-Instagram UI API implementations
+UIPI is the abstraction of an [UI](../ui/README.md). 
 
-These abstract classes are inherited by all UI implementations.
-
-They provide a reliable interface for IDMU to do all sort of things.
+UIPI has concepts for an UI its messages and what can be done with them. They provide a standard interface for how IDMU should query instagram's UI.
