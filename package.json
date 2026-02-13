@@ -7,6 +7,7 @@
   "scripts": {
     "test": "ava",
     "test:coverage": "c8 -o dist/coverage ava",
+    "test:debug": "concurrently --kill-others --passthrough-arguments --raw 'ava debug --config ava.config.js {@}' 'node inspect 127.0.0.1:9229' --",
     "start": "rollup --config rollup.userscript.config.js --environment BUILD:development --watch",
     "build": "rollup --config rollup.userscript.config.js --environment BUILD:production",
     "lint:ecmascript": "eslint",
@@ -18,6 +19,7 @@
     "@rollup/plugin-node-resolve": "^15.1.0",
     "ava": "^6.0.1",
     "c8": "^8.0.0",
+    "concurrently": "9.2.1",
     "eslint": "^9.7.0",
     "husky": "^8.0.3",
     "jsdom": "^22.1.0",

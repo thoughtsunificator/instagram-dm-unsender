@@ -107,6 +107,7 @@ Lint files:
 
 Run test with ava:
 - ``npm test``
+> ``npm run test:debug file.js`` allows you to use v8 debugger while testing (atm only works on one file at a time)
 
 Coverage:
 - ``npm run test:coverage``
