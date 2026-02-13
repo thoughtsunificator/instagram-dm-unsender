@@ -18,14 +18,14 @@ class DefaultUI extends UI {
 	 * @returns {DefaultUI}
 	 */
 	static create(window) {
-		console.debug("UI create")
+		console.debug("UI create: Looking for messagesWrapperElement")
 		const messagesWrapperElement = findMessagesWrapper(window)
 		if (messagesWrapperElement !== null) {
 			console.debug("Found messagesWrapperElement", messagesWrapperElement)
 			const uiMessagesWrapper = new UIMessagesWrapper(messagesWrapperElement)
 			return new DefaultUI(window, { uiMessagesWrapper })
 		} else {
-			throw new Error("Unable to find messagesWrapperElement")
+			throw new Error("Unable to find messagesWrapperElement. The query selector might be out of date.")
 		}
 	}
 
