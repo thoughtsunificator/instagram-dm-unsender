@@ -50,6 +50,7 @@ class DefaultUI extends UI {
 		console.debug("startScrollTop", startScrollTop)
 		for (let i = Math.max(1, startScrollTop); i > 0; i = i - 150) {
 			if (abortController.signal.aborted) {
+				console.debug("abortController interupted the scrolling: stopping...")
 				break
 			}
 			this.lastScrollTop = i

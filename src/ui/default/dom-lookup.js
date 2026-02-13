@@ -137,6 +137,7 @@ export function getFirstVisibleMessage(root, abortController, window) {
 
 	for (const element of elements) {
 		if (abortController.signal.aborted) {
+			console.debug("abortController interupted the message filtering process: stopping...")
 			break
 		}
 		const visibilityCheck = element.checkVisibility({

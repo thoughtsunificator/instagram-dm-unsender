@@ -84,6 +84,7 @@ class DefaultStrategy extends UnsendStrategy {
 	 */
 	async #loadNextPage() {
 		if (this._abortController.signal.aborted) {
+			console.debug("abortController interupted the loading of next page: stopping...")
 			return
 		}
 		this.idmu.setStatusText("Loading next page...")
@@ -98,6 +99,8 @@ class DefaultStrategy extends UnsendStrategy {
 					this._pagesLoadedCount++
 					await this.#loadNextPage()
 				}
+			} else {
+				console.debug("abortController interupted the loading of next page: stopping...")
 			}
 		} catch (ex) {
 			console.error(ex)
@@ -110,6 +113,7 @@ class DefaultStrategy extends UnsendStrategy {
 	 */
 	async #unsendNextMessage() {
 		if (this._abortController.signal.aborted) {
+			console.debug("abortController interupted the unsending of next message: stopping...")
 			return
 		}
 		if (this._consecutiveFailures >= 5) {
