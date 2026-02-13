@@ -34,7 +34,7 @@ class DefaultStrategy extends UnsendStrategy {
 	stop() {
 		console.debug("DefaultStrategy stop")
 		this.idmu.setStatusText("Stopping...")
-		this._abortController.abort()
+		this._abortController.abort("DefaultStrategy stopped")
 	}
 
 	reset() {

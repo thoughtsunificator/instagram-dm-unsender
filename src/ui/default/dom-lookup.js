@@ -181,7 +181,7 @@ export async function loadMoreMessages(root, abortController) {
 	let findLoaderTimeout
 	let resolveTimeout
 	const abortHandler = () => {
-		scrollAbortController.abort()
+		scrollAbortController.abort("abortHandler was aborted")
 		clearTimeout(findLoaderTimeout)
 		if (resolveTimeout) {
 			resolveTimeout()
@@ -277,7 +277,7 @@ export async function loadMoreMessages(root, abortController) {
 	} catch (ex) {
 		console.error(ex)
 	}
-	scrollAbortController.abort()
+	scrollAbortController.abort("Scrolling took too much time. Timeout after 10s")
 	abortController.signal.removeEventListener("abort", abortHandler)
 	clearTimeout(findLoaderTimeout)
 	if (loadingElement && loadingElement !== true) {
