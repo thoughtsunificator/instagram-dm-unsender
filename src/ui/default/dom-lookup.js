@@ -129,7 +129,11 @@ export function getFirstVisibleMessage(root, abortController, window) {
 		})
 
 	elements.reverse()
-	console.debug("getFirstVisibleMessage", elements.length, "candidate elements")
+	if(elements.length >= 1) {
+		console.debug("getFirstVisibleMessage", elements.length, "candidate elements")
+	} else {
+		console.error("getFirstVisibleMessage could not find any elements. If there actually are messages on the page that means the query selector might be out of date.")
+	}
 
 	for (const element of elements) {
 		if (abortController.signal.aborted) {

@@ -39,6 +39,7 @@ class DefaultUI extends UI {
 	}
 
 	/**
+	 * Scroll until a (visible) message is found and return it
 	 * @param {AbortController} abortController
 	 * @returns {Promise<UIPIMessage>}
 	 */
@@ -57,6 +58,7 @@ class DefaultUI extends UI {
 			console.debug("scroll")
 			await new Promise(resolve => setTimeout(resolve, 5))
 			try {
+				console.debug("Looking for first visible message")
 				const messageElement = getFirstVisibleMessage(uiMessagesWrapperRoot, abortController, this.root)
 				if (messageElement) {
 					const uiMessage = new UIMessage(messageElement)

@@ -9,3 +9,8 @@ List of up and coming features.
 - [ ] i18n, make sure it works for all languages
 - [ ] l10n, make sure it works not only for the US version but also for the others.
 - [ ] alert system (for scenarios such as rate limits)
+
+## Refused
+
+- ❌\[Any Github specific features\]
+    > Such as complex and complete garbage CIs, [issue forms](https://docs.github.com/en/communities/using-templates-to-encourage-useful-issues-and-pull-requests/syntax-for-issue-forms) etc..
