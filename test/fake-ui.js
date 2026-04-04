@@ -32,7 +32,7 @@ export function createMountElement(document) {
 export function createMessagesWrapperElement(document, totalPages=0, itemsPerPage=0) {
 	console.debug("createMessagesWrapperElement", arguments)
 	const element = document.createElement("div")
-	element.setAttribute("role", "grid")
+	element.setAttribute("aria-label", "Conversation with test")
 	element.innerHTML = `
 		<div>
 			<div>
@@ -44,6 +44,10 @@ export function createMessagesWrapperElement(document, totalPages=0, itemsPerPag
 		</div>
 	`
 	const messageWrapperElement = element.querySelector("#messageWrapper")
+	// Simulate scrollable container for findScrollableChild
+	messageWrapperElement.style.overflowY = "auto"
+	Object.defineProperty(messageWrapperElement, "scrollHeight", { value: 1000, writable: true, configurable: true })
+	Object.defineProperty(messageWrapperElement, "clientHeight", { value: 500, writable: true, configurable: true })
 	Object.defineProperty(messageWrapperElement, "scrollTop", {
 		get() {
 			return messageWrapperElement._scrollTop
@@ -102,24 +106,29 @@ export function createMessageElement(document, text="", includesUnsend=true, ign
 	if(ignored) {
 		element.setAttribute("data-idmu-ignore", "true")
 	}
-	element.innerHTML = `${includesUnsend?"<span>You sent</span>":""}<span>${text}</span>`
-	element.addEventListener("mouseover", event => {
+	// isSentByCurrentUser checks for justify-content: flex-end on nested divs
+	const flexStyle = includesUnsend ? ' style="justify-content: flex-end"' : ''
+	element.innerHTML = `<div role="none"${flexStyle}>${includesUnsend?"<span>You sent</span>":""}<span>${text}</span></div>`
+	element.addEventListener("mouseover", () => {
 		console.debug(`message ${text} mouseover`)
 		setTimeout(() => {
-			const moreElement = event.target.ownerDocument.createElement("div")
+			// Always operate on the root element, not event.target, since
+			// multi-target hover dispatch may fire on child elements
+			if (element.querySelector("[aria-label]")) return // already shown
+			const moreElement = element.ownerDocument.createElement("div")
 			moreElement.setAttribute("aria-label", "See more options for message from foo")
-			event.target.appendChild(moreElement)
-			event.target.addEventListener("click", () => { // Listen for event of parent instead of moreElement because instagram use a svg Element
+			element.appendChild(moreElement)
+			element.addEventListener("click", () => {
 				console.debug(`moreElement clicked`)
 				setTimeout(() => {
-					if(event.target.messageActionsMenuElement) {
-						event.target.messageActionsMenuElement.remove()
-						delete event.target.messageActionsMenuElement
+					if(element.messageActionsMenuElement) {
+						element.messageActionsMenuElement.remove()
+						delete element.messageActionsMenuElement
 					} else {
 						const messageActionsMenuElement = createMessageActionsMenuElement(document, includesUnsend, eventsTimeout)
-						messageActionsMenuElement.messageElement = event.target
-						event.target.messageActionsMenuElement = messageActionsMenuElement
-						event.target.ownerDocument.body.appendChild(messageActionsMenuElement)
+						messageActionsMenuElement.messageElement = element
+						element.messageActionsMenuElement = messageActionsMenuElement
+						element.ownerDocument.body.appendChild(messageActionsMenuElement)
 					}
 				}, eventsTimeout)
 			})

@@ -11,6 +11,24 @@ global.getComputedStyle = new JSDOM().window.getComputedStyle
 global.MutationObserver = new JSDOM().window.MutationObserver
 global.Node = new JSDOM().window.Node
 global.MouseEvent = new JSDOM().window.MouseEvent
+// PointerEvent and KeyboardEvent are not in jsdom; stub them as MouseEvent subclasses
+if (typeof globalThis.PointerEvent === "undefined") {
+	globalThis.PointerEvent = class PointerEvent extends new JSDOM().window.MouseEvent {
+		constructor(type, params = {}) {
+			super(type, params)
+			this.pointerId = params.pointerId ?? 0
+			this.pointerType = params.pointerType ?? ""
+		}
+	}
+}
+if (typeof globalThis.KeyboardEvent === "undefined") {
+	globalThis.KeyboardEvent = new JSDOM().window.KeyboardEvent ?? class KeyboardEvent extends new JSDOM().window.Event {
+		constructor(type, params = {}) {
+			super(type, params)
+			this.key = params.key ?? ""
+		}
+	}
+}
 const oldSetTimeout = setTimeout
 global.setTimeout = (callback) => {
 	return oldSetTimeout(callback, 0)

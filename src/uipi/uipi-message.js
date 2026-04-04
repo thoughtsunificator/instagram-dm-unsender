@@ -18,7 +18,7 @@ class UIPIMessage {
 	 * @param {AbortController} abortController
 	 * @returns {Promise<boolean>}
 	 */
-	async unsend(abortController) { // TODO abort UIPI / waitForElement etc..
+	async unsend(abortController) {
 		console.debug("UIPIMessage unsend")
 		let actionButton
 		let unsendButton
@@ -33,6 +33,17 @@ class UIPIMessage {
 		} catch(ex) {
 			console.error(ex)
 			this.uiMessage.root.setAttribute("data-idmu-ignore", "")
+			// Dismiss any open overlay so the next message starts clean
+			try {
+				const doc = this.uiMessage.root.ownerDocument
+				doc.body.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }))
+				await new Promise(resolve => setTimeout(resolve, 200))
+				// If dialog is still open, press Escape again
+				if (doc.querySelector("[role=dialog]")) {
+					doc.body.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }))
+					await new Promise(resolve => setTimeout(resolve, 200))
+				}
+			} catch (_) { /* best-effort cleanup */ }
 			throw new FailedWorkflowException("Failed to execute workflow for this message", ex)
 		}
 	}
