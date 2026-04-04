@@ -81,19 +81,36 @@ class UIMessage extends UIComponent {
 
 	/**
 	 * Find the action button within the message row.
-	 * Uses multiple aria-label patterns to handle different locales.
+	 * Instagram moved aria-label from the button div to a nested SVG/title.
+	 * Any match (SVG or div) is walked up to the nearest [role=button] ancestor.
 	 *
 	 * @param {Element} scope
 	 * @returns {Element|null}
 	 */
 	_findActionButton(scope) {
-		return scope.querySelector("[aria-label^='See more options for message']")
-			|| scope.querySelector("[aria-label*='more options']")
-			|| scope.querySelector("[aria-label*='More']")
-			|| scope.querySelector("[aria-label*='Altre opzioni']")
-			|| scope.querySelector("[aria-label*='opzioni']")
-			|| scope.querySelector("[aria-label*='opciones']")
-			|| scope.querySelector("[aria-label*='options']")
+		const LABEL_PATTERNS = [
+			"[aria-label^='See more options for message']",
+			"[aria-label*='more options']",
+			"[aria-label*='More']",
+			"[aria-label*='Altre opzioni']",
+			"[aria-label*='opzioni']",
+			"[aria-label*='opciones']",
+			"[aria-label*='options']",
+		]
+
+		for (const sel of LABEL_PATTERNS) {
+			const el = scope.querySelector(sel)
+			if (el) {
+				// Always resolve to a clickable button container
+				const btn = el.closest("[role=button]") || el.closest("button")
+				if (btn && scope.contains(btn)) return btn
+				// el itself is already a button-like element
+				if (el.tagName === "BUTTON" || el.getAttribute("role") === "button") return el
+			}
+		}
+
+		// Fallback: any role=button with aria-haspopup=menu inside the message row
+		return scope.querySelector("[role=button][aria-haspopup=menu]")
 	}
 
 	/**
@@ -128,9 +145,8 @@ class UIMessage extends UIComponent {
 
 			const btn = this._findActionButton(this.root)
 			if (btn) {
-				const clickTarget = btn.closest('[role=button]') || btn.parentElement || btn
-				console.debug("Workflow step 1 : found action button on attempt", attempt, clickTarget)
-				return clickTarget
+				console.debug("Workflow step 1 : found action button on attempt", attempt, btn)
+				return btn
 			}
 
 			console.debug("Workflow step 1 : attempt", attempt, "no button found, retrying...")
@@ -164,7 +180,7 @@ class UIMessage extends UIComponent {
 			])
 
 			if (actionButton) {
-				return actionButton.closest('[role=button]') || actionButton.parentElement || actionButton
+				return actionButton
 			}
 			return actionButton
 		} finally {
