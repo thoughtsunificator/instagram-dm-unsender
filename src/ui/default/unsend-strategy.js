@@ -5,7 +5,8 @@ import IDMU from "../../idmu/idmu.js"
 import { UnsendStrategy } from "../unsend-strategy.js"
 
 /**
- * Loads multiple pages before unsending message
+ * Loads all pages first, then unsends messages from bottom to top.
+ * For short conversations (all messages fit in viewport), skips page loading entirely.
  */
 class DefaultStrategy extends UnsendStrategy {
 
@@ -20,10 +21,10 @@ class DefaultStrategy extends UnsendStrategy {
 		this._running = false
 		this._abortController = null
 		this._lastUnsendDate = null
+		this._consecutiveFailures = 0
 	}
 
 	/**
-	 *
 	 * @returns {boolean}
 	 */
 	isRunning() {
@@ -41,34 +42,35 @@ class DefaultStrategy extends UnsendStrategy {
 		this._unsentCount = 0
 		this._lastUnsendDate = null
 		this._pagesLoadedCount = 0
+		this._consecutiveFailures = 0
 		this.idmu.setStatusText("Ready")
 	}
 
 	/**
-	 *
 	 * @returns {Promise}
 	 */
 	async run() {
 		console.debug("DefaultStrategy.run()")
 		this._unsentCount = 0
 		this._pagesLoadedCount = 0
+		this._consecutiveFailures = 0
 		this._running = true
 		this._abortController = new AbortController()
 		this.idmu.loadUIPI()
 		try {
-			if(this._allPagesLoaded) {
+			if (this._allPagesLoaded) {
 				await this.#unsendNextMessage()
 			} else {
 				await this.#loadNextPage()
 			}
-			if(this._abortController.signal.aborted) {
+			if (this._abortController.signal.aborted) {
 				this.idmu.setStatusText(`Aborted. ${this._unsentCount} message(s) unsent.`)
 				console.debug("DefaultStrategy aborted")
 			} else {
 				this.idmu.setStatusText(`Done. ${this._unsentCount} message(s) unsent.`)
 				console.debug("DefaultStrategy done")
 			}
-		} catch(ex) {
+		} catch (ex) {
 			console.error(ex)
 			this.idmu.setStatusText(`Errored. ${this._unsentCount} message(s) unsent.`)
 			console.debug("DefaultStrategy errored")
@@ -77,18 +79,19 @@ class DefaultStrategy extends UnsendStrategy {
 	}
 
 	/**
-	 * Tries to load the thread next page
+	 * Tries to load the thread next page.
+	 * If loadMoreMessages returns true (no more pages), moves to unsending.
 	 */
 	async #loadNextPage() {
-		if(this._abortController.signal.aborted) {
+		if (this._abortController.signal.aborted) {
 			return
 		}
 		this.idmu.setStatusText("Loading next page...")
 		try {
 			const done = await this.idmu.fetchAndRenderThreadNextMessagePage(this._abortController)
-			if(this._abortController.signal.aborted === false) {
-				if(done) {
-					this.idmu.setStatusText(`All pages loaded (${this._pagesLoadedCount} in total)...`)
+			if (this._abortController.signal.aborted === false) {
+				if (done) {
+					this.idmu.setStatusText(`All pages loaded (${this._pagesLoadedCount} in total). Unsending...`)
 					this._allPagesLoaded = true
 					await this.#unsendNextMessage()
 				} else {
@@ -96,42 +99,57 @@ class DefaultStrategy extends UnsendStrategy {
 					await this.#loadNextPage()
 				}
 			}
-		} catch(ex) {
+		} catch (ex) {
 			console.error(ex)
 		}
 	}
 
 	/**
-	 * Unsend first message in viewport
+	 * Unsend first message in viewport.
+	 * Includes rate limiting and failure tracking to avoid Instagram throttling.
 	 */
 	async #unsendNextMessage() {
-		if(this._abortController.signal.aborted) {
+		if (this._abortController.signal.aborted) {
+			return
+		}
+		// Bail after too many consecutive failures — DOM is likely in a broken state
+		if (this._consecutiveFailures >= 5) {
+			this.idmu.setStatusText(`Stopped: ${this._consecutiveFailures} consecutive failures. ${this._unsentCount} message(s) unsent.`)
+			console.debug("DefaultStrategy stopping due to consecutive failures")
 			return
 		}
 		let canScroll = true
 		try {
-			this.idmu.setStatusText("Retrieving next message...")
+			this.idmu.setStatusText(`Retrieving next message... (${this._unsentCount} unsent so far)`)
 			const uipiMessage = await this.idmu.getNextUIPIMessage(this._abortController)
 			canScroll = uipiMessage !== false
-			if(uipiMessage) {
-				this.idmu.setStatusText("Unsending message...")
+			if (uipiMessage) {
+				this.idmu.setStatusText(`Unsending message... (${this._unsentCount + 1})`)
+				// Rate limiting: wait at least 500ms between unsends
 				if (this._lastUnsendDate !== null) {
-					const lastUnsendDateDiff = new Date().getTime() - this._lastUnsendDate.getTime()
-					if(lastUnsendDateDiff < 1000) {
-						this.idmu.setStatusText(`Waiting ${lastUnsendDateDiff}ms before unsending next message...`)
-						await new Promise(resolve => setTimeout(resolve, lastUnsendDateDiff))
+					const elapsed = new Date().getTime() - this._lastUnsendDate.getTime()
+					const minDelay = 500
+					if (elapsed < minDelay) {
+						const waitMs = minDelay - elapsed
+						this.idmu.setStatusText(`Rate limit pause ${waitMs}ms...`)
+						await new Promise(resolve => setTimeout(resolve, waitMs))
 					}
 				}
 				const unsent = await uipiMessage.unsend(this._abortController)
-				if(unsent) {
+				if (unsent) {
 					this._lastUnsendDate = new Date()
 					this._unsentCount++
+					this._consecutiveFailures = 0
 				}
 			}
-		} catch(ex) {
+		} catch (ex) {
 			console.error(ex)
+			this._consecutiveFailures++
+			// Wait before retrying after a failure to let DOM settle
+			this.idmu.setStatusText(`Workflow failed (${this._consecutiveFailures}/5), retrying in 1s... (${this._unsentCount} unsent)`)
+			await new Promise(resolve => setTimeout(resolve, 1000))
 		} finally {
-			if(canScroll) {
+			if (canScroll && this._abortController && !this._abortController.signal.aborted) {
 				await this.#unsendNextMessage()
 			}
 		}
