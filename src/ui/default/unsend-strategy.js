@@ -106,13 +106,12 @@ class DefaultStrategy extends UnsendStrategy {
 
 	/**
 	 * Unsend first message in viewport.
-	 * Includes rate limiting and failure tracking to avoid Instagram throttling.
+	 * Uses human-like randomized delays and exponential backoff to avoid Instagram rate limits.
 	 */
 	async #unsendNextMessage() {
 		if (this._abortController.signal.aborted) {
 			return
 		}
-		// Bail after too many consecutive failures — DOM is likely in a broken state
 		if (this._consecutiveFailures >= 5) {
 			this.idmu.setStatusText(`Stopped: ${this._consecutiveFailures} consecutive failures. ${this._unsentCount} message(s) unsent.`)
 			console.debug("DefaultStrategy stopping due to consecutive failures")
@@ -125,29 +124,47 @@ class DefaultStrategy extends UnsendStrategy {
 			canScroll = uipiMessage !== false
 			if (uipiMessage) {
 				this.idmu.setStatusText(`Unsending message... (${this._unsentCount + 1})`)
-				// Rate limiting: wait at least 500ms between unsends
+
+				// Human-like delay between unsends: 3-6s randomized
 				if (this._lastUnsendDate !== null) {
-					const elapsed = new Date().getTime() - this._lastUnsendDate.getTime()
-					const minDelay = 500
+					const elapsed = Date.now() - this._lastUnsendDate.getTime()
+					const minDelay = 4000 + Math.floor(Math.random() * 2000) // 4-6s (~5s avg)
 					if (elapsed < minDelay) {
 						const waitMs = minDelay - elapsed
-						this.idmu.setStatusText(`Rate limit pause ${waitMs}ms...`)
+						this.idmu.setStatusText(`Waiting ${(waitMs / 1000).toFixed(1)}s... (${this._unsentCount} unsent so far)`)
 						await new Promise(resolve => setTimeout(resolve, waitMs))
 					}
 				}
+
+				if (this._abortController.signal.aborted) return
+
+				const msgElement = uipiMessage.uiMessage.root
 				const unsent = await uipiMessage.unsend(this._abortController)
+
 				if (unsent) {
-					this._lastUnsendDate = new Date()
-					this._unsentCount++
-					this._consecutiveFailures = 0
+					// Verify the message actually disappeared from DOM (server accepted the mutation)
+					await new Promise(resolve => setTimeout(resolve, 800))
+					const stillInDOM = msgElement.isConnected && !msgElement.hasAttribute("data-idmu-unsent")
+					if (stillInDOM) {
+						// Server likely rejected — the message reappeared after optimistic removal
+						console.debug("DefaultStrategy: message still in DOM after unsend, possible rate limit")
+						this._consecutiveFailures++
+						const backoffMs = Math.min(60000, 5000 * Math.pow(2, this._consecutiveFailures - 1))
+						this.idmu.setStatusText(`Server may have rejected unsend. Backing off ${(backoffMs / 1000).toFixed(0)}s... (${this._unsentCount} unsent)`)
+						await new Promise(resolve => setTimeout(resolve, backoffMs))
+					} else {
+						this._lastUnsendDate = new Date()
+						this._unsentCount++
+						this._consecutiveFailures = 0
+					}
 				}
 			}
 		} catch (ex) {
 			console.error(ex)
 			this._consecutiveFailures++
-			// Wait before retrying after a failure to let DOM settle
-			this.idmu.setStatusText(`Workflow failed (${this._consecutiveFailures}/5), retrying in 1s... (${this._unsentCount} unsent)`)
-			await new Promise(resolve => setTimeout(resolve, 1000))
+			const backoffMs = Math.min(60000, 3000 * Math.pow(2, this._consecutiveFailures - 1))
+			this.idmu.setStatusText(`Workflow failed (${this._consecutiveFailures}/5), retrying in ${(backoffMs / 1000).toFixed(0)}s... (${this._unsentCount} unsent)`)
+			await new Promise(resolve => setTimeout(resolve, backoffMs))
 		} finally {
 			if (canScroll && this._abortController && !this._abortController.signal.aborted) {
 				await this.#unsendNextMessage()
