@@ -2,15 +2,7 @@
 
 import UIComponent from "../ui-component.js"
 
-/** Locale-independent patterns for the "Unsend" menu item */
-const UNSEND_TEXT_VARIANTS = [
-	"unsend",        // English
-	"annulla invio", // Italian
-	"retirar",       // Portuguese
-	"deshacer",      // Spanish
-	"retirer",       // French
-	"zurücknehmen",  // German
-]
+import * as strings from "./strings.js"
 
 /**
  * Dispatches pointer and mouse hover events on a target element.
@@ -88,17 +80,7 @@ class UIMessage extends UIComponent {
 	 * @returns {Element|null}
 	 */
 	_findActionButton(scope) {
-		const LABEL_PATTERNS = [
-			"[aria-label^='See more options for message']",
-			"[aria-label*='more options']",
-			"[aria-label*='More']",
-			"[aria-label*='Altre opzioni']",
-			"[aria-label*='opzioni']",
-			"[aria-label*='opciones']",
-			"[aria-label*='options']",
-		]
-
-		for (const sel of LABEL_PATTERNS) {
+		for (const sel of strings.LABEL_PATTERNS) {
 			const el = scope.querySelector(sel)
 			if (el) {
 				// Always resolve to a clickable button container
@@ -259,7 +241,7 @@ class UIMessage extends UIComponent {
 		/** Check if text matches any known "Unsend" variant */
 		const isUnsendText = (text) => {
 			const normalized = text.trim().toLocaleLowerCase()
-			return UNSEND_TEXT_VARIANTS.some(v => normalized === v)
+			return strings.UNSEND_TEXT_VARIANTS.some(v => normalized === v)
 		}
 
 		try {
