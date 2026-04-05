@@ -140,7 +140,7 @@ class UIMessage extends UIComponent {
 		const waitAbortController = new AbortController()
 		let promiseTimeout
 		const abortHandler = () => {
-			waitAbortController.abort()
+			waitAbortController.abort("showActionsMenuButton step was aborted by the parent process")
 			clearTimeout(promiseTimeout)
 		}
 		abortController.signal.addEventListener("abort", abortHandler)
@@ -166,7 +166,7 @@ class UIMessage extends UIComponent {
 			}
 			return actionButton
 		} finally {
-			waitAbortController.abort()
+			waitAbortController.abort() // Aborting without reason because the reason is the error itself
 			clearTimeout(promiseTimeout)
 			abortController.signal.removeEventListener("abort", abortHandler)
 		}
@@ -189,7 +189,7 @@ class UIMessage extends UIComponent {
 		let promiseTimeout
 		let resolveTimeout
 		const abortHandler = () => {
-			waitAbortController.abort()
+			waitAbortController.abort("hideActionMenuButton step was aborted by the parent process")
 			clearTimeout(promiseTimeout)
 			if (resolveTimeout) {
 				resolveTimeout()
@@ -211,7 +211,7 @@ class UIMessage extends UIComponent {
 			])
 			return result
 		} finally {
-			waitAbortController.abort()
+			waitAbortController.abort() // Aborting without reason because the reason is the error itself
 			clearTimeout(promiseTimeout)
 			abortController.signal.removeEventListener("abort", abortHandler)
 		}
@@ -230,7 +230,7 @@ class UIMessage extends UIComponent {
 		let promiseTimeout
 		let resolveTimeout
 		const abortHandler = () => {
-			waitAbortController.abort()
+			waitAbortController.abort("openActionsMenu step was aborted by the parent process")
 			clearTimeout(promiseTimeout)
 			if (resolveTimeout) {
 				resolveTimeout()
@@ -279,7 +279,7 @@ class UIMessage extends UIComponent {
 			console.debug("Workflow step 2 : Found unsendButton", unsendButton)
 			return unsendButton
 		} finally {
-			waitAbortController.abort()
+			waitAbortController.abort() // Aborting without reason because the reason is the error itself
 			clearTimeout(promiseTimeout)
 			abortController.signal.removeEventListener("abort", abortHandler)
 		}
@@ -299,7 +299,7 @@ class UIMessage extends UIComponent {
 		let promiseTimeout
 		let resolveTimeout
 		const abortHandler = () => {
-			waitAbortController.abort()
+			waitAbortController.abort("closeActionsMenu step was aborted by the parent process")
 			clearTimeout(promiseTimeout)
 			if (resolveTimeout) {
 				resolveTimeout()

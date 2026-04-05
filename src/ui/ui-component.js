@@ -18,7 +18,7 @@ class UIComponent {
 	}
 
 	/**
-	 *
+	 * Alias of dom/async-events#waitForElement
 	 * @param {Element} target
 	 * @param {function} getElement
 	 * @param {AbortController} abortController
@@ -29,7 +29,7 @@ class UIComponent {
 	}
 
 	/**
-	 *
+	 * Alias of dom/async-events#clickElementAndWaitFor
 	 * @param {Element} clickTarget
 	 * @param {Element} target
 	 * @param {function} getElement

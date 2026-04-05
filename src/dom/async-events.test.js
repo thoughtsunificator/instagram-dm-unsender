@@ -48,4 +48,15 @@ test("clickElementAndWaitFor not found", async t => {
 	t.is(target, true)
 })
 
-// TODO test abort controller
+test("abort controller", async t => {
+	const element = t.context.document.createElement("p")
+	element.id = "test"
+	t.context.document.body.append(element)
+	const abortController = new AbortController()
+	const promise = clickElementAndWaitFor(element, t.context.document.body, () => false, abortController)
+	await t.throwsAsync(async () => {
+		abortController.abort("foo")
+		await promise
+	}, { message: "waitForElement aborted: foo" })
+})
+
