@@ -165,6 +165,11 @@ export function getFirstVisibleMessage(root, abortController, window) {
 
 /**
  * Scrolls to top to trigger loading of older messages.
+ * Handles both normal and column-reverse layouts.
+ *
+ * In column-reverse (Instagram's current layout):
+ *   scrollTop=0 is the BOTTOM (newest messages)
+ *   scrollTop=-(scrollHeight-clientHeight) is the TOP (oldest messages)
  *
  * @param {Element} root
  * @param {AbortController} abortController
@@ -184,9 +189,21 @@ export async function loadMoreMessages(root, abortController) {
 	}
 	abortController.signal.addEventListener("abort", abortHandler)
 
+	// Detect column-reverse layout
+	const style = root.ownerDocument.defaultView.getComputedStyle(root)
+	const isReversed = style.flexDirection === "column-reverse"
+	// In column-reverse, "scroll to top" means most negative scrollTop
+	const scrollToTopValue = isReversed
+		? -(root.scrollHeight - root.clientHeight)
+		: 0
+	// In column-reverse, "at top" means scrollTop is at or near minimum
+	const isAtTop = () => isReversed
+		? root.scrollTop <= scrollToTopValue + 5
+		: root.scrollTop === 0
+
 	const beforeScroll = root.scrollTop
 	const beforeHeight = root.scrollHeight
-	root.scrollTop = 0
+	root.scrollTop = scrollToTopValue
 
 	// Helper: find a visible loader within the scrollable root's viewport
 	const findVisibleLoader = () => {
@@ -203,14 +220,17 @@ export async function loadMoreMessages(root, abortController) {
 	}
 
 	// Short chat: everything fits in viewport, nothing to load
-	if (beforeScroll === 0 && root.scrollHeight <= root.clientHeight + 50) {
+	const noScrollNeeded = isReversed
+		? beforeScroll === 0 && root.scrollHeight <= root.clientHeight + 50
+		: beforeScroll === 0 && root.scrollHeight <= root.clientHeight + 50
+	if (noScrollNeeded) {
 		console.debug("loadMoreMessages: chat fits in viewport, marking as done")
 		abortController.signal.removeEventListener("abort", abortHandler)
 		return true
 	}
 
 	// Already at top after scrolling: wait briefly for new content, then check
-	if (root.scrollTop === 0) {
+	if (isAtTop()) {
 		// Give Instagram a moment to start loading older messages
 		await new Promise(resolve => setTimeout(resolve, 500))
 
@@ -243,7 +263,7 @@ export async function loadMoreMessages(root, abortController) {
 		loadingElement = await Promise.race([
 			waitForElement(root, () => {
 				if (findVisibleLoader() === null) {
-					root.scrollTop = 0
+					root.scrollTop = scrollToTopValue
 				}
 				return findVisibleLoader()
 			}, scrollAbortController),
@@ -267,6 +287,8 @@ export async function loadMoreMessages(root, abortController) {
 			new Promise(resolve => setTimeout(resolve, 5000))
 		])
 	}
-	console.debug(`loadMoreMessages: scrollTop is ${root.scrollTop} — ${root.scrollTop === 0 ? "reached last page" : "not last page"}`)
-	return root.scrollTop === 0
+	const atTop = isAtTop()
+	console.debug(`loadMoreMessages: scrollTop is ${root.scrollTop} — ${atTop ? "reached last page" : "not last page"}`)
+	return atTop
 }
+
