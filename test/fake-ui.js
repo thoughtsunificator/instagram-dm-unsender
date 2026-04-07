@@ -91,6 +91,19 @@ export function createMessagesWrapperElement(document, totalPages=0, itemsPerPag
 }
 
 /**
+ * Creates a fake message element that mirrors Instagram's real DOM structure.
+ *
+ * Real IG structure (simplified):
+ *   <div> ← message row (no role attr in current IG)
+ *     <div role="none" style="justify-content: flex-end"> ← sent indicator
+ *       <div role="presentation">
+ *         <span>message text</span>
+ *       </div>
+ *     </div>
+ *   </div>
+ *
+ * On hover, IG adds an action button wrapped in role=button with aria-haspopup=menu,
+ * containing an SVG with aria-label="See more options for message from ..."
  *
  * @param {Document} document
  * @param {string} [text=""]
@@ -102,24 +115,31 @@ export function createMessagesWrapperElement(document, totalPages=0, itemsPerPag
 export function createMessageElement(document, text="", includesUnsend=true, ignored=false, eventsTimeout=0) {
 	console.debug("createMessageElement", arguments)
 	const element = document.createElement("div")
-	element.setAttribute("role", "row")
 	if(ignored) {
 		element.setAttribute("data-idmu-ignore", "true")
 	}
-	// isSentByCurrentUser checks for justify-content: flex-end on nested divs
-	const flexStyle = includesUnsend ? ' style="justify-content: flex-end"' : ''
-	element.innerHTML = `<div role="none"${flexStyle}>${includesUnsend?"<span>You sent</span>":""}<span>${text}</span></div>`
+	// Reflect real IG structure: role=none wrapper with flex-end for sent messages,
+	// and role=presentation for the message content container
+	const flexStyle = includesUnsend ? " style=\"justify-content: flex-end\"" : ""
+	element.innerHTML = `<div role="none"${flexStyle}><div role="presentation">${includesUnsend?"<span>You sent</span>":""}<span>${text}</span></div></div>`
 	element.addEventListener("mouseover", () => {
 		console.debug(`message ${text} mouseover`)
 		setTimeout(() => {
-			// Always operate on the root element, not event.target, since
-			// multi-target hover dispatch may fire on child elements
 			if (element.querySelector("[aria-label]")) return // already shown
-			const moreElement = element.ownerDocument.createElement("div")
-			moreElement.setAttribute("aria-label", "See more options for message from foo")
-			element.appendChild(moreElement)
-			element.addEventListener("click", () => {
-				console.debug(`moreElement clicked`)
+			// Create action button matching real IG structure:
+			// <div role="button" aria-haspopup="menu" tabindex="0">
+			//   <svg role="img" aria-label="See more options for message from foo">
+			const actionBtnWrapper = element.ownerDocument.createElement("div")
+			actionBtnWrapper.setAttribute("role", "button")
+			actionBtnWrapper.setAttribute("aria-haspopup", "menu")
+			actionBtnWrapper.setAttribute("tabindex", "0")
+			const svgEl = element.ownerDocument.createElement("svg")
+			svgEl.setAttribute("role", "img")
+			svgEl.setAttribute("aria-label", "See more options for message from foo")
+			actionBtnWrapper.appendChild(svgEl)
+			element.appendChild(actionBtnWrapper)
+			actionBtnWrapper.addEventListener("click", () => {
+				console.debug(`actionButton clicked`)
 				setTimeout(() => {
 					if(element.messageActionsMenuElement) {
 						element.messageActionsMenuElement.remove()
@@ -135,8 +155,9 @@ export function createMessageElement(document, text="", includesUnsend=true, ign
 		})
 	})
 	element.addEventListener("mouseout", () => {
-		if(element.querySelector("[aria-label]")) {
-			element.querySelector("[aria-label]").remove()
+		const actionBtn = element.querySelector("[role=button][aria-haspopup=menu]")
+		if(actionBtn) {
+			actionBtn.remove()
 		}
 	})
 	return element
@@ -150,11 +171,20 @@ export function createMessageElement(document, text="", includesUnsend=true, ign
 export function createDummyMessageElement(document) {
 	console.debug("createDummyMessageElement", arguments)
 	const element = document.createElement("div")
-	element.setAttribute("role", "row")
 	return element
 }
 
 /**
+ * Creates a fake actions menu matching real IG structure.
+ *
+ * Real IG structure:
+ *   <div role="dialog">
+ *     <div role="menu">
+ *       <div role="menuitem">Bar</div>
+ *       <div role="menuitem">Foo</div>
+ *       <div role="menuitem">Unsend</div>  ← text node child
+ *     </div>
+ *   </div>
  *
  * @param {Document} document
  * @param {boolean} [includesUnsend=true]
@@ -168,29 +198,20 @@ export function createMessageActionsMenuElement(document, includesUnsend=true) {
 	menuElement.id = "menu"
 	menuElement.setAttribute("role", "menu")
 	const menuItem1 = document.createElement("div")
-	menuItem1.setAttribute("role", "")
-	const barElement = document.createElement("div")
-	barElement.setAttribute("role", "menuitem")
-	barElement.textContent = "Bar"
-	menuItem1.appendChild(barElement)
+	menuItem1.setAttribute("role", "menuitem")
+	menuItem1.textContent = "Bar"
 	const menuItem2 = document.createElement("div")
-	menuItem2.setAttribute("role", "")
-	const fooElement = document.createElement("div")
-	fooElement.setAttribute("role", "menuitem")
-	fooElement.textContent = "Foo"
-	menuItem2.appendChild(fooElement)
+	menuItem2.setAttribute("role", "menuitem")
+	menuItem2.textContent = "Foo"
 	menuElement.appendChild(menuItem1)
 	menuElement.appendChild(menuItem2)
 	element.appendChild(menuElement)
 	if(includesUnsend) {
-		const menuItem3 = document.createElement("div")
-		menuItem3.setAttribute("role", "")
 		const unsendElement = document.createElement("div")
 		unsendElement.setAttribute("role", "menuitem")
 		unsendElement.textContent = "Unsend"
 		unsendElement.id = "unsend"
-		menuItem3.appendChild(unsendElement)
-		menuElement.appendChild(menuItem3)
+		menuElement.appendChild(unsendElement)
 		element.querySelector("#unsend").addEventListener("click", () => {
 			console.debug("#unsend button clicked")
 			const confirmElement = document.createElement("div")
@@ -212,4 +233,3 @@ export function createMessageActionsMenuElement(document, includesUnsend=true) {
 	}
 	return element
 }
-

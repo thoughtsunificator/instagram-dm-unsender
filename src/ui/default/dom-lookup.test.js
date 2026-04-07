@@ -11,7 +11,7 @@ test("getFirstVisibleMessage", async t => {
 test("getFirstVisibleMessage visible", async t => {
 	const messageElement = createMessageElement(t.context.document, "Test")
 	t.context.mountElement.append(messageElement)
-	messageElement.getBoundingClientRect = () => ({ y: 105 })
+	messageElement.getBoundingClientRect = () => ({ y: 105, height: 50 })
 	t.is(await getFirstVisibleMessage(t.context.document.body, new AbortController(), t.context.window), messageElement)
 })
 
@@ -24,7 +24,7 @@ test("getFirstVisibleMessage ignore if already processed", async t => {
 test("getFirstVisibleMessage ignore if sent by someone else", async t => {
 	const messageElement = createMessageElement(t.context.document, "Test", false, true)
 	t.context.mountElement.append(messageElement)
-	messageElement.getBoundingClientRect = () => ({ y: 105 })
+	messageElement.getBoundingClientRect = () => ({ y: 105, height: 50 })
 	t.is(await getFirstVisibleMessage(t.context.document.body, new AbortController(), t.context.window), undefined)
 })
 

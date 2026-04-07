@@ -4,7 +4,7 @@ import { createDummyMessageElement, createMessageActionsMenuElement } from "./fa
 test("createDummyMessageElement click", t => {
 	const dummyMessageElement = createDummyMessageElement(t.context.document)
 	t.context.mountElement.append(dummyMessageElement)
-	t.is(t.context.document.querySelector("[role=row]"), dummyMessageElement)
+	t.true(t.context.mountElement.contains(dummyMessageElement))
 })
 
 test("createMessageActionsMenuElement", t => {
