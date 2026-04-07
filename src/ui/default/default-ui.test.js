@@ -39,8 +39,15 @@ test("DefaultUI fetchAndRenderThreadNextMessagePage", t => {
 
 test("DefaultUI getNextUIPIMessage", async t => {
 	const defaultUI = DefaultUI.create(t.context.window)
+	// Add multiple messages so getMessagesInnerContainer correctly identifies
+	// the scrollable root as the inner container (most children wins)
+	for (let i = 0; i < 3; i++) {
+		const filler = createMessageElement(t.context.document, `Filler ${i}`)
+		filler.getBoundingClientRect = () => ({ y: 0, height: 0 })
+		defaultUI.identifier.uiMessagesWrapper.root.appendChild(filler)
+	}
 	const messageElement = createMessageElement(t.context.document, "Test")
-	messageElement.getBoundingClientRect = () => ({ y: 105 })
+	messageElement.getBoundingClientRect = () => ({ y: 105, height: 50 })
 	const uiMessage = new UIMessage(messageElement)
 	defaultUI.identifier.uiMessagesWrapper.root.appendChild(messageElement)
 	Object.defineProperty(defaultUI.identifier.uiMessagesWrapper.root, "clientHeight", { value: 123 })
