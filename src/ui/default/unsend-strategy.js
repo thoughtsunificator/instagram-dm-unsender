@@ -56,6 +56,10 @@ class DefaultStrategy extends UnsendStrategy {
 		this._consecutiveFailures = 0
 		this._running = true
 		this._abortController = new AbortController()
+		// Clear stale ignore markers from previous runs so messages can be retried
+		this.idmu.window.document.querySelectorAll("[data-idmu-ignore]").forEach(el => {
+			el.removeAttribute("data-idmu-ignore")
+		})
 		this.idmu.loadUIPI()
 		try {
 			if (this._allPagesLoaded) {
@@ -160,6 +164,10 @@ class DefaultStrategy extends UnsendStrategy {
 						this._lastUnsendDate = new Date()
 						this._unsentCount++
 						this._consecutiveFailures = 0
+						// DOM shrunk after removal; reset scroll for fresh scan
+						if (this.idmu.uipi && this.idmu.uipi.ui) {
+							this.idmu.uipi.ui.lastScrollTop = null
+						}
 					}
 				}
 			}
