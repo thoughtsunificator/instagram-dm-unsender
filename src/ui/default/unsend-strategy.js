@@ -67,6 +67,28 @@ class DefaultStrategy extends UnsendStrategy {
 			} else {
 				await this.#loadNextPage()
 			}
+
+			// Race condition: on first page load, Instagram's React may not have
+			// finished hydrating message components (role attributes missing).
+			// If we found nothing, wait and re-scan up to 3 times.
+			if (this._unsentCount === 0 && !this._abortController.signal.aborted) {
+				for (let retry = 1; retry <= 3; retry++) {
+					this.idmu.setStatusText(`No messages detected, retrying (${retry}/3)...`)
+					console.debug(`DefaultStrategy: 0 messages found, retry ${retry}/3`)
+					await new Promise(resolve => setTimeout(resolve, 2000))
+					if (this._abortController.signal.aborted) break
+					// Reset for fresh scan
+					this._allPagesLoaded = false
+					this._consecutiveFailures = 0
+					this.idmu.window.document.querySelectorAll("[data-idmu-ignore]").forEach(el => {
+						el.removeAttribute("data-idmu-ignore")
+					})
+					this.idmu.loadUIPI()
+					await this.#loadNextPage()
+					if (this._unsentCount > 0 || this._abortController.signal.aborted) break
+				}
+			}
+
 			if (this._abortController.signal.aborted) {
 				this.idmu.setStatusText(`Aborted. ${this._unsentCount} message(s) unsent.`)
 				console.debug("DefaultStrategy aborted")
@@ -126,6 +148,7 @@ class DefaultStrategy extends UnsendStrategy {
 			return
 		}
 		let canScroll = true
+		let msgElement = null
 		try {
 			this.idmu.setStatusText(`Retrieving next message... (${this._unsentCount} unsent so far)`)
 			const uipiMessage = await this.idmu.getNextUIPIMessage(this._abortController)
@@ -146,7 +169,7 @@ class DefaultStrategy extends UnsendStrategy {
 
 				if (this._abortController.signal.aborted) return
 
-				const msgElement = uipiMessage.uiMessage.root
+				msgElement = uipiMessage.uiMessage.root
 				const unsent = await uipiMessage.unsend(this._abortController)
 
 				if (unsent) {
@@ -156,6 +179,7 @@ class DefaultStrategy extends UnsendStrategy {
 					if (stillInDOM) {
 						// Server likely rejected — the message reappeared after optimistic removal
 						console.debug("DefaultStrategy: message still in DOM after unsend, possible rate limit")
+						msgElement.removeAttribute("data-idmu-ignore")
 						this._consecutiveFailures++
 						const backoffMs = Math.min(60000, 5000 * Math.pow(2, this._consecutiveFailures - 1))
 						this.idmu.setStatusText(`Server may have rejected unsend. Backing off ${(backoffMs / 1000).toFixed(0)}s... (${this._unsentCount} unsent)`)
@@ -169,10 +193,19 @@ class DefaultStrategy extends UnsendStrategy {
 							this.idmu.uipi.ui.lastScrollTop = null
 						}
 					}
+				} else {
+					// Unsend workflow returned false — allow retry on next pass
+					console.debug("DefaultStrategy: unsend returned false, removing ignore marker for retry")
+					msgElement.removeAttribute("data-idmu-ignore")
+					this._consecutiveFailures++
 				}
 			}
 		} catch (ex) {
 			console.error(ex)
+			// Remove ignore marker so this message can be retried
+			if (msgElement) {
+				msgElement.removeAttribute("data-idmu-ignore")
+			}
 			this._consecutiveFailures++
 			const backoffMs = Math.min(60000, 3000 * Math.pow(2, this._consecutiveFailures - 1))
 			this.idmu.setStatusText(`Workflow failed (${this._consecutiveFailures}/5), retrying in ${(backoffMs / 1000).toFixed(0)}s... (${this._unsentCount} unsent)`)
