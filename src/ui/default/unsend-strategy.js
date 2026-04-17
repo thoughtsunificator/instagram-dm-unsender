@@ -135,7 +135,7 @@ class DefaultStrategy extends UnsendStrategy {
 
 	/**
 	 * Unsend first message in viewport.
-	 * Uses human-like randomized delays and exponential backoff to avoid Instagram rate limits.
+	 * Uses adaptive delays: fast baseline (1-2s) with exponential backoff on rate limit detection.
 	 */
 	async #unsendNextMessage() {
 		if (this._abortController.signal.aborted) {
@@ -156,10 +156,10 @@ class DefaultStrategy extends UnsendStrategy {
 			if (uipiMessage) {
 				this.idmu.setStatusText(`Unsending message... (${this._unsentCount + 1})`)
 
-				// Human-like delay between unsends: 3-6s randomized
+				// Adaptive delay: 1-2s randomized baseline between unsends
 				if (this._lastUnsendDate !== null) {
 					const elapsed = Date.now() - this._lastUnsendDate.getTime()
-					const minDelay = 4000 + Math.floor(Math.random() * 2000) // 4-6s (~5s avg)
+					const minDelay = 1000 + Math.floor(Math.random() * 1000) // 1-2s
 					if (elapsed < minDelay) {
 						const waitMs = minDelay - elapsed
 						this.idmu.setStatusText(`Waiting ${(waitMs / 1000).toFixed(1)}s... (${this._unsentCount} unsent so far)`)
@@ -182,7 +182,7 @@ class DefaultStrategy extends UnsendStrategy {
 						msgElement.removeAttribute("data-idmu-ignore")
 						this._consecutiveFailures++
 						const backoffMs = Math.min(60000, 5000 * Math.pow(2, this._consecutiveFailures - 1))
-						this.idmu.setStatusText(`Server may have rejected unsend. Backing off ${(backoffMs / 1000).toFixed(0)}s... (${this._unsentCount} unsent)`)
+						this.idmu.setStatusText(`Rate limit detected. Backing off ${(backoffMs / 1000).toFixed(0)}s... (${this._unsentCount} unsent)`)
 						await new Promise(resolve => setTimeout(resolve, backoffMs))
 					} else {
 						this._lastUnsendDate = new Date()
