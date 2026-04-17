@@ -56,3 +56,42 @@ test("DefaultUI getNextUIPIMessage", async t => {
 	const uipiMessage = await defaultUI.getNextUIPIMessage(abortController)
 	t.deepEqual(uipiMessage, new UIPIMessage(uiMessage))
 })
+
+test("DefaultUI getNextUIPIMessage finds message without scrolling", async t => {
+	// A message visible at current scroll position should be found by the pre-check
+	const defaultUI = DefaultUI.create(t.context.window)
+	for (let i = 0; i < 3; i++) {
+		const filler = createMessageElement(t.context.document, `Filler ${i}`)
+		filler.getBoundingClientRect = () => ({ y: 0, height: 0 })
+		defaultUI.identifier.uiMessagesWrapper.root.appendChild(filler)
+	}
+	const messageElement = createMessageElement(t.context.document, "Visible")
+	messageElement.getBoundingClientRect = () => ({ y: 200, height: 50 })
+	defaultUI.identifier.uiMessagesWrapper.root.appendChild(messageElement)
+	Object.defineProperty(defaultUI.identifier.uiMessagesWrapper.root, "clientHeight", { value: 500 })
+	Object.defineProperty(defaultUI.identifier.uiMessagesWrapper.root, "scrollHeight", { value: 500 })
+	const abortController = new AbortController()
+	const uipiMessage = await defaultUI.getNextUIPIMessage(abortController)
+	t.truthy(uipiMessage)
+	t.true(uipiMessage instanceof UIPIMessage)
+})
+
+test("DefaultUI getNextUIPIMessage returns false when no messages", async t => {
+	const defaultUI = DefaultUI.create(t.context.window)
+	// No messages added — should exhaust all passes and return false
+	Object.defineProperty(defaultUI.identifier.uiMessagesWrapper.root, "clientHeight", { value: 100 })
+	Object.defineProperty(defaultUI.identifier.uiMessagesWrapper.root, "scrollHeight", { value: 200 })
+	const abortController = new AbortController()
+	const result = await defaultUI.getNextUIPIMessage(abortController)
+	t.is(result, false)
+})
+
+test("DefaultUI getNextUIPIMessage respects abort", async t => {
+	const defaultUI = DefaultUI.create(t.context.window)
+	Object.defineProperty(defaultUI.identifier.uiMessagesWrapper.root, "clientHeight", { value: 100 })
+	Object.defineProperty(defaultUI.identifier.uiMessagesWrapper.root, "scrollHeight", { value: 200 })
+	const abortController = new AbortController()
+	abortController.abort()
+	const result = await defaultUI.getNextUIPIMessage(abortController)
+	t.is(result, false)
+})

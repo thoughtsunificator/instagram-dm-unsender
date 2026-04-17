@@ -29,7 +29,7 @@ export function findMessagesWrapper(window) {
  * @param {Window} window
  * @returns {HTMLDivElement|null}
  */
-function findScrollableChild(parent, window) {
+export function findScrollableChild(parent, window) {
 	for (const child of parent.children) {
 		const style = window.getComputedStyle(child)
 		if (
@@ -132,7 +132,7 @@ export function getFirstVisibleMessage(root, abortController, window) {
 	if(elements.length >= 1) {
 		console.debug("getFirstVisibleMessage", elements.length, "candidate elements")
 	} else {
-		console.error("getFirstVisibleMessage could not find any elements. If there actually are messages on the page that means the query selector might be out of date.")
+		console.debug("getFirstVisibleMessage: no candidate elements found")
 	}
 
 	for (const element of elements) {
@@ -153,7 +153,7 @@ export function getFirstVisibleMessage(root, abortController, window) {
 		// Check if element is at least partially in viewport.
 		// For tall elements (images, long text), rect.y can be negative
 		// while the element is still visible. Use bottom edge instead.
-		if (rect.y + rect.height < 50 || rect.height === 0) {
+		if (rect.y + rect.height < 0 || rect.height === 0) {
 			console.debug("isInView failed", rect.y, rect.height)
 			continue
 		}
@@ -291,4 +291,3 @@ export async function loadMoreMessages(root, abortController) {
 	console.debug(`loadMoreMessages: scrollTop is ${root.scrollTop} — ${atTop ? "reached last page" : "not last page"}`)
 	return atTop
 }
-

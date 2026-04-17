@@ -61,19 +61,41 @@ class DefaultUI extends UI {
 			: uiMessagesWrapperRoot.ownerDocument.defaultView.getComputedStyle(uiMessagesWrapperRoot)
 		const isReversed = style.flexDirection === "column-reverse"
 
+		// Pre-check: try finding a message at the current scroll position without scrolling.
+		// This catches messages already visible in viewport (common for short conversations
+		// and after unsending when the DOM shrinks).
+		try {
+			const messageElement = getFirstVisibleMessage(uiMessagesWrapperRoot, abortController, this.root)
+			if (messageElement) {
+				console.debug("getNextUIPIMessage: found message without scrolling")
+				const uiMessage = new UIMessage(messageElement)
+				return new UIPIMessage(uiMessage)
+			}
+		} catch (ex) {
+			console.error(ex)
+		}
+
 		// Allow up to 3 full passes; covers cases where DOM shrinks after unsends
 		for (let pass = 0; pass < 3; pass++) {
+			if (abortController.signal.aborted) {
+				console.debug("abortController interupted the scrolling: stopping...")
+				return false
+			}
+
 			if (isReversed) {
 				// column-reverse: scrollTop ranges from 0 (bottom/newest) to negative (top/oldest)
-				// minScroll is the most negative value (furthest back in history)
 				const minScroll = -(uiMessagesWrapperRoot.scrollHeight - uiMessagesWrapperRoot.clientHeight)
 				const startPos = (pass === 0 && this.lastScrollTop !== null)
 					? Math.max(this.lastScrollTop, minScroll)
 					: 0 // Start from bottom (newest)
-				console.debug(`getNextUIPIMessage [reversed] pass=${pass}, startPos=${startPos}, minScroll=${minScroll}`)
 
-				// Scroll from startPos toward minScroll (more negative = older messages)
-				for (let i = startPos; i >= minScroll; i = i - 150) {
+				// Use smaller increments for short conversations to avoid overshooting
+				const totalRange = Math.abs(minScroll)
+				const step = totalRange < 500 ? 30 : 150
+
+				console.debug(`getNextUIPIMessage [reversed] pass=${pass}, startPos=${startPos}, minScroll=${minScroll}, step=${step}`)
+
+				for (let i = startPos; i >= minScroll; i = i - step) {
 					if (abortController.signal.aborted) {
 						console.debug("abortController interupted the scrolling: stopping...")
 						return false
@@ -98,9 +120,13 @@ class DefaultUI extends UI {
 				const startScrollTop = (pass === 0 && this.lastScrollTop !== null)
 					? Math.min(this.lastScrollTop, maxScroll)
 					: maxScroll
-				console.debug(`getNextUIPIMessage pass=${pass}, startScrollTop=${startScrollTop}, maxScroll=${maxScroll}`)
 
-				for (let i = Math.max(1, startScrollTop); i > 0; i = i - 150) {
+				// Use smaller increments for short conversations
+				const step = maxScroll < 500 ? 30 : 150
+
+				console.debug(`getNextUIPIMessage pass=${pass}, startScrollTop=${startScrollTop}, maxScroll=${maxScroll}, step=${step}`)
+
+				for (let i = Math.max(1, startScrollTop); i > 0; i = i - step) {
 					if (abortController.signal.aborted) {
 						console.debug("abortController interupted the scrolling: stopping...")
 						return false
