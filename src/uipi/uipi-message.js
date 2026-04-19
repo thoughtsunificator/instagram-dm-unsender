@@ -43,7 +43,9 @@ class UIPIMessage {
 					doc.body.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }))
 					await new Promise(resolve => setTimeout(resolve, 200))
 				}
-			} catch (_) { /* best-effort cleanup */ }
+			} catch (error) {
+				console.error(error)
+			}
 			throw new FailedWorkflowException("Failed to execute workflow for this message", ex)
 		}
 	}
