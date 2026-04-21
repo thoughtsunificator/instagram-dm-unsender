@@ -2,19 +2,53 @@
 
 This manual is aimed at developers and attempts to describe the technical parts of the software.
 
+## Workflow
+
+All you need is a browser that is able to load a single userscript.
+
+This could be as simple as installing [Violentmonkey](https://violentmonkey.github.io/) or something similar and enabling userscript autoreloading as explained here : https://violentmonkey.github.io/posts/how-to-edit-scripts-with-your-favorite-editor/
+
+### Get it up and running
+
+Install dependencies:
+- ``npm install``
+
+To both serve and build with autoreloading:
+- ``npm start``
+
+> This will also start an HTTP server and allow autoreloading of the userscript as changes are made.
+
+You can also do a one-time build with:
+- ``npm run build``
+
+> The script will build to ``dist/idmu.user.js`` by default.
+
+### Testing
+
+> Please do set the  ``NODE_NO_WARNINGS=1`` to disable  ``punycode `` deprecation warnings.
+
+Use the ``DEBUG=idmu:test`` env to enable debug logs while testing.
+
+Lint files:
+- ``npm run lint:ecmascript``
+
+Run test with ava:
+- ``npm test``
+
+See the [testing documentation] for more information
+
+Coverage:
+- ``npm run test:coverage``
+
 ## Key point
 
-Web is a first class citizen here, it means that we try to follow and implement specs whenever it is possible and relevant as opposed to bloating the software with unwanted polyfill or ponyfill, wrappers, preprocessors or whatever you can think of to mess things up. We aim to provide a consistent user workflow across many devices which is accomplished through the governance that web specs provide.
+The most important thing to remember is that web is a first class citizen. No bloating, polyfill or ponyfill, wrappers, preprocessors or whatever you can think of to mess things up.
 
 ## Architecture 
 
 ### Overall look
 
-bookmarks-web-ui follow a component-driven approach to build its user-interface, each component is a [Model](https://github.com/thoughtsunificator/domodel?tab=readme-ov-file#model) and has its own file under [model/](../src/model). The application state is maintained by multiple [Observable](https://github.com/thoughtsunificator/domodel?tab=readme-ov-file#observable) which each have their own file under [object/](../src/object).
-
-Data is mainly stored inside an IndexedDB database made of [various stores](https://github.com/thoughtsunificator/bookmarks-persistence/blob/master/documentation/data.md) which allow the application to [work with or without internet](https://github.com/thoughtsunificator/bookmarks-persistence?tab=readme-ov-file#seamless).
-
-In order for multiple devices to work on the same data set [a server](https://github.com/thoughtsunificator/bookmarks-server) can be set up to [allow syncing](https://github.com/thoughtsunificator/bookmarks-persistence/blob/master/documentation/sync.md).
+instagram-dm-unsender is basically a userscript that is the result of javascript bundling (rollup) and that browsers are able to easily integrate through the use of userscript managers or similar tools. You can think of the userscript context as being the runtime.
 
 ## Technologies
 
@@ -29,7 +63,7 @@ All the choices made in terms of external requirements are made based on my vers
 
 ### Bundler
 
-- [rollup](https://github.com/rollup/rollup) (bundle `src/main.js` to `dist/app-dev` or `dist/app-prod`)
+- [rollup](https://github.com/rollup/rollup) (bundle `src/main.js` to `dist`)
 > Because it's not bloated although its API and core features could be improved
 
 ### Static analysis
@@ -55,7 +89,7 @@ As the guidelines are enforced by tools such as [eslint](https://github.com/esli
 
 ### Code style
 
-- code shall be written in English
+- code shall be written in english
 - UTF-8 for the file encoding
 - LF for the end of line sequence
 - indentation is 2 tabs (except when its not and `.editorconfig` will make sure to police your IDE about that)
@@ -64,6 +98,7 @@ As the guidelines are enforced by tools such as [eslint](https://github.com/esli
 - no trailing semi-colon unless necessary
 - code shall be documented using english and [jsdoc](https://github.com/jsdoc/jsdoc) (version 4)
 - code shall be tested using [avajs](https://github.com/avajs/ava)
+- code shall be lintable
 - no copyring shall be present in the source files a the sole exception of the LICENSE file
 - tool configuration file begins with `.` and are placed at the root of the project
 - modules import order is as follow: third-party modules, observables, models

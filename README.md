@@ -50,67 +50,11 @@ Click [here](./src/ui/default/README.md) to read about the default unsend strate
 
 # How can I use it?
 
-> ⚠️ For this to work the chat should not have been deleted prior to running the script
-
-1. [Install the userscript](#installing)
-3. Go to your messages and select a chat 
-4. There a menu with a button titled "Unsend all DMs" should appear
-
-## Installing
-
-> Don't know what a userscript is? Check out the following introduction: https://github.com/OpenUserJs/OpenUserJS.org/wiki/Userscript-beginners-HOWTO
-
-Install a Userscript manager for your browser :
-
-- [Firefox](https://addons.mozilla.org/en-US/firefox/addon/violentmonkey/)
-- [Chrome](https://chrome.google.com/webstore/detail/violentmonkey/jinjaccalgkegednnccohejagnlnfdag?hl=en)
-
-Finally, install the userscript from OpenUserJS :
-
-[Install latest stable release](https://github.com/thoughtsunificator/instagram-dm-unsender/releases/latest/download/idmu.user.js)
-
-[Install development (master) version](https://github.com/thoughtsunificator/instagram-dm-unsender/raw/userscript/idmu.user.js)
-
-[Older releases](https://github.com/thoughtsunificator/instagram-dm-unsender/releases)
+Read the [user manual].
 
 ## Development
 
-I recommend using [Violentmonkey](https://violentmonkey.github.io/) or something similar and enabling userscript autoreloading as explained here : https://violentmonkey.github.io/posts/how-to-edit-scripts-with-your-favorite-editor/ 
-
-Install dependencies:
-- ``npm install``
-
-To both serve and build with autoreloading:
-- ``npm start``
-
-> This will also start an HTTP server and allow autoreloading of the userscript as changes are made.
-
-You can also do a one-time build with:
-- ``npm run build``
-
-> The script will build to ``dist/idmu.user.js`` by default.
-
-## This might not work
-
-Instagram web app is serving different UIs, probably based on the user location. [Yours might not be supported](https://github.com/thoughtsunificator/instagram-dm-unsender/issues/1)
-
-Link to the issue : [https://github.com/thoughtsunificator/instagram-dm-unsender/issues/1](https://github.com/thoughtsunificator/instagram-dm-unsender/issues/1)
-
-## Testing
-
-> Please do set the  ``NODE_NO_WARNINGS=1`` to disable  ``punycode `` deprecation warnings.
-
-Use the ``DEBUG=idmu:test`` env to enable debug logs while testing.
-
-Lint files:
-- ``npm run lint:ecmascript``
-
-Run test with ava:
-- ``npm test``
-> ``npm run test:debug file.js`` allows you to use v8 debugger while testing (atm only works on one file at a time)
-
-Coverage:
-- ``npm run test:coverage``
+Read the [developer manual].
 
 ## 🧒 Contributions
 
@@ -127,3 +71,7 @@ To report a bug please use [this link](https://github.com/thoughtsunificator/ins
 ❗Make sure your suggestion is not already on the [TODO.md](TODO.md) and hasn't [already been requested](https://github.com/thoughtsunificator/instagram-dm-unsender/labels/enhancement).
 
 To suggest an idea please use [this link](https://github.com/thoughtsunificator/instagram-dm-unsender/issues/new?template=feature_request.md).
+
+[testing documentation]: ./test/README.md
+[user manual]: ./documentation/user-manual.md
+[developer manual]: ./documentation/developer-manual.md

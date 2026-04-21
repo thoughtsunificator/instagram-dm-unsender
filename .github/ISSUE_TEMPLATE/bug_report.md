@@ -16,6 +16,7 @@ assignees: ''
 Bugs that do not follow the template instructions will be ignored.
 
 ⚠ Do not post any personal information here, this is not what is being asked. Use fake data to demonstrate instead, create a test thread where the errors can easily be reproduced and there are no personal data.
+⚠ Instagram web app is sometimes serving different UIs, probably based on the user location, yours might not be supported. This usually the case when the script works for some people but not you, in this case reporting a bug is the best course of action. 
 -->
 
 **Userscript version**
