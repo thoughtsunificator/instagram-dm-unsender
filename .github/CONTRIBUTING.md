@@ -6,6 +6,10 @@ Please note that this project is released with a [Contributor Code of Conduct](C
 
 ## How can I contribute?
 
+### Translation
+
+WIP
+
 ### Improve documentation
 
 As a user you're the perfect candidate to help us improve our documentation. Typo corrections, error fixes, better explanations, more examples, etc. Open issues for things that could be improved.

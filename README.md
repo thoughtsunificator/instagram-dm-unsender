@@ -14,9 +14,7 @@ The userscript allows a user to batch unsend DMs in a thread on the web version 
 
 ## State of Affairs
 
-⚠️ Only English is supported as of yet so **please set your UI language to English before running the script**.
-
-⚠️ [This might not work](#this-might-not-work)
+⚠️ Not all languages are supported as of yet so **please set your UI language to English before running the script**. If you do want your language supported you are always welcome to make a [contribution](./.github/CONTRIBUTING.md).
 
 ## Use cases
 
