@@ -11,7 +11,7 @@ import { waitForElement } from "../../dom/async-events.js"
  * @returns {HTMLDivElement|null}
  */
 export function findMessagesWrapper(window) {
-	const conversation = window.document.querySelector("[aria-label^='Conversation']")
+	const conversation = window.document.querySelector("[data-pagelet='IGDMessagesList']")
 	if (!conversation) {
 		return null
 	}

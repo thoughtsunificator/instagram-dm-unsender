@@ -32,7 +32,7 @@ export function createMountElement(document) {
 export function createMessagesWrapperElement(document, totalPages=0, itemsPerPage=0) {
 	console.debug("createMessagesWrapperElement", arguments)
 	const element = document.createElement("div")
-	element.setAttribute("aria-label", "Conversation with test")
+	element.setAttribute("data-pagelet", "IGDMessagesList")
 	element.innerHTML = `
 		<div>
 			<div>
