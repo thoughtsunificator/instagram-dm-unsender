@@ -8,7 +8,7 @@ Please note that this project is released with a [Contributor Code of Conduct](C
 
 ### Translation
 
-WIP
+Read the translator guide [here](../documentation/translator-manual.md).
 
 ### Improve documentation
 

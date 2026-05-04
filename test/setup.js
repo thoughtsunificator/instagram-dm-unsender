@@ -2,8 +2,10 @@
 
 import test from "ava"
 import { JSDOM } from "jsdom"
-import debug from "debug"
+import { debuglog } from 'node:util'
 import { createMountElement } from "./fake-ui.js"
+
+export { test }
 
 global.NodeFilter = new JSDOM().window.NodeFilter
 global.MouseEvent = new JSDOM().window.MouseEvent
@@ -52,7 +54,4 @@ test.beforeEach(t => {
 	t.context.window = virtualDOM.window
 })
 
-
-console.debug = debug("idmu:test")
-
-export { test }
+console.debug = debuglog("idmu:test")

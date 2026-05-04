@@ -1,11 +1,17 @@
-/** @module default-ui Provide a fake instagram UI. */
+/**
+ * Fake tree of Nodes that ressembles Instagram's
+ *
+ * Used for automated testing
+ */
+
+export { createMountElement, createMessagesWrapperElement, createDummyMessageElement, createMessageActionsMenuElement }
 
 /**
  *
  * @param {Document} document
  * @returns {HTMLDivElement}
  */
-export function createMountElement(document) {
+function createMountElement(document) {
 	console.debug("createMountElement", arguments)
 	const element = document.createElement("div")
 	element.id = "mount_43243"
@@ -24,12 +30,13 @@ export function createMountElement(document) {
 
 /**
  *
- * @param {Document} document
- * @param {int} [totalPages=1]
- * @param {int} [itemsPerPage=1]
+ * @param {object}   parameters
+ * @param {Document} parameters.document
+ * @param {int}      [parameters.totalPages=1]
+ * @param {int}      [parameters.itemsPerPage=1]
  * @returns {HTMLDivElement}
  */
-export function createMessagesWrapperElement(document, totalPages=0, itemsPerPage=0) {
+function createMessagesWrapperElement({ document, totalPages=0, itemsPerPage=0 }) {
 	console.debug("createMessagesWrapperElement", arguments)
 	const element = document.createElement("div")
 	element.setAttribute("data-pagelet", "IGDMessagesList")
@@ -59,7 +66,7 @@ export function createMessagesWrapperElement(document, totalPages=0, itemsPerPag
 	})
 	messageWrapperElement.currentPage = 0
 	for(let i =0; i < itemsPerPage;i++) {
-		const messageElement = createMessageElement.call(null, document, `Item ${i}`)
+		const messageElement = createMessageElement.call(null, { document, text: `Item ${i}` } )
 		messageWrapperElement.append(messageElement)
 	}
 	messageWrapperElement.addEventListener("scroll", (event) => {
@@ -79,7 +86,7 @@ export function createMessagesWrapperElement(document, totalPages=0, itemsPerPag
 				console.debug("messageWrapperElement loading page", event.target.currentPage)
 				console.debug("event.target.children.length", event.target.children.length)
 				for(let i =0; i < itemsPerPage;i++) {
-					const messageElement = createMessageElement.call(null, document, `Item ${i}`)
+					const messageElement = createMessageElement.call(null, { document, text: `Item ${i}` })
 					messageWrapperElement.append(messageElement)
 				}
 				progressBar.remove()
@@ -105,14 +112,15 @@ export function createMessagesWrapperElement(document, totalPages=0, itemsPerPag
  * On hover, IG adds an action button wrapped in role=button with aria-haspopup=menu,
  * containing an SVG with aria-label="See more options for message from ..."
  *
- * @param {Document} document
- * @param {string} [text=""]
- * @param {boolean} [includesUnsend=true]
- * @param {boolean} [ignored=false]
- * @param {number} [eventsTimeout=0]
+ * @param {object}   parameters
+ * @param {Document} parameters.document
+ * @param {string}   [parameters.text=""]
+ * @param {boolean}  [parameters.includesUnsend=true] - When enabled the message actions menu will have a unsend option
+ * @param {boolean}  [parameters.ignored=false]       - When enabled will set a flag that prevent the workflow from attempting to unsend the message
+ * @param {number}   [parameters.eventsTimeout=0]
  * @returns {HTMLDivElement}
  */
-export function createMessageElement(document, text="", includesUnsend=true, ignored=false, eventsTimeout=0) {
+function createMessageElement({ document, text="", includesUnsend=true, ignored=false, eventsTimeout=0 }) {
 	console.debug("createMessageElement", arguments)
 	const element = document.createElement("div")
 	if(ignored) {
@@ -145,7 +153,7 @@ export function createMessageElement(document, text="", includesUnsend=true, ign
 						element.messageActionsMenuElement.remove()
 						delete element.messageActionsMenuElement
 					} else {
-						const messageActionsMenuElement = createMessageActionsMenuElement(document, includesUnsend, eventsTimeout)
+						const messageActionsMenuElement = createMessageActionsMenuElement({ document, includesUnsend, eventsTimeout })
 						messageActionsMenuElement.messageElement = element
 						element.messageActionsMenuElement = messageActionsMenuElement
 						element.ownerDocument.body.appendChild(messageActionsMenuElement)
@@ -168,7 +176,7 @@ export function createMessageElement(document, text="", includesUnsend=true, ign
  * @param {Document} document
  * @returns {HTMLDivElement}
  */
-export function createDummyMessageElement(document) {
+function createDummyMessageElement(document) {
 	console.debug("createDummyMessageElement", arguments)
 	const element = document.createElement("div")
 	return element
@@ -186,11 +194,12 @@ export function createDummyMessageElement(document) {
  *     </div>
  *   </div>
  *
- * @param {Document} document
- * @param {boolean} [includesUnsend=true]
+ * @param {object}   parameters
+ * @param {Document} parameters.document
+ * @param {boolean}  [parameters.includesUnsend=true]
  * @returns {HTMLDivElement}
  */
-export function createMessageActionsMenuElement(document, includesUnsend=true) {
+function createMessageActionsMenuElement({ document, includesUnsend=true }) {
 	console.debug("createMessageActionsMenuElement", arguments)
 	const element = document.createElement("div")
 	element.setAttribute("role", "dialog")

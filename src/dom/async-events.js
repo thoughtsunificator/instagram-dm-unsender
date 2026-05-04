@@ -1,18 +1,20 @@
-/** @module async-events Utils module for finding elements asynchronously in the DOM */
+export { waitForElement, clickElementAndWaitFor }
 
 /**
  *
- * @callback getElement
+ * @callback getElementCallback
  * @returns {Element}
  */
 
 /**
  * Run a callback on DOM mutation (addedNode) that tests whether a specific element was found (or was not found)
  * When the callback returns true the promise is resolved
- * @param {Element} target
- * @param {getElement} getElement
- * @param {AbortController} abortController
+ *
+ * @param {Element}            target
+ * @param {getElementCallback} getElement
+ * @param {AbortController}    abortController
  * @returns {Promise<Element>}
+ *
  * @example
  * waitForElement(
  *		body,
@@ -20,7 +22,7 @@
  *		abortController
  *	)
  */
-export function waitForElement(target, getElement, abortController) {
+function waitForElement(target, getElement, abortController) {
 	return new Promise((resolve, reject) => {
 		let mutationObserver
 		const abortHandler = () => {
@@ -50,11 +52,13 @@ export function waitForElement(target, getElement, abortController) {
 
 /**
  * Click target and run waitForElement
+ *
  * @param {Element} clickTarget
  * @param {Element} target
  * @param {getElement} getElement
  * @param {AbortController} abortController
  * @returns {Element|Promise<Element>}
+ *
  * @example
  * In this case clicking "#foo" button would make "#bar" appear
  * clickElementAndWaitFor(
@@ -64,7 +68,7 @@ export function waitForElement(target, getElement, abortController) {
  *		abortController
  *	)
  */
-export function clickElementAndWaitFor(clickTarget, target, getElement, abortController) {
+function clickElementAndWaitFor(clickTarget, target, getElement, abortController) {
 	const promise = waitForElement(target, getElement, abortController)
 	clickTarget.click()
 	return getElement() || promise

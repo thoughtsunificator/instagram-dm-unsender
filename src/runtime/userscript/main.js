@@ -1,14 +1,20 @@
-/** @module main Main module */
+/**
+ * Entrypoint for the userscript runtime
+ */
+import { UnsendFeature } from "./features/unsend/unsend-feature.js"
 
-import OSD from "./osd/osd.js"
+export { main }
 
 /**
  * @param {Window} window
  */
-export function main(window) {
-	OSD.render(window)
+function main(window) {
+	UnsendFeature(window)
 }
 
+/**
+ * Run in realms where Window global object is defined
+ */
 if(typeof window !== "undefined") {
 	main(window)
 }
