@@ -46,6 +46,25 @@ test("userscript osd unsend button", t => {
 	t.is(overlayElement.style.display, "none")
 })
 
+test("userscript osd stop does not render error status when aborted run rejects", async t => {
+	const ui = OSD.render(t.context.window)
+	const button = t.context.window.document.querySelectorAll("button")[0]
+	let rejectRun
+	mock.method(ui.strategy, "run", () => {
+		ui.strategy._running = true
+		ui.strategy._abortController = new t.context.window.AbortController()
+		return new Promise((_, reject) => {
+			rejectRun = reject
+		})
+	})
+
+	button.click()
+	button.click()
+	rejectRun(new Error("waitForElement aborted: DefaultStrategy stopped"))
+	await new Promise(resolve => setTimeout(resolve, 0))
+
+	t.false(ui.statusElement.textContent.includes("An error"))
+})
 
 test("userscript status", t => {
 	const ui = OSD.render(t.context.window)
@@ -53,4 +72,3 @@ test("userscript status", t => {
 	ui.onStatusText("test")
 	t.is(t.context.document.querySelector("#idmu-status").textContent, "test")
 })
-

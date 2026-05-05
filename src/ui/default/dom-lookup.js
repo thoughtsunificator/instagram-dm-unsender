@@ -12,14 +12,53 @@ import { waitForElement } from "../../dom/async-events.js"
  */
 export function findMessagesWrapper(window) {
 	const conversation = window.document.querySelector("[data-pagelet='IGDMessagesList']")
-	if (!conversation) {
-		return null
+	if (conversation) {
+		const scrollable = findScrollableChild(conversation, window)
+		if (scrollable) {
+			return scrollable
+		}
 	}
-	const scrollable = findScrollableChild(conversation, window)
-	if (!scrollable) {
-		return null
+	return findScrollableMessageAncestor(window)
+}
+
+/**
+ * @param {Window} window
+ * @returns {HTMLDivElement|null}
+ */
+function findScrollableMessageAncestor(window) {
+	const messages = window.document.querySelectorAll("[role=none], [role=presentation]")
+	for (const message of messages) {
+		const scrollable = findScrollableAncestor(message.parentElement, window)
+		if (scrollable) {
+			return scrollable
+		}
 	}
-	return scrollable
+	return null
+}
+
+/**
+ * @param {Element} element
+ * @param {Window} window
+ * @returns {HTMLDivElement|null}
+ */
+function findScrollableAncestor(element, window) {
+	while (element && element !== window.document.body) {
+		if (isScrollableElement(element, window)) {
+			return element
+		}
+		element = element.parentElement
+	}
+	return null
+}
+
+/**
+ * @param {Element} element
+ * @param {Window} window
+ * @returns {boolean}
+ */
+function isScrollableElement(element, window) {
+	const style = window.getComputedStyle(element)
+	return (style.overflowY === "auto" || style.overflowY === "scroll") && element.scrollHeight > element.clientHeight
 }
 
 /**
@@ -31,11 +70,7 @@ export function findMessagesWrapper(window) {
  */
 export function findScrollableChild(parent, window) {
 	for (const child of parent.children) {
-		const style = window.getComputedStyle(child)
-		if (
-			(style.overflowY === "auto" || style.overflowY === "scroll") &&
-			child.scrollHeight > child.clientHeight
-		) {
+		if (isScrollableElement(child, window)) {
 			return child
 		}
 		const found = findScrollableChild(child, window)

@@ -99,6 +99,9 @@ class OSD {
 		try {
 			await this.strategy.run()
 		} catch(error) {
+			if(this.strategy._abortController?.signal.aborted) {
+				return
+			}
 			console.error(error)
 			if(this.strategy.isRunning()) {
 				this.strategy.stop()

@@ -52,6 +52,16 @@ test("findMessagesWrapper", t => {
 	t.not(findMessagesWrapper(t.context.window), null)
 })
 
+test("findMessagesWrapper falls back to scrollable message ancestor", t => {
+	const wrapper = t.context.document.createElement("div")
+	wrapper.style.overflowY = "auto"
+	Object.defineProperty(wrapper, "scrollHeight", { value: 1000, configurable: true })
+	Object.defineProperty(wrapper, "clientHeight", { value: 500, configurable: true })
+	wrapper.append(createMessageElement(t.context.document, "Test"))
+	t.context.mountElement.append(wrapper)
+	t.is(findMessagesWrapper(t.context.window), wrapper)
+})
+
 test("findMessagesWrapper returns null without conversation", t => {
 	// No aria-label="Conversation..." element present
 	t.is(findMessagesWrapper(t.context.window), null)
