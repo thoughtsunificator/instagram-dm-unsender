@@ -23,17 +23,18 @@ The default UI is the first and default workflow and unsend strategy.
 
 ## Why are messages unsent one after another? 
 
-Because there is rate limitings and above all, because as part of a failed best-effort to make technology better, web standards and web less standards such as popular frameworks and libraries have deemed intelligent to break accessibility and mostly everything by introducing [anti-features](https://github.com/whatwg/html/issues/2858#issuecomment-3172510066) that remove non-visible [Elements](https://html.spec.whatwg.org/multipage/dom.html#elements) from web pages. Basically, everytime you scroll, search or do anything that causes a the web page to be updated, some messages (Elements) become non-visible, those messages are outside of what we call the viewport (the visible part of the page). Keep in mind that technology gets less better as time goes on. Sorry.
+Instagram can rate-limit repeated unsend actions, so the workflow processes one message at a time. The web UI also virtualizes the conversation: when you scroll, messages outside the viewport may be removed from the DOM and re-created later. The strategy therefore loads pages, scans only visible messages, and repeats that cycle instead of trying to operate on stale elements.
 
 ## Troubleshooting the workflow
 
-Most the time when the workflow is not working this is caused by Instagram rolling out new version of their UI, which mean that [selectors](./dom-lookup.js) need to be updated. That is if we are lucky, if we are not so lucky we might have to update the core of the workflow itself. 
+Most workflow failures are caused by Instagram rolling out a new UI shape. In those cases, update the DOM lookup helpers in [dom-lookup.js](./dom-lookup.js) first, then inspect the workflow steps if selectors are still valid.
 
 One way to attempt troubleshooting of the workflow is to add a mutation observer and running the workflows step manually and then comparing the elements you obtained with the one that the workflow is looking for.
 
 ```js
 const mutationObserver = new MutationObserver((mutations, observer) => {
-  console.debug(mutations.map(mutation => [...mutation.addedNodes].map(a => a.innerHTML)).join("\n======================\n"))
+  const addedNodes = mutations.flatMap(mutation => [...mutation.addedNodes])
+  console.info(addedNodes.map(node => node.textContent).join("\n======================\n"))
 })
 mutationObserver.observe(document.body, { subtree: true, childList: true })
 ```

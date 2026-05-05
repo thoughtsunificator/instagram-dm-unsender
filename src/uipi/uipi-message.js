@@ -3,7 +3,12 @@
 /* eslint-disable-next-line no-unused-vars */
 import UIMessage from "../ui/default/ui-message.js"
 
-class FailedWorkflowException extends Error {}
+class FailedWorkflowException extends Error {
+	constructor(message, cause) {
+		super(message, { cause })
+		this.name = "FailedWorkflowException"
+	}
+}
 
 class UIPIMessage {
 
@@ -19,13 +24,11 @@ class UIPIMessage {
 	 * @returns {Promise<boolean>}
 	 */
 	async unsend(abortController) {
-		console.debug("UIPIMessage unsend")
 		let actionButton
 		let unsendButton
 		try {
 			actionButton = await this.uiMessage.showActionsMenuButton(abortController)
 			unsendButton = await this.uiMessage.openActionsMenu(actionButton, abortController)
-			console.debug("unsendButton", unsendButton)
 			const dialogButton = await this.uiMessage.openConfirmUnsendModal(unsendButton, abortController)
 			await this.uiMessage.confirmUnsend(dialogButton, abortController)
 			this.uiMessage.root.setAttribute("data-idmu-unsent", "")

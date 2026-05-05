@@ -66,7 +66,7 @@ To report a bug please use [this link](https://github.com/thoughtsunificator/ins
 
 ## 💡 Feature request 
 
-❗Make sure your suggestion is not already on the [TODO.md](TODO.md) and hasn't [already been requested](https://github.com/thoughtsunificator/instagram-dm-unsender/labels/enhancement).
+❗Make sure your suggestion is not already on the [ROADMAP.md](ROADMAP.md) and hasn't [already been requested](https://github.com/thoughtsunificator/instagram-dm-unsender/labels/enhancement).
 
 To suggest an idea please use [this link](https://github.com/thoughtsunificator/instagram-dm-unsender/issues/new?template=feature_request.md).
 

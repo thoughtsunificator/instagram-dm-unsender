@@ -31,7 +31,9 @@ test("clickElementAndWaitFor #2", async t => {
 	const element = t.context.document.createElement("p")
 	element.id = "test"
 	element.addEventListener("click", () => {
-		t.context.document.body.innerHTML += `<div id="sup432"></div>`
+		const target = t.context.document.createElement("div")
+		target.id = "sup432"
+		t.context.document.body.appendChild(target)
 	})
 	t.context.document.body.append(element)
 	const promise = clickElementAndWaitFor(element, t.context.document.body, () => t.context.document.querySelector("#sup432") !== null,  new AbortController())
@@ -59,4 +61,3 @@ test("abort controller", async t => {
 		await promise
 	}, { message: "waitForElement aborted: foo" })
 })
-

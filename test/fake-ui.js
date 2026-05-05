@@ -5,20 +5,25 @@
  * @param {Document} document
  * @returns {HTMLDivElement}
  */
+function appendNestedDiv(document, parent, depth) {
+	let current = parent
+	for(let i = 0; i < depth; i++) {
+		const child = document.createElement("div")
+		current.appendChild(child)
+		current = child
+	}
+	return current
+}
+
+/**
+ *
+ * @param {Document} document
+ * @returns {HTMLDivElement}
+ */
 export function createMountElement(document) {
-	console.debug("createMountElement", arguments)
 	const element = document.createElement("div")
 	element.id = "mount_43243"
-	element.innerHTML = `
-		<div>
-			<div>
-				<div>
-					<div>
-					</div>
-				</div>
-			</div>
-		</div>
-	`
+	appendNestedDiv(document, element, 4)
 	return element
 }
 
@@ -30,20 +35,13 @@ export function createMountElement(document) {
  * @returns {HTMLDivElement}
  */
 export function createMessagesWrapperElement(document, totalPages=0, itemsPerPage=0) {
-	console.debug("createMessagesWrapperElement", arguments)
 	const element = document.createElement("div")
 	element.setAttribute("data-pagelet", "IGDMessagesList")
-	element.innerHTML = `
-		<div>
-			<div>
-				<div>
-					<div id="messageWrapper">
-					</div>
-				</div>
-			</div>
-		</div>
-	`
-	const messageWrapperElement = element.querySelector("#messageWrapper")
+	element.setAttribute("aria-label", "Conversation with test")
+	const wrapperParent = appendNestedDiv(document, element, 3)
+	const messageWrapperElement = document.createElement("div")
+	messageWrapperElement.id = "messageWrapper"
+	wrapperParent.appendChild(messageWrapperElement)
 	// Simulate scrollable container for findScrollableChild
 	messageWrapperElement.style.overflowY = "auto"
 	Object.defineProperty(messageWrapperElement, "scrollHeight", { value: 1000, writable: true, configurable: true })
@@ -64,20 +62,15 @@ export function createMessagesWrapperElement(document, totalPages=0, itemsPerPag
 	}
 	messageWrapperElement.addEventListener("scroll", (event) => {
 		if(event.target.scrollTop === 0) {
-			console.debug("scroll event")
 			const hasNextPage = event.target.currentPage + 1 <= totalPages
-			console.debug("hasNextPage", hasNextPage, event.target.currentPage, totalPages)
 			if(hasNextPage) {
 				const progressBar = document.createElement("div")
 				progressBar.setAttribute("role", "progressbar")
 				event.target.appendChild(progressBar)
 				const hasMorePages = event.target.currentPage + 2 <= totalPages
-				console.debug("hasMorePages", hasMorePages)
 				if(hasMorePages) {
 					event.target.scrollTop = 5
 				}
-				console.debug("messageWrapperElement loading page", event.target.currentPage)
-				console.debug("event.target.children.length", event.target.children.length)
 				for(let i =0; i < itemsPerPage;i++) {
 					const messageElement = createMessageElement.call(null, document, `Item ${i}`)
 					messageWrapperElement.append(messageElement)
@@ -113,17 +106,28 @@ export function createMessagesWrapperElement(document, totalPages=0, itemsPerPag
  * @returns {HTMLDivElement}
  */
 export function createMessageElement(document, text="", includesUnsend=true, ignored=false, eventsTimeout=0) {
-	console.debug("createMessageElement", arguments)
 	const element = document.createElement("div")
 	if(ignored) {
 		element.setAttribute("data-idmu-ignore", "true")
 	}
-	// Reflect real IG structure: role=none wrapper with flex-end for sent messages,
-	// and role=presentation for the message content container
-	const flexStyle = includesUnsend ? " style=\"justify-content: flex-end\"" : ""
-	element.innerHTML = `<div role="none"${flexStyle}><div role="presentation">${includesUnsend?"<span>You sent</span>":""}<span>${text}</span></div></div>`
+	const sentWrapper = document.createElement("div")
+	sentWrapper.setAttribute("role", "none")
+	if(includesUnsend) {
+		sentWrapper.style.justifyContent = "flex-end"
+	}
+	const contentWrapper = document.createElement("div")
+	contentWrapper.setAttribute("role", "presentation")
+	if(includesUnsend) {
+		const sentLabel = document.createElement("span")
+		sentLabel.textContent = "You sent"
+		contentWrapper.appendChild(sentLabel)
+	}
+	const textElement = document.createElement("span")
+	textElement.textContent = text
+	contentWrapper.appendChild(textElement)
+	sentWrapper.appendChild(contentWrapper)
+	element.appendChild(sentWrapper)
 	element.addEventListener("mouseover", () => {
-		console.debug(`message ${text} mouseover`)
 		setTimeout(() => {
 			if (element.querySelector("[aria-label]")) return // already shown
 			// Create action button matching real IG structure:
@@ -139,7 +143,6 @@ export function createMessageElement(document, text="", includesUnsend=true, ign
 			actionBtnWrapper.appendChild(svgEl)
 			element.appendChild(actionBtnWrapper)
 			actionBtnWrapper.addEventListener("click", () => {
-				console.debug(`actionButton clicked`)
 				setTimeout(() => {
 					if(element.messageActionsMenuElement) {
 						element.messageActionsMenuElement.remove()
@@ -169,7 +172,6 @@ export function createMessageElement(document, text="", includesUnsend=true, ign
  * @returns {HTMLDivElement}
  */
 export function createDummyMessageElement(document) {
-	console.debug("createDummyMessageElement", arguments)
 	const element = document.createElement("div")
 	return element
 }
@@ -191,7 +193,6 @@ export function createDummyMessageElement(document) {
  * @returns {HTMLDivElement}
  */
 export function createMessageActionsMenuElement(document, includesUnsend=true) {
-	console.debug("createMessageActionsMenuElement", arguments)
 	const element = document.createElement("div")
 	element.setAttribute("role", "dialog")
 	const menuElement = document.createElement("div")
@@ -213,7 +214,6 @@ export function createMessageActionsMenuElement(document, includesUnsend=true) {
 		unsendElement.id = "unsend"
 		menuElement.appendChild(unsendElement)
 		element.querySelector("#unsend").addEventListener("click", () => {
-			console.debug("#unsend button clicked")
 			const confirmElement = document.createElement("div")
 			confirmElement.setAttribute("role", "dialog")
 			const confirmUnsend = document.createElement("button")
@@ -223,9 +223,7 @@ export function createMessageActionsMenuElement(document, includesUnsend=true) {
 			cancelUnsend.id = "cancelUnsend"
 			confirmElement.appendChild(cancelUnsend)
 			menuElement.replaceWith(confirmElement)
-			console.debug("Creating htmlConfirm modal and setting listener")
 			element.querySelector("#confirmUnsend").addEventListener("click", () => {
-				console.debug("#confirmUnsend clicked")
 				element.messageElement.remove()
 				element.remove()
 			})

@@ -2,8 +2,6 @@ import { test } from "../../../test/setup.js"
 import UIMessage from "./ui-message.js"
 import { createMessageElement, createMessageActionsMenuElement } from "../../../test/fake-ui.js"
 
-// TODO replace with mocks
-
 test("UIMessage", t => {
 	const messageElement = createMessageElement(t.context.document, "Test")
 	const uiMessage = new UIMessage(messageElement)
@@ -49,9 +47,20 @@ test("UIMessage openActionsMenu", async t => {
 	t.deepEqual(events, ["click"])
 })
 
-test.todo("UIMessage closeActionMenu")
-// Skipped: fake-ui mouseover handler assumes event.target is always the root,
-// but the new multi-target hover dispatch fires on child elements too.
+test("UIMessage closeActionsMenu", async t => {
+	const messageActionsMenuElement = createMessageActionsMenuElement(t.context.document)
+	const messageElement = createMessageElement(t.context.document, "Test")
+	const uiMessage = new UIMessage(messageElement)
+	const actionButton = t.context.document.createElement("button")
+	actionButton.addEventListener("click", () => {
+		messageActionsMenuElement.remove()
+	})
+	t.context.mountElement.append(uiMessage.root)
+	t.context.mountElement.append(messageActionsMenuElement)
+	const result = await uiMessage.closeActionsMenu(actionButton, messageActionsMenuElement, new AbortController())
+	t.true(result)
+	t.false(t.context.mountElement.contains(messageActionsMenuElement))
+})
 
 test("UIMessage openConfirmUnsendModal", async t => {
 	const messageActionsMenuElement = createMessageActionsMenuElement(t.context.document)
@@ -68,7 +77,6 @@ test("UIMessage openConfirmUnsendModal", async t => {
 		t.context.document.body.append(element)
 	})
 	const dialogButton = await uiMessage.openConfirmUnsendModal(unsendButton, new AbortController())
-	// TODO replace with mock
 	t.deepEqual(dialogButton, t.context.document.querySelector("[role=dialog] button"))
 })
 
@@ -80,7 +88,6 @@ test("UIMessage workflow", async t => {
 	const actionButton = uiMessage.root.querySelector("[aria-label]")
 	const unsendButton = await uiMessage.openActionsMenu(actionButton, new AbortController())
 	const dialogButton = await uiMessage.openConfirmUnsendModal(unsendButton, new AbortController())
-	// TODO replace with mock
 	t.deepEqual(dialogButton, t.context.document.querySelector("[role=dialog] button"))
 })
 

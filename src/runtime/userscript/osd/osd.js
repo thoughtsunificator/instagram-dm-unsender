@@ -9,8 +9,6 @@ import { DefaultStrategy } from "../../../ui/default/unsend-strategy.js"
 import { createAlertsWrapperElement } from "./alert.js"
 import { createOverlayElement } from "./overlay.js"
 import { BUTTON_STYLE } from "./style/instagram.js"
-/* eslint-disable-next-line no-unused-vars */
-import { UnsendStrategy } from "../../../ui/unsend-strategy.js"
 
 class OSD {
 	/**
@@ -30,7 +28,7 @@ class OSD {
 		this._statusElement = statusElement
 		this._unsendThreadMessagesButton = unsendThreadMessagesButton
 		this._idmu = new IDMU(this.window, this.onStatusText.bind(this))
-		this._strategy = new DefaultStrategy(this._idmu) // TODO move out
+		this._strategy = new DefaultStrategy(this._idmu)
 	}
 
 	/**
@@ -39,7 +37,6 @@ class OSD {
 	 * @returns {OSD}
 	 */
 	static render(window) {
-		console.debug("render")
 		const ui = OSD.create(window.document)
 		window.document.body.appendChild(ui.root)
 		return ui
@@ -67,11 +64,11 @@ class OSD {
 		menuElement.appendChild(statusElement)
 		root.appendChild(menuElement)
 		const ui = new OSD(document, root, overlayElement, menuElement, unsendThreadMessagesButton, statusElement)
-		document.addEventListener("keydown", (event) => ui.#onWindowKeyEvent(event)) // TODO test
-		document.addEventListener("keyup", (event) => ui.#onWindowKeyEvent(event)) // TODO test
+		document.addEventListener("keydown", (event) => ui.#onWindowKeyEvent(event))
+		document.addEventListener("keyup", (event) => ui.#onWindowKeyEvent(event))
 		unsendThreadMessagesButton.addEventListener("click", (event) => ui.#onUnsendThreadMessagesButtonClick(event))
 		ui._mutationObserver = new MutationObserver((mutations) => ui.#onMutations(ui, mutations))
-		ui._mutationObserver.observe(document.body, { childList: true }) // TODO test
+		ui._mutationObserver.observe(document.body, { childList: true })
 		unsendThreadMessagesButton.dataTextContent = unsendThreadMessagesButton.textContent
 		unsendThreadMessagesButton.dataBackgroundColor = unsendThreadMessagesButton.style.backgroundColor
 		return ui
@@ -97,16 +94,26 @@ class OSD {
 		this.statusElement.style.color = "white"
 		this._mutationObserver.disconnect()
 		try {
-			await this.strategy.run()
+			await this._strategy.run()
 		} catch(error) {
 			console.error(error)
-			if(this.strategy.isRunning()) {
-				this.strategy.stop()
+			if(this._strategy.isRunning()) {
+				this._strategy.stop()
 			}
-			this.statusElement.innerHTML = `<span style="color: red">An error occured, <a href="https://github.com/thoughtsunificator/instagram-dm-unsender/issues/new?template=bug_report.md">please open an issue</a></span>`
+			this.#renderErrorStatus()
 		} finally {
 			this.#onUnsendingFinished()
 		}
+	}
+
+	#renderErrorStatus() {
+		const message = this._document.createElement("span")
+		const link = this._document.createElement("a")
+		message.style.color = "red"
+		link.href = "https://github.com/thoughtsunificator/instagram-dm-unsender/issues/new?template=bug_report.md"
+		link.textContent = "please open an issue"
+		message.append("An error occurred, ", link)
+		this.statusElement.replaceChildren(message)
 	}
 
 	/**
@@ -122,14 +129,14 @@ class OSD {
 			this._mutationObserver.observe(ui.root.ownerDocument.querySelector("[id^=mount] > div > div > div"), { childList: true, attributes: true })
 		}
 		if(this.window.location.pathname.startsWith("/direct/t/")) {
-			if(!this.strategy.isRunning()) {
-				this.strategy.reset()
+			if(!this._strategy.isRunning()) {
+				this._strategy.reset()
 			}
 			this.root.style.display = ""
 		} else {
 			this.root.style.display = "none"
-			if(this.strategy.isRunning()) {
-				this.strategy.stop()
+			if(this._strategy.isRunning()) {
+				this._strategy.stop()
 			}
 		}
 	}
@@ -140,12 +147,10 @@ class OSD {
 	 * @param {Event} event
 	 */
 	#onUnsendThreadMessagesButtonClick() {
-		if(this.strategy.isRunning()) {
-			console.debug("User asked for messages unsending to stop")
-			this.strategy.stop()
+		if(this._strategy.isRunning()) {
+			this._strategy.stop()
 			this.#onUnsendingFinished()
 		} else {
-			console.debug("User asked for messages unsending to start; UI interaction will be disabled in the meantime")
 			this.#startUnsending()
 		}
 	}
@@ -156,8 +161,7 @@ class OSD {
 	 * @returns {boolean}
 	 */
 	#onWindowKeyEvent(event) {
-		if(this.strategy.isRunning()) {
-			console.log("User interaction is disabled as the unsending is still running; Please stop the execution first.")
+		if(this._strategy.isRunning()) {
 			event.stopImmediatePropagation()
 			event.preventDefault()
 			event.stopPropagation()
@@ -167,7 +171,6 @@ class OSD {
 	}
 
 	#onUnsendingFinished() {
-		console.debug("render onUnsendingFinished")
 		;[...this.menuElement.querySelectorAll("button")].filter(button => button !== this.unsendThreadMessagesButton).forEach(button => {
 			button.style.visibility = ""
 			button.disabled = false
@@ -176,7 +179,7 @@ class OSD {
 		this.unsendThreadMessagesButton.style.backgroundColor = this.unsendThreadMessagesButton.dataBackgroundColor
 		this.overlayElement.style.display = "none"
 		this.statusElement.style.color = ""
-		this._mutationObserver.observe(this._document.body, { childList: true }) // TODO test
+		this._mutationObserver.observe(this._document.body, { childList: true })
 	}
 
 	/**
@@ -236,15 +239,7 @@ class OSD {
 	}
 
 	/**
-	 * @readonly
-	 * @type {UnsendStrategy}
-	 */
-	get strategy() { // TODO move out
-		return this._strategy
-	}
-
-	/**
-	 * @readonly
+		 * @readonly
 	 * @type {IDMU}
 	 */
 	get idmu() {

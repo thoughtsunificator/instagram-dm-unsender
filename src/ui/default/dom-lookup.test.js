@@ -52,21 +52,108 @@ test("findMessagesWrapper", t => {
 	t.not(findMessagesWrapper(t.context.window), null)
 })
 
+test("findMessagesWrapper finds wrapper without conversation aria label", t => {
+	const conversationElement = createMessagesWrapperElement(t.context.document)
+	conversationElement.removeAttribute("aria-label")
+	const messagesWrapperElement = conversationElement.querySelector("#messageWrapper")
+	messagesWrapperElement.append(createMessageElement(t.context.document, "Test"))
+	t.context.mountElement.append(conversationElement)
+	t.is(findMessagesWrapper(t.context.window), messagesWrapperElement)
+})
+
+test("findMessagesWrapper ignores message-like nodes outside wrappers", t => {
+	const decorativeElement = t.context.document.createElement("div")
+	decorativeElement.setAttribute("role", "presentation")
+	t.context.mountElement.append(decorativeElement)
+	const conversationElement = createMessagesWrapperElement(t.context.document)
+	conversationElement.removeAttribute("aria-label")
+	const messagesWrapperElement = conversationElement.querySelector("#messageWrapper")
+	messagesWrapperElement.append(createMessageElement(t.context.document, "Test"))
+	t.context.mountElement.append(conversationElement)
+	t.is(findMessagesWrapper(t.context.window), messagesWrapperElement)
+})
+
+test("findMessagesWrapper prefers wrapper with sent messages", t => {
+	const inboxElement = t.context.document.createElement("div")
+	inboxElement.style.overflowY = "auto"
+	Object.defineProperty(inboxElement, "scrollHeight", { value: 1000, configurable: true })
+	Object.defineProperty(inboxElement, "clientHeight", { value: 500, configurable: true })
+	inboxElement.append(createMessageElement(t.context.document, "Inbox", false))
+	t.context.mountElement.append(inboxElement)
+	const conversationElement = createMessagesWrapperElement(t.context.document)
+	conversationElement.removeAttribute("aria-label")
+	const messagesWrapperElement = conversationElement.querySelector("#messageWrapper")
+	messagesWrapperElement.append(createMessageElement(t.context.document, "Test"))
+	t.context.mountElement.append(conversationElement)
+	t.is(findMessagesWrapper(t.context.window), messagesWrapperElement)
+})
+
+test("findMessagesWrapper finds wrapper near message composer", t => {
+	const mainElement = t.context.document.createElement("main")
+	const threadElement = t.context.document.createElement("section")
+	const messagesWrapperElement = t.context.document.createElement("div")
+	messagesWrapperElement.style.overflowY = "auto"
+	Object.defineProperty(messagesWrapperElement, "scrollHeight", { value: 1000, configurable: true })
+	Object.defineProperty(messagesWrapperElement, "clientHeight", { value: 500, configurable: true })
+	const composerElement = t.context.document.createElement("div")
+	composerElement.setAttribute("contenteditable", "true")
+	composerElement.setAttribute("role", "textbox")
+	threadElement.append(messagesWrapperElement, composerElement)
+	mainElement.append(threadElement)
+	t.context.mountElement.append(mainElement)
+	t.is(findMessagesWrapper(t.context.window), messagesWrapperElement)
+})
+
+test("findMessagesWrapper falls back when conversation has no scrollable child", t => {
+	const conversationElement = t.context.document.createElement("div")
+	conversationElement.setAttribute("aria-label", "Conversation with test")
+	t.context.mountElement.append(conversationElement)
+	const messagesWrapperElement = t.context.document.createElement("div")
+	messagesWrapperElement.style.overflowY = "scroll"
+	Object.defineProperty(messagesWrapperElement, "scrollHeight", { value: 1000, configurable: true })
+	Object.defineProperty(messagesWrapperElement, "clientHeight", { value: 500, configurable: true })
+	messagesWrapperElement.append(createMessageElement(t.context.document, "Test"))
+	t.context.mountElement.append(messagesWrapperElement)
+	t.is(findMessagesWrapper(t.context.window), messagesWrapperElement)
+})
+
+test("findMessagesWrapper returns scrollable conversation element", t => {
+	const conversationElement = createMessagesWrapperElement(t.context.document)
+	const messagesWrapperElement = conversationElement.querySelector("#messageWrapper")
+	messagesWrapperElement.style.overflowY = "visible"
+	Object.defineProperty(messagesWrapperElement, "scrollHeight", { value: 500, configurable: true })
+	conversationElement.style.overflowY = "auto"
+	Object.defineProperty(conversationElement, "scrollHeight", { value: 1000, configurable: true })
+	Object.defineProperty(conversationElement, "clientHeight", { value: 500, configurable: true })
+	t.context.mountElement.append(conversationElement)
+	t.is(findMessagesWrapper(t.context.window), conversationElement)
+})
+
 test("findMessagesWrapper returns null without conversation", t => {
-	// No aria-label="Conversation..." element present
 	t.is(findMessagesWrapper(t.context.window), null)
 })
 
 test("isSentByCurrentUser detects flex-end", t => {
 	const element = t.context.document.createElement("div")
-	element.innerHTML = `<div role="none" style="justify-content: flex-end"><span>Test</span></div>`
+	const sentWrapper = t.context.document.createElement("div")
+	sentWrapper.setAttribute("role", "none")
+	sentWrapper.style.justifyContent = "flex-end"
+	const text = t.context.document.createElement("span")
+	text.textContent = "Test"
+	sentWrapper.appendChild(text)
+	element.appendChild(sentWrapper)
 	t.context.mountElement.append(element)
 	t.true(isSentByCurrentUser(element, t.context.window))
 })
 
 test("isSentByCurrentUser rejects non-flex-end", t => {
 	const element = t.context.document.createElement("div")
-	element.innerHTML = `<div role="none"><span>Test</span></div>`
+	const sentWrapper = t.context.document.createElement("div")
+	sentWrapper.setAttribute("role", "none")
+	const text = t.context.document.createElement("span")
+	text.textContent = "Test"
+	sentWrapper.appendChild(text)
+	element.appendChild(sentWrapper)
 	t.context.mountElement.append(element)
 	t.false(isSentByCurrentUser(element, t.context.window))
 })
@@ -113,7 +200,9 @@ test("findScrollableChild returns null when no scrollable", t => {
 test("loadMoreMessages done", async t => {
 	t.context.mountElement.append(createMessagesWrapperElement(t.context.document))
 	const messagesWrapperElement = findMessagesWrapper(t.context.window)
-	messagesWrapperElement.innerHTML += `<div role="progressbar"></div>` // FIXME subject to change
+	const progressBar = t.context.document.createElement("div")
+	progressBar.setAttribute("role", "progressbar")
+	messagesWrapperElement.appendChild(progressBar)
 	const result = loadMoreMessages(messagesWrapperElement,  new AbortController())
 	messagesWrapperElement.querySelector("[role=progressbar]").remove()
 	t.is(await result, true)

@@ -12,7 +12,8 @@ export default {
 	output: {
 		file: "./dist/idmu.user.js",
 		format: "iife",
-		sourcemap: "inline"
+		name: "IDMU",
+		sourcemap: isDevelopment ? "inline" : false
 	},
 	plugins: [
 		{

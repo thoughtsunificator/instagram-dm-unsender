@@ -4,6 +4,11 @@
 import IDMU from "../../idmu/idmu.js"
 import { UnsendStrategy } from "../unsend-strategy.js"
 
+const DEFAULT_TIMING = Object.freeze({
+	random: Math.random,
+	sleep: ms => new Promise(resolve => setTimeout(resolve, ms)),
+})
+
 /**
  * Loads all pages first, then unsends messages from bottom to top.
  * For short conversations (all messages fit in viewport), skips page loading entirely.
@@ -12,8 +17,9 @@ class DefaultStrategy extends UnsendStrategy {
 
 	/**
 	 * @param {IDMU} idmu
+	 * @param {{sleep?: Function, random?: Function}} timing
 	 */
-	constructor(idmu) {
+	constructor(idmu, timing={}) {
 		super(idmu)
 		this._allPagesLoaded = false
 		this._unsentCount = 0
@@ -22,6 +28,7 @@ class DefaultStrategy extends UnsendStrategy {
 		this._abortController = null
 		this._lastUnsendDate = null
 		this._consecutiveFailures = 0
+		this._timing = { ...DEFAULT_TIMING, ...timing }
 	}
 
 	/**
@@ -32,7 +39,6 @@ class DefaultStrategy extends UnsendStrategy {
 	}
 
 	stop() {
-		console.debug("DefaultStrategy stop")
 		this.idmu.setStatusText("Stopping...")
 		this._abortController.abort("DefaultStrategy stopped")
 	}
@@ -50,7 +56,6 @@ class DefaultStrategy extends UnsendStrategy {
 	 * @returns {Promise}
 	 */
 	async run() {
-		console.debug("DefaultStrategy.run()")
 		this._unsentCount = 0
 		this._pagesLoadedCount = 0
 		this._consecutiveFailures = 0
@@ -74,8 +79,7 @@ class DefaultStrategy extends UnsendStrategy {
 			if (this._unsentCount === 0 && !this._abortController.signal.aborted) {
 				for (let retry = 1; retry <= 3; retry++) {
 					this.idmu.setStatusText(`No messages detected, retrying (${retry}/3)...`)
-					console.debug(`DefaultStrategy: 0 messages found, retry ${retry}/3`)
-					await new Promise(resolve => setTimeout(resolve, 2000))
+					await this._timing.sleep(2000)
 					if (this._abortController.signal.aborted) break
 					// Reset for fresh scan
 					this._allPagesLoaded = false
@@ -91,15 +95,12 @@ class DefaultStrategy extends UnsendStrategy {
 
 			if (this._abortController.signal.aborted) {
 				this.idmu.setStatusText(`Aborted. ${this._unsentCount} message(s) unsent.`)
-				console.debug("DefaultStrategy aborted")
 			} else {
 				this.idmu.setStatusText(`Done. ${this._unsentCount} message(s) unsent.`)
-				console.debug("DefaultStrategy done")
 			}
 		} catch (ex) {
 			console.error(ex)
 			this.idmu.setStatusText(`Errored. ${this._unsentCount} message(s) unsent.`)
-			console.debug("DefaultStrategy errored")
 		}
 		this._running = false
 	}
@@ -110,7 +111,6 @@ class DefaultStrategy extends UnsendStrategy {
 	 */
 	async #loadNextPage() {
 		if (this._abortController.signal.aborted) {
-			console.debug("abortController interupted the loading of next page: stopping...")
 			return
 		}
 		this.idmu.setStatusText("Loading next page...")
@@ -125,8 +125,6 @@ class DefaultStrategy extends UnsendStrategy {
 					this._pagesLoadedCount++
 					await this.#loadNextPage()
 				}
-			} else {
-				console.debug("abortController interupted the loading of next page: stopping...")
 			}
 		} catch (ex) {
 			console.error(ex)
@@ -139,12 +137,10 @@ class DefaultStrategy extends UnsendStrategy {
 	 */
 	async #unsendNextMessage() {
 		if (this._abortController.signal.aborted) {
-			console.debug("abortController interupted the unsending of next message: stopping...")
 			return
 		}
 		if (this._consecutiveFailures >= 5) {
 			this.idmu.setStatusText(`Stopped: ${this._consecutiveFailures} consecutive failures. ${this._unsentCount} message(s) unsent.`)
-			console.debug("DefaultStrategy stopping due to consecutive failures")
 			return
 		}
 		let canScroll = true
@@ -159,11 +155,11 @@ class DefaultStrategy extends UnsendStrategy {
 				// Adaptive delay: 1-2s randomized baseline between unsends
 				if (this._lastUnsendDate !== null) {
 					const elapsed = Date.now() - this._lastUnsendDate.getTime()
-					const minDelay = 1000 + Math.floor(Math.random() * 1000) // 1-2s
+					const minDelay = 1000 + Math.floor(this._timing.random() * 1000)
 					if (elapsed < minDelay) {
 						const waitMs = minDelay - elapsed
 						this.idmu.setStatusText(`Waiting ${(waitMs / 1000).toFixed(1)}s... (${this._unsentCount} unsent so far)`)
-						await new Promise(resolve => setTimeout(resolve, waitMs))
+						await this._timing.sleep(waitMs)
 					}
 				}
 
@@ -174,16 +170,15 @@ class DefaultStrategy extends UnsendStrategy {
 
 				if (unsent) {
 					// Verify the message actually disappeared from DOM (server accepted the mutation)
-					await new Promise(resolve => setTimeout(resolve, 800))
+					await this._timing.sleep(800)
 					const stillInDOM = msgElement.isConnected && !msgElement.hasAttribute("data-idmu-unsent")
 					if (stillInDOM) {
 						// Server likely rejected — the message reappeared after optimistic removal
-						console.debug("DefaultStrategy: message still in DOM after unsend, possible rate limit")
 						msgElement.removeAttribute("data-idmu-ignore")
 						this._consecutiveFailures++
 						const backoffMs = Math.min(60000, 5000 * Math.pow(2, this._consecutiveFailures - 1))
 						this.idmu.setStatusText(`Rate limit detected. Backing off ${(backoffMs / 1000).toFixed(0)}s... (${this._unsentCount} unsent)`)
-						await new Promise(resolve => setTimeout(resolve, backoffMs))
+						await this._timing.sleep(backoffMs)
 					} else {
 						this._lastUnsendDate = new Date()
 						this._unsentCount++
@@ -195,7 +190,6 @@ class DefaultStrategy extends UnsendStrategy {
 					}
 				} else {
 					// Unsend workflow returned false — allow retry on next pass
-					console.debug("DefaultStrategy: unsend returned false, removing ignore marker for retry")
 					msgElement.removeAttribute("data-idmu-ignore")
 					this._consecutiveFailures++
 				}
@@ -209,7 +203,7 @@ class DefaultStrategy extends UnsendStrategy {
 			this._consecutiveFailures++
 			const backoffMs = Math.min(60000, 3000 * Math.pow(2, this._consecutiveFailures - 1))
 			this.idmu.setStatusText(`Workflow failed (${this._consecutiveFailures}/5), retrying in ${(backoffMs / 1000).toFixed(0)}s... (${this._unsentCount} unsent)`)
-			await new Promise(resolve => setTimeout(resolve, backoffMs))
+			await this._timing.sleep(backoffMs)
 		} finally {
 			if (canScroll && this._abortController && !this._abortController.signal.aborted) {
 				await this.#unsendNextMessage()

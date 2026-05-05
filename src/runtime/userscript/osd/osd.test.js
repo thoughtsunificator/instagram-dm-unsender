@@ -30,7 +30,8 @@ test("userscript osd unsend button", t => {
 	const overlayElement = t.context.document.querySelector("#idmu-overlay")
 	t.context.mountElement.append(messagesWrapperElement)
 	const button = t.context.window.document.querySelectorAll("button")[0]
-	t.is(button.style.backgroundColor, "")
+	const initialBackgroundColor = button.style.backgroundColor
+	t.is(initialBackgroundColor, "rgb(var(--ig-primary-button))")
 	t.is(button.textContent, "Unsend all DMs")
 	t.is(overlayElement.style.display, "none")
 	button.click()
@@ -42,7 +43,7 @@ test("userscript osd unsend button", t => {
 	button.click()
 	t.is(button.textContent, "Unsend all DMs")
 	t.is(overlayElement.style.display, "none")
-	t.is(button.style.backgroundColor, "")
+	t.is(button.style.backgroundColor, initialBackgroundColor)
 	t.is(overlayElement.style.display, "none")
 })
 
@@ -53,4 +54,3 @@ test("userscript status", t => {
 	ui.onStatusText("test")
 	t.is(t.context.document.querySelector("#idmu-status").textContent, "test")
 })
-

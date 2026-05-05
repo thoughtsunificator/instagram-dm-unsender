@@ -59,14 +59,12 @@ class UIMessage extends UIComponent {
 		// Close stale confirmation dialogs
 		const staleDialog = doc.querySelector("[role=dialog]")
 		if (staleDialog) {
-			console.debug("Dismissing stale dialog")
 			const closeBtn = staleDialog.querySelector("button")
 			if (closeBtn) closeBtn.click()
 		}
 		// Close stale dropdown menus by pressing Escape
 		const activeMenu = doc.querySelector("[role=menu], [role=listbox]")
 		if (activeMenu) {
-			console.debug("Dismissing stale menu via Escape")
 			doc.body.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }))
 		}
 	}
@@ -100,7 +98,6 @@ class UIMessage extends UIComponent {
 	 * @returns {Promise<HTMLButtonElement>}
 	 */
 	async showActionsMenuButton(abortController) {
-		console.debug("Workflow step 1 : showActionsMenuButton", this.root)
 		this._dismissStaleOverlays()
 
 		// Collect all hoverable ancestors from root down to the message bubble.
@@ -127,11 +124,9 @@ class UIMessage extends UIComponent {
 
 			const btn = this._findActionButton(this.root)
 			if (btn) {
-				console.debug("Workflow step 1 : found action button on attempt", attempt, btn)
 				return btn
 			}
 
-			console.debug("Workflow step 1 : attempt", attempt, "no button found, retrying...")
 			dispatchHoverOut(this.root)
 			await new Promise(resolve => setTimeout(resolve, 50))
 		}
@@ -177,7 +172,6 @@ class UIMessage extends UIComponent {
 	 * @returns {Promise<boolean>}
 	 */
 	async hideActionMenuButton(abortController) {
-		console.debug("hideActionMenuButton", this.root)
 		dispatchHoverOut(this.root)
 
 		const noneEl = this.root.querySelector("[role=none]")
@@ -225,7 +219,6 @@ class UIMessage extends UIComponent {
 	 * @returns {Promise}
 	 */
 	async openActionsMenu(actionButton, abortController) {
-		console.debug("Workflow step 2 : Clicking actionButton and waiting for unsend menu item to appear", actionButton)
 		const waitAbortController = new AbortController()
 		let promiseTimeout
 		let resolveTimeout
@@ -255,16 +248,13 @@ class UIMessage extends UIComponent {
 							for (const addedNode of addedNodes) {
 								const node = [...addedNode.querySelectorAll("span,div")].find(node => isUnsendText(node.textContent) && node.firstChild?.nodeType === 3)
 								if (node) {
-									console.debug("Workflow step 2 : found unsend node via mutation", node)
 									return node
 								}
 							}
 						}
-						// Fallback: scan the whole document for an unsend menu item already present
 						const allSpans = this.root.ownerDocument.querySelectorAll("[role=menu] span, [role=menu] div, [role=menuitem] span, [role=menuitem] div")
 						for (const span of allSpans) {
 							if (isUnsendText(span.textContent) && span.firstChild?.nodeType === 3) {
-								console.debug("Workflow step 2 : found unsend node via document scan", span)
 								return span
 							}
 						}
@@ -276,7 +266,6 @@ class UIMessage extends UIComponent {
 				})
 			])
 
-			console.debug("Workflow step 2 : Found unsendButton", unsendButton)
 			return unsendButton
 		} finally {
 			waitAbortController.abort() // Aborting without reason because the reason is the error itself
@@ -294,7 +283,6 @@ class UIMessage extends UIComponent {
 	 * @returns {Promise<boolean>}
 	 */
 	async closeActionsMenu(actionButton, actionsMenuElement, abortController) {
-		console.debug("closeActionsMenu")
 		const waitAbortController = new AbortController()
 		let promiseTimeout
 		let resolveTimeout
@@ -335,7 +323,6 @@ class UIMessage extends UIComponent {
 	 * @returns {Promise<HTMLButtonElement>|Promise<Error>}
 	 */
 	openConfirmUnsendModal(unsendButton, abortController) {
-		console.debug("Workflow step 3 : Clicking unsendButton and waiting for dialog to appear...")
 		return this.clickElementAndWaitFor(
 			unsendButton,
 			this.root.ownerDocument.body,
@@ -352,7 +339,6 @@ class UIMessage extends UIComponent {
 	 * @returns {Promise}
 	 */
 	async confirmUnsend(dialogButton, abortController) {
-		console.debug("Workflow final step : confirmUnsend", dialogButton)
 		await this.clickElementAndWaitFor(
 			dialogButton,
 			this.root.ownerDocument.body,

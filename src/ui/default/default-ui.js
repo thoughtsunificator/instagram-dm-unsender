@@ -18,10 +18,8 @@ class DefaultUI extends UI {
 	 * @returns {DefaultUI}
 	 */
 	static create(window) {
-		console.debug("UI create: Looking for messagesWrapperElement")
 		const messagesWrapperElement = findMessagesWrapper(window)
 		if (messagesWrapperElement !== null) {
-			console.debug("Found messagesWrapperElement", messagesWrapperElement)
 			const uiMessagesWrapper = new UIMessagesWrapper(messagesWrapperElement)
 			return new DefaultUI(window, { uiMessagesWrapper })
 		} else {
@@ -34,7 +32,6 @@ class DefaultUI extends UI {
 	 * @returns {Promise}
 	 */
 	async fetchAndRenderThreadNextMessagePage(abortController) {
-		console.debug("UI fetchAndRenderThreadNextMessagePage")
 		return await this.identifier.uiMessagesWrapper.fetchAndRenderThreadNextMessagePage(abortController)
 	}
 
@@ -52,7 +49,6 @@ class DefaultUI extends UI {
 	 * @returns {Promise<UIPIMessage|false>}
 	 */
 	async getNextUIPIMessage(abortController) {
-		console.debug("UI getNextUIPIMessage", this.lastScrollTop)
 		const uiMessagesWrapperRoot = this.identifier.uiMessagesWrapper.root
 
 		// Detect column-reverse: scrollTop can go negative
@@ -67,7 +63,6 @@ class DefaultUI extends UI {
 		try {
 			const messageElement = getFirstVisibleMessage(uiMessagesWrapperRoot, abortController, this.root)
 			if (messageElement) {
-				console.debug("getNextUIPIMessage: found message without scrolling")
 				const uiMessage = new UIMessage(messageElement)
 				return new UIPIMessage(uiMessage)
 			}
@@ -78,7 +73,6 @@ class DefaultUI extends UI {
 		// Allow up to 3 full passes; covers cases where DOM shrinks after unsends
 		for (let pass = 0; pass < 3; pass++) {
 			if (abortController.signal.aborted) {
-				console.debug("abortController interupted the scrolling: stopping...")
 				return false
 			}
 
@@ -93,11 +87,9 @@ class DefaultUI extends UI {
 				const totalRange = Math.abs(minScroll)
 				const step = totalRange < 500 ? 30 : 150
 
-				console.debug(`getNextUIPIMessage [reversed] pass=${pass}, startPos=${startPos}, minScroll=${minScroll}, step=${step}`)
 
 				for (let i = startPos; i >= minScroll; i = i - step) {
 					if (abortController.signal.aborted) {
-						console.debug("abortController interupted the scrolling: stopping...")
 						return false
 					}
 					this.lastScrollTop = i
@@ -124,11 +116,9 @@ class DefaultUI extends UI {
 				// Use smaller increments for short conversations
 				const step = maxScroll < 500 ? 30 : 150
 
-				console.debug(`getNextUIPIMessage pass=${pass}, startScrollTop=${startScrollTop}, maxScroll=${maxScroll}, step=${step}`)
 
 				for (let i = Math.max(1, startScrollTop); i > 0; i = i - step) {
 					if (abortController.signal.aborted) {
-						console.debug("abortController interupted the scrolling: stopping...")
 						return false
 					}
 					this.lastScrollTop = i
@@ -150,10 +140,8 @@ class DefaultUI extends UI {
 			// Reached the end without finding a message.
 			// Reset for a fresh pass (DOM may have shrunk after unsends).
 			this.lastScrollTop = null
-			console.debug(`getNextUIPIMessage: pass ${pass} found nothing, retrying`)
 		}
 
-		console.debug("getNextUIPIMessage: exhausted all passes, no messages left")
 		return false
 	}
 

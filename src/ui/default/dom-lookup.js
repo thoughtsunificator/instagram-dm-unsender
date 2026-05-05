@@ -4,22 +4,165 @@ import { waitForElement } from "../../dom/async-events.js"
 
 /**
  * Finds the scrollable messages container inside the conversation panel.
- * Instagram removed role="grid" — we now locate the container via aria-label
- * and walk into its scrollable child.
+ * Uses the conversation aria label when present, then falls back to scrollable
+ * message ancestors because Instagram changes wrapper metadata.
  *
  * @param {Window} window
  * @returns {HTMLDivElement|null}
  */
 export function findMessagesWrapper(window) {
-	const conversation = window.document.querySelector("[data-pagelet='IGDMessagesList']")
-	if (!conversation) {
+	const fallback = () => findMessageScrollableAncestor(window) || findComposerScrollableSibling(window)
+	const selectors = ["[data-pagelet='IGDMessagesList']", "[aria-label^='Conversation']"]
+	for (const selector of selectors) {
+		const conversation = window.document.querySelector(selector)
+		if (!conversation) {
+			continue
+		}
+		const scrollable = findScrollableElement(conversation, window)
+		if (scrollable) {
+			return scrollable
+		}
+	}
+	return fallback()
+}
+
+/**
+ * @param {Window} window
+ * @returns {HTMLDivElement|null}
+ */
+function findComposerScrollableSibling(window) {
+	for (const composer of getComposerElements(window)) {
+		const scrollable = findScrollableSibling(composer, window)
+		if (scrollable) {
+			return scrollable
+		}
+	}
+	return null
+}
+
+/**
+ * @param {Window} window
+ * @returns {NodeListOf<Element>}
+ */
+function getComposerElements(window) {
+	const root = window.document.querySelector("main") || window.document.body
+	return root.querySelectorAll("[contenteditable][role=textbox], [contenteditable][aria-label], textarea[aria-label]")
+}
+
+/**
+ * @param {Element} element
+ * @param {Window} window
+ * @returns {HTMLDivElement|null}
+ */
+function findScrollableSibling(element, window) {
+	let parent = element.parentElement
+	while (parent && parent !== window.document.body) {
+		const scrollable = findScrollableChild(parent, window)
+		if (scrollable && !scrollable.contains(element)) {
+			return scrollable
+		}
+		parent = parent.parentElement
+	}
+	return null
+}
+
+/**
+ * Finds the closest scrollable ancestor from a known message content node.
+ *
+ * @param {Window} window
+ * @returns {HTMLDivElement|null}
+ */
+function findMessageScrollableAncestor(window) {
+	const candidates = getMessageScrollableCandidates(window)
+	if (candidates.length === 0) {
 		return null
 	}
-	const scrollable = findScrollableChild(conversation, window)
-	if (!scrollable) {
-		return null
+	candidates.sort((a, b) => getMessagesWrapperScore(b, window) - getMessagesWrapperScore(a, window))
+	return candidates[0]
+}
+
+/**
+ * @param {Window} window
+ * @returns {HTMLDivElement[]}
+ */
+function getMessageScrollableCandidates(window) {
+	const candidates = []
+	const seen = new Set()
+	const messageContents = window.document.querySelectorAll("[role=none], [role=presentation]")
+	for (const messageContent of messageContents) {
+		const scrollable = findScrollableAncestor(messageContent.parentElement, window)
+		if (scrollable && !seen.has(scrollable)) {
+			seen.add(scrollable)
+			candidates.push(scrollable)
+		}
 	}
-	return scrollable
+	return candidates
+}
+
+/**
+ * @param {Element} wrapper
+ * @param {Window} window
+ * @returns {number}
+ */
+function getMessagesWrapperScore(wrapper, window) {
+	const rows = [...wrapper.children].filter(containsMessageContent)
+	const contentCount = wrapper.querySelectorAll("[role=none], [role=presentation]").length
+	const sentCount = rows.filter(row => isSentByCurrentUser(row, window)).length
+	return sentCount * 1000 + rows.length * 10 + contentCount
+}
+
+/**
+ * @param {Element} element
+ * @returns {boolean}
+ */
+function containsMessageContent(element) {
+	return element.querySelector("[role=none], [role=presentation]") !== null
+}
+
+/**
+ * @param {Element} element
+ * @param {Window} window
+ * @returns {HTMLDivElement|null}
+ */
+function findScrollableAncestor(element, window) {
+	while (element && element !== window.document.body) {
+		if (isScrollableElement(element, window)) {
+			return element
+		}
+		element = element.parentElement
+	}
+	return null
+}
+
+/**
+ * @param {Element} element
+ * @param {Window} window
+ * @returns {boolean}
+ */
+function isScrollableElement(element, window) {
+	const style = window.getComputedStyle(element)
+	const canScroll = isOverflowStyle(style.overflowY)
+	return canScroll && element.scrollHeight > element.clientHeight
+}
+
+/**
+ * @param {string} overflowY
+ * @returns {boolean}
+ */
+function isOverflowStyle(overflowY) {
+	return overflowY === "auto" || overflowY === "scroll" || overflowY === "overlay"
+}
+
+/**
+ * @param {Element} element
+ * @param {Window} window
+ * @returns {HTMLDivElement|null}
+ */
+function findScrollableElement(element, window) {
+	if (isScrollableElement(element, window)) {
+		return element
+	}
+	return findScrollableChild(element, window)
 }
 
 /**
@@ -31,11 +174,7 @@ export function findMessagesWrapper(window) {
  */
 export function findScrollableChild(parent, window) {
 	for (const child of parent.children) {
-		const style = window.getComputedStyle(child)
-		if (
-			(style.overflowY === "auto" || style.overflowY === "scroll") &&
-			child.scrollHeight > child.clientHeight
-		) {
+		if (isScrollableElement(child, window)) {
 			return child
 		}
 		const found = findScrollableChild(child, window)
@@ -104,6 +243,11 @@ export function isSentByCurrentUser(element, window) {
 }
 
 /**
+ * @param {Element} root
+ * @param {Window} window
+ * @returns {Element[]}
+ */
+/**
  * Gets the first visible message sent by the current user that hasn't been processed yet.
  *
  * @param {Element} root - The scrollable messages wrapper
@@ -114,7 +258,6 @@ export function isSentByCurrentUser(element, window) {
 export function getFirstVisibleMessage(root, abortController, window) {
 	const innerContainer = getMessagesInnerContainer(root)
 	if (!innerContainer) {
-		console.debug("getFirstVisibleMessage: no inner container found")
 		return
 	}
 
@@ -122,22 +265,15 @@ export function getFirstVisibleMessage(root, abortController, window) {
 		.filter(d => {
 			if (d.hasAttribute("data-idmu-ignore")) return false
 			if (d.hasAttribute("data-idmu-unsent")) return false
-			// Must contain message content indicators
 			const hasMessageContent = d.querySelector("[role=none]") || d.querySelector("[role=presentation]")
 			if (!hasMessageContent) return false
 			return isSentByCurrentUser(d, window)
 		})
 
 	elements.reverse()
-	if(elements.length >= 1) {
-		console.debug("getFirstVisibleMessage", elements.length, "candidate elements")
-	} else {
-		console.debug("getFirstVisibleMessage: no candidate elements found")
-	}
 
 	for (const element of elements) {
 		if (abortController.signal.aborted) {
-			console.debug("abortController interupted the message filtering process: stopping...")
 			break
 		}
 		const visibilityCheck = element.checkVisibility({
@@ -146,7 +282,6 @@ export function getFirstVisibleMessage(root, abortController, window) {
 			opacityProperty: true,
 		})
 		if (visibilityCheck === false) {
-			console.debug("visibilityCheck", visibilityCheck)
 			continue
 		}
 		const rect = element.getBoundingClientRect()
@@ -154,11 +289,9 @@ export function getFirstVisibleMessage(root, abortController, window) {
 		// For tall elements (images, long text), rect.y can be negative
 		// while the element is still visible. Use bottom edge instead.
 		if (rect.y + rect.height < 0 || rect.height === 0) {
-			console.debug("isInView failed", rect.y, rect.height)
 			continue
 		}
 		element.setAttribute("data-idmu-ignore", "")
-		console.debug("Message in view, testing workflow...", element)
 		return element
 	}
 }
@@ -176,7 +309,6 @@ export function getFirstVisibleMessage(root, abortController, window) {
  * @returns {Promise<boolean>}
  */
 export async function loadMoreMessages(root, abortController) {
-	console.debug("loadMoreMessages looking for loader... ")
 	const scrollAbortController = new AbortController()
 	let findLoaderTimeout
 	let resolveTimeout
@@ -224,7 +356,6 @@ export async function loadMoreMessages(root, abortController) {
 		? beforeScroll === 0 && root.scrollHeight <= root.clientHeight + 50
 		: beforeScroll === 0 && root.scrollHeight <= root.clientHeight + 50
 	if (noScrollNeeded) {
-		console.debug("loadMoreMessages: chat fits in viewport, marking as done")
 		abortController.signal.removeEventListener("abort", abortHandler)
 		return true
 	}
@@ -237,21 +368,18 @@ export async function loadMoreMessages(root, abortController) {
 		// Check if a visible loader appeared
 		const loader = findVisibleLoader()
 		if (loader) {
-			console.debug("loadMoreMessages: Found visible loader after scroll; waiting for removal (max 5s)")
 			await Promise.race([
 				waitForElement(root, () => findVisibleLoader() === null, abortController),
 				new Promise(resolve => setTimeout(resolve, 5000))
 			])
 			abortController.signal.removeEventListener("abort", abortHandler)
 			const grew = root.scrollHeight > beforeHeight
-			console.debug(`loadMoreMessages: loader phase done, content ${grew ? "grew" : "did not grow"}`)
 			return !grew
 		}
 
 		// No loader appeared — check if scrollHeight grew (new content loaded without spinner)
 		const grew = root.scrollHeight > beforeHeight
 		if (!grew) {
-			console.debug("loadMoreMessages: at top, no loader, no new content — reached last page")
 			abortController.signal.removeEventListener("abort", abortHandler)
 			return true
 		}
@@ -281,13 +409,11 @@ export async function loadMoreMessages(root, abortController) {
 	abortController.signal.removeEventListener("abort", abortHandler)
 	clearTimeout(findLoaderTimeout)
 	if (loadingElement && loadingElement !== true) {
-		console.debug("loadMoreMessages: Found loader; Stand-by until it is removed (max 5s)")
 		await Promise.race([
 			waitForElement(root, () => findVisibleLoader() === null, abortController),
 			new Promise(resolve => setTimeout(resolve, 5000))
 		])
 	}
 	const atTop = isAtTop()
-	console.debug(`loadMoreMessages: scrollTop is ${root.scrollTop} — ${atTop ? "reached last page" : "not last page"}`)
 	return atTop
 }

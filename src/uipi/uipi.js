@@ -26,7 +26,6 @@ class UIPI {
 	 * @returns {UIPI}
 	 */
 	static create(window) {
-		console.debug("UIPI.create")
 		const ui = getUI().create(window)
 		return new UIPI(ui)
 	}
@@ -36,7 +35,6 @@ class UIPI {
 	 * @returns {Promise}
 	 */
 	fetchAndRenderThreadNextMessagePage(abortController) {
-		console.debug("UIPI fetchAndRenderThreadNextMessagePage")
 		return this.ui.fetchAndRenderThreadNextMessagePage(abortController)
 	}
 
@@ -45,7 +43,6 @@ class UIPI {
 	 * @returns {Promise<UIPIMessage>}
 	 */
 	getNextUIPIMessage(abortController) {
-		console.debug("UIPI getNextUIPIMessage")
 		return this.ui.getNextUIPIMessage(abortController)
 	}
 

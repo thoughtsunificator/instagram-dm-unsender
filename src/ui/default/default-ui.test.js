@@ -23,7 +23,6 @@ test("DefaultUI create", t => {
 	t.is(defaultUI.lastScrollTop, null)
 	t.true(defaultUI instanceof DefaultUI)
 	t.true(defaultUI.identifier.uiMessagesWrapper instanceof UIMessagesWrapper)
-	// t.is(defaultUI.identifier.uiMessagesWrapper.root, t.context.messagesWrapperElement)
 })
 
 test("DefaultUI fetchAndRenderThreadNextMessagePage", t => {

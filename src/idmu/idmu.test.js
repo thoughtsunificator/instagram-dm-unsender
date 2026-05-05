@@ -9,8 +9,6 @@ test.beforeEach(t => {
 	t.context.mountElement.append(createMessagesWrapperElement(t.context.document))
 })
 
-// TODO use mock instead of testing the same methods twice
-
 test("IDMU", t => {
 	const ui = new UI(t.context.window)
 	const uipi = new UIPI(ui)
@@ -55,7 +53,6 @@ test("IDMU onStatusText", t => {
 		text = "text"
 	}
 	const idmu = new IDMU(t.context.window, callback)
-	// TODO replace with mock
 	idmu.loadUIPI()
 	idmu.onStatusText("text")
 	t.is(text, "text")

@@ -133,5 +133,4 @@ See [test/README.md](../test/README.md).
 
 ## Roadmap
 
-A simplified version of the roadmap is available in the [TODO.md](../TODO.md) file. Otherwise, checkout the [enhancement issues](https://github.com/thoughtsunificator/bookmarks-web-ui/labels/enhancement).
-
+A simplified version of the roadmap is available in the [ROADMAP.md](../ROADMAP.md) file. For current requests, see the [enhancement issues](https://github.com/thoughtsunificator/instagram-dm-unsender/labels/enhancement).

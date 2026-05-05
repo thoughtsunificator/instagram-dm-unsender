@@ -2,7 +2,6 @@
   "name": "idmu",
   "version": "0.7.2",
   "description": "Userscript that allows you to mass unsend all your DMs on Instagram",
-  "short_name": " idmu",
   "type": "module",
   "scripts": {
     "test": "ava",
@@ -22,7 +21,7 @@
     "concurrently": "9.2.1",
     "eslint": "^9.7.0",
     "husky": "^8.0.3",
-    "jsdom": "^22.1.0",
+    "jsdom": "^29.1.1",
     "rollup": "^3.25.3",
     "rollup-plugin-serve": "^1.1.1"
   }

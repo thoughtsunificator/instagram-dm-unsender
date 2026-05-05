@@ -47,7 +47,6 @@ class IDMU {
 	 * Map Instagram UI
 	 */
 	loadUIPI() {
-		console.debug("loadUIPI")
 		this.uipi = UIPI.create(this.window)
 	}
 
