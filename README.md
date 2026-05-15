@@ -6,7 +6,7 @@ Userscript that allows you to mass unsend all your DMs on Instagram.
 
 In sum, it is a privacy tool that aim to empower Instagram users by giving them more control over their data.
 
-> ⚠️ While unsending prevents the other party from reading your messages it does not always necessarily mean Instagram has deleted your data so make sure to ALSO send a data removal request according to the laws of the country you live in.
+> ⚠️ While unsending completely prevents the other party from reading your messages it does not always necessarily mean Instagram itself has **really** deleted your data (on their side) so make sure to **also** send a data removal request according to the laws of the country you live in if you do not wish them to keep it.
 
 ## Why
 
@@ -48,7 +48,7 @@ Click [here](./src/ui/default/README.md) to read about the default unsend strate
 
 > Still not working? Read the [bug report](#-bug-report) section.
 
-# How can I use it?
+## How can I use it?
 
 Read the [user manual].
 
@@ -58,11 +58,11 @@ Read the [developer manual].
 
 ## 🧒 Contributions
 
-Contributions [are more than welcome](./.github/CONTRIBUTING.md).
+Contributions [are always welcome](./.github/CONTRIBUTING.md).
 
 ## 👾 Bug report 
 
-❗The issue will not be considered unless you provide ALL the required information as per the template. If you're going to do a bug report then do it right.
+❗The issue will not be considered unless you provide ALL the required information as per the template. 
 
 To report a bug please use [this link](https://github.com/thoughtsunificator/instagram-dm-unsender/issues/new?template=bug_report.md) while following the template.
 
@@ -73,5 +73,5 @@ To report a bug please use [this link](https://github.com/thoughtsunificator/ins
 To suggest an idea please use [this link](https://github.com/thoughtsunificator/instagram-dm-unsender/issues/new?template=feature_request.md).
 
 [testing documentation]: ./test/README.md
-[user manual]: ./documentation/user-manual.md
-[developer manual]: ./documentation/developer-manual.md
+[user manual]: ./documentation/user.md
+[developer manual]: ./documentation/developer.md

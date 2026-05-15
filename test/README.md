@@ -35,4 +35,4 @@ Furthermore, the tests of the fake ui must also be updated along with the workfl
 
 ``npm run test:debug file.js`` allows you to use v8 debugger while testing (atm only works on one file at a time)
 
-[the developer manual]: ../documentation/developer-manual.md
+[the developer manual]: ../documentation/developer.md

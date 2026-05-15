@@ -1,3 +1,0 @@
-# Translator manual
-
-WIP
