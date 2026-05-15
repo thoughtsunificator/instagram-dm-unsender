@@ -1,6 +1,6 @@
 # instagram-dm-unsender (idmu)
 
-> Project is under [heavy refactoring](2cefcd1fc58effa7ba79caf5c582c56ef3500681), bear with us while everything gets bettered.
+> Project is under heavy refactoring (see #88), bear with us while everything gets bettered.
 
 Userscript that allows you to mass unsend all your DMs on Instagram. 
 
