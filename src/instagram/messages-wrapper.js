@@ -8,6 +8,14 @@ function MessagesWrapper(root, page) {
 MessagesWrapper.prototype = Object.create(WorkflowElement)
 MessagesWrapper.prototype.constructor = Message
 
+MessageWrapper.prototype.scrollUntilMessage = function() {
+	this._scrollUntilMessage.run()
+}
+
+MessageWrapper.prototype.loadMessages = function() {
+
+}
+
 /**
  * Retrieve a batch of candidate elements and run a serie of tests until one candidate remains
  *
@@ -37,10 +45,6 @@ function getFirstVisibleMessage(root) {
 		}
 	}
 	console.debug("No candidate retained")
-}
-
-MessageWrapper.prototype.scrollUntilMessage = function() {
-	this._scrollUntilMessage.run()
 }
 
 /**

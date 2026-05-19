@@ -1,4 +1,4 @@
-export { dispatchHoverOut, dispatchHoverIn }
+export { hoverOut, hoverIn }
 
 /**
  * Dispatches pointer and mouse hover events on a target element.
@@ -6,7 +6,7 @@ export { dispatchHoverOut, dispatchHoverIn }
  *
  * @param {Element} target
  */
-function dispatchHoverIn(target) {
+function hoverIn(target) {
 	const rect = target.getBoundingClientRect()
 	const opts = {
 		bubbles: true,
@@ -29,7 +29,7 @@ function dispatchHoverIn(target) {
  *
  * @param {Element} target
  */
-function dispatchHoverOut(target) {
+function hoverOut(target) {
 	const rect = target.getBoundingClientRect()
 	const opts = {
 		bubbles: true,

@@ -1,5 +1,5 @@
 import { WorkflowElement } from "../workflow/workflow-element.js"
-import { dispatchHoverOut, dispatchHoverIn } from "./dom-events.js"
+import Mutations from "./generic/mutations.js"
 import * as messages from "./messages.js"
 
 export { Message }
@@ -45,6 +45,7 @@ Message.prototype.showActionsMenuButton = async function(abortController) {
 	console.debug("Workflow step 1 : showActionsMenuButton", this.root)
 	// Collect all hoverable ancestors from root down to the message bubble.
 	// Instagram React listens at intermediate levels (role=group, flex-end wrapper).
+	// TODO replace with treewalker
 	const hoverTargets = [this.root]
 	const collectTargets = (el, depth) => {
 		if (depth > 8) return
@@ -55,18 +56,8 @@ Message.prototype.showActionsMenuButton = async function(abortController) {
 	}
 	collectTargets(this.root, 0)
 
-	// Try up to 3 times — hover events can be flaky
-	for (let attempt = 0; attempt < 3; attempt++) {
-		for (const target of hoverTargets) {
-			dispatchHoverIn(target)
-		}
-		console.debug("Workflow step 1 : attempt", attempt, "no button found, retrying...")
-		dispatchHoverOut(this.root)
-		await new Promise(resolve => setTimeout(resolve, 50))
-	}
-
 	for (const target of hoverTargets) {
-		dispatchHoverIn(target)
+		Mutations.hoverIn(target)
 	}
 
 	try {
@@ -98,11 +89,11 @@ Message.prototype.showActionsMenuButton = async function(abortController) {
  */
 Message.prototype.hideActionMenuButton = async function(abortController) {
 	console.debug("hideActionMenuButton", this.root)
-	dispatchHoverOut(this.root)
+	Mutations.hoverOut(this.root)
 
 	const noneEl = this.root.querySelector("[role=none]")
 	if (noneEl) {
-		dispatchHoverOut(noneEl)
+		Mutations.hoverOut(noneEl)
 	}
 
 	try {

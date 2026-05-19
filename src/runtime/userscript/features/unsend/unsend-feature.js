@@ -1,4 +1,4 @@
-import { ThreadsPageNavigation } from "./threads-page-navigation.js"
+import { ThreadPageNavigation } from "./thread-page-navigation.js"
 import { Observable } from "../../../../event/observable.js"
 
 export { UnsendFeature }
@@ -8,24 +8,21 @@ export { UnsendFeature }
  */
 function UnsendFeature(window) {
 	const feature = new Observable()
-	const workflow = new UnsendWorkflow()
-	const navigation = new ThreadsPageNavigation()
-	renderUI(workflow)
-	filterInteractions(navigation, workflow)
+	const navigation = new ThreadPageNavigation()
+	let workflow
+	let osd
+	navigation.on("enter", (page) => {
+		osd = ThreadPageWorkflowOSD()
+		workflow = new UnsendWorkflow(page)
+		filterInteractions(navigation, workflow)
+		window.document.body.appendChild(threadPageWorkflowOSD.root)
+	})
+	navigation.on("leave", (page) => {
+		workflow.stop()
+		osd.remove()
+	})
 }
 
-function renderUI() {
-	const osd = ThreadPageWorkflowOSD()
-}
-
-function onThreadPageEnter() {
-	window.document.body.appendChild(threadPageWorkflowOSD.root)
-}
-
-function onThreadPageLeave() {
-	workflow.stop()
-	threadPageWorkflowOSD.remove()
-}
 
 /**
  * When workflow is running, filter user interactions to avoid corrupting it

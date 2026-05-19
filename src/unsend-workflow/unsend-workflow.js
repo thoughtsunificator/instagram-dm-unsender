@@ -1,4 +1,6 @@
 import { Workflow } from "../workflow/workflow.js"
+import { MessageUnsend, MessageValidateUnsend } from "./message-unsend-workflow.js"
+import { LoadNextMessages } from "./load-messages.js"
 
 export { UnsendWorkflow }
 
@@ -13,9 +15,9 @@ UnsendWorkflow.prototype.constructor = UnsendWorkflow
 
 UnsendWorkflow.prototype.run = async function() {
 	console.debug("UnsendWorkflow.run()")
-	this.append(new LoadMessages())
-	this.metrics.state("unsending")
-	this.append(new UnsendMessages())
+	this.appendChild(new PageCleanup(page))
+	this.appendChild(new LoadMessages())
+	this.appendChild(new UnsendMessages())
 }
 
 function LoadMessages(page) {
@@ -26,8 +28,10 @@ LoadMessages.prototype = Object.create(Workflow)
 LoadMessages.prototype.constructor = LoadMessages
 
 LoadMessages.prototype.run = async function() {
-	// TODO rename to EnsureAllMessageAreLoaded
-	await this.withBackoff(new LoadMessagesWorkflow())
+	this.metrics.state("pageLoading")
+	await this.withBackoff(new LoadNextMessages())
+	this.metrics.count("pageLoaded")
+	this.metrics.state()
 }
 
 function UnsendMessages(page) {
@@ -38,10 +42,10 @@ UnsendMessages.prototype = Object.create(Workflow)
 UnsendMessages.prototype.constructor = UnsendMessages
 
 UnsendMessages.prototype.run = async function() {
-	// TODO rename to EnsureAllMessageAreLoaded
-	this.append(this.page.dismissStaleOverlays)
 	try {
+		this.metrics.state("unsending")
 		await this.withBackoff(new MessageUnsend(message))
+		this.metrics.state("validatingUnsend")
 		await this.withBackoff(new MessageValidateUnsend(message))
 		this.metrics.count("unsent", message)
 		this.metrics.state()
@@ -52,22 +56,13 @@ UnsendMessages.prototype.run = async function() {
 	}
 }
 
-function LoadMessages() {
+function PageCleanup(page) {
 	Workflow.prototype.constructor.call(this)
+	this.page = page
 }
-LoadMessages.prototype = Object.create(Workflow)
-LoadMessages.prototype.constructor = LoadMessages
+PageCleanup.prototype = Object.create(Workflow)
+PageCleanup.prototype.constructor = PageCleanup
 
-/**
- * Scroll until all messages are loaded
- *
- * Note: Even though messages were loaded they will still be removed from the DOM
- * when they are no longer within the viewport.
- *
- * This means that scrolling is done twice, once to load all messages and
- * a second time to have them back in the viewport.
- *
- */
-LoadMessages.prototype.run = function() {
-	this.withBackoff(page.loadMessages)
+PageCleanup.prototype.run = function() {
+	this.page.dismissStaleOverlays()
 }

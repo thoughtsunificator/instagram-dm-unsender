@@ -3,8 +3,10 @@ import { WorkflowMetrics } from "./workflow-metrics.js"
 export { Workflow }
 
 function Workflow() {
+	// Calling Workflow directly amount to the same as calling
+	// its constructor methid
 	if(!this) {
-		return new Workflow()
+		return new Workflow(arguments)
 	}
 	this._abortController = new AbortController()
 	this._parentWorkflow = null
@@ -15,7 +17,7 @@ function Workflow() {
 /**
  * @param {Workflow[]} ...workflows
  */
-Workflow.prototype.combine = async function(...workflows) {
+Workflow.prototype.pipe = async function(...workflows) {
 	// TODO create pipable workflow
 	let previousResult
 	for(const workflow of workflows) {
@@ -28,11 +30,11 @@ Workflow.prototype.run = async function() {
 	throw new Error("Not implemented")
 }
 
-Workflow.prototype.append = async function(workflow) {
+Workflow.prototype.appendChild = async function(workflow) {
 	if(workflow._parentWorkflow) {
 		throw new Error(`This workflow is already part on another workflow (${workflow._parentWorkflow.constructor.name})`)
 	}
-	this.childWorkflows.push(workflow)
+	this._childWorkflows.push(workflow)
 	workflow._parentWorkflow = this
 	await workflow.run()
 }

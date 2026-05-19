@@ -38,7 +38,6 @@ MessageUnsend.prototype.run = async function() {
 	}
 }
 
-
 function MessageValidateUnsend(message) {
 	Workflow.prototype.constructor.call(this)
 	this.message = message
