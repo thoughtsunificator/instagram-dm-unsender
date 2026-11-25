@@ -1,5 +1,7 @@
 /** @module style Helpers to mimic Instagram's look and feel */
 
+import { applyButtonTheme, getTheme } from "./theme.js"
+
 export { BUTTON_STYLE, applyButtonStyle }
 
 const BUTTON_STYLE = {
@@ -11,16 +13,10 @@ const BUTTON_STYLE = {
  * @param {HTMLButtonElement} buttonElement
  * @param {string}            [styleName]
  */
-function applyButtonStyle(buttonElement, styleName) {
-	buttonElement.style.fontSize = "var(--system-14-font-size)"
-	buttonElement.style.color = "white"
-	buttonElement.style.border = "0px"
-	buttonElement.style.borderRadius = "8px"
-	buttonElement.style.padding = "8px"
-	buttonElement.style.fontWeight = "bold"
-	buttonElement.style.cursor = "pointer"
-	buttonElement.style.lineHeight = "var(--system-14-line-height)"
-	if(styleName) {
-		buttonElement.style.backgroundColor = `rgb(var(--ig-${styleName}-button))`
-	}
+function applyButtonStyle(buttonElement, styleName = BUTTON_STYLE.PRIMARY) {
+	const theme = getTheme(buttonElement.ownerDocument)
+	const variant = styleName === BUTTON_STYLE.SECONDARY ? "secondary" : "primary"
+	applyButtonTheme(buttonElement, theme, variant)
+	buttonElement.style.fontSize = "14px"
+	buttonElement.style.lineHeight = "1.2"
 }

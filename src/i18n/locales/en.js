@@ -19,6 +19,10 @@ export const en = {
 	"ui.debugEmpty": "No debug entries yet.",
 	"ui.debugSnapshot": "Snapshot DOM",
 	"ui.debugClear": "Clear",
+	"ui.onboardingTitle": "Welcome to instagram-dm-unsender",
+	"ui.onboardingBody": "This tool helps you unsend your own messages in the currently open Instagram DM thread. It works by automating the same UI steps you would do manually (open message options, click Unsend, confirm).",
+	"ui.onboardingTips": ["Open the DM thread you want to clean up.","Click \"Unsend all DMs\" to start, and \"Stop processing\" to stop anytime.","Instagram may rate-limit unsending; failures are retried with backoff.","If something fails, open Debug and copy the debug report."],
+	"ui.onboardingDismiss": "Got it",
 
 	"workflow.loadingNextPage": "Loading next page...",
 	"workflow.allPagesLoaded": "All pages loaded ({pages} in total).",

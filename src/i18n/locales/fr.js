@@ -16,6 +16,10 @@ export const fr = {
 	"ui.debugEmpty": "Aucune entrée de débogage pour l’instant.",
 	"ui.debugSnapshot": "Instantané DOM",
 	"ui.debugClear": "Effacer",
+	"ui.onboardingTitle": "Bienvenue dans instagram-dm-unsender",
+	"ui.onboardingBody": "Cet outil vous aide à retirer vos propres messages dans la conversation Instagram DM actuellement ouverte. Il automatise les mêmes actions que vous feriez manuellement (ouvrir les options du message, cliquer Retirer, confirmer).",
+	"ui.onboardingTips": ["Ouvrez la conversation DM à nettoyer.","Cliquez sur \"Retirer tous les DM\" pour démarrer, et \"Arrêter le traitement\" pour arrêter à tout moment.","Instagram peut limiter les retraits ; les échecs sont réessayés avec temporisation.","En cas de problème, ouvrez Débogage et copiez le rapport de débogage."],
+	"ui.onboardingDismiss": "Compris",
 
 	"workflow.loadingNextPage": "Chargement de la page suivante...",
 	"workflow.allPagesLoaded": "Toutes les pages sont chargées ({pages} au total).",

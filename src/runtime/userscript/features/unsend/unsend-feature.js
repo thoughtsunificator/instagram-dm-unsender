@@ -5,6 +5,7 @@ import { UnsendWorkflow } from "../../../../unsend-workflow/unsend-workflow.js"
 import { OSD } from "./osd.js"
 import { t } from "../../../../i18n/i18n.js"
 import { DebugLog, installDebugGlobal, snapshotThread } from "../../debug.js"
+import { createOnboardingModal, shouldShowOnboarding } from "./onboarding-modal.js"
 
 export { UnsendFeature }
 
@@ -61,6 +62,10 @@ UnsendFeature.prototype.onEnterThread = function(thread) {
 		onSnapshot: () => snapshotThread(this.thread),
 	})
 	this.osd.render()
+	if(shouldShowOnboarding(this.window)) {
+		const modal = createOnboardingModal(this.window.document)
+		this.window.document.body.append(modal.root)
+	}
 }
 
 UnsendFeature.prototype.onLeaveThread = function() {

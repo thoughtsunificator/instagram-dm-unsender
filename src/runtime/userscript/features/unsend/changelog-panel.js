@@ -1,6 +1,7 @@
 /** @module changelog-panel The "What's new" panel: the changes of each version, from CHANGELOG.md */
 
 import { t } from "../../../../i18n/i18n.js"
+import { applyPanelStyle, getTheme, themeColors } from "./theme.js"
 
 export { createChangelogPanel }
 
@@ -10,6 +11,8 @@ export { createChangelogPanel }
  * @returns {{ root: HTMLDivElement, isVisible: () => boolean, toggle: () => void }}
  */
 function createChangelogPanel(document, entries) {
+	const theme = getTheme(document)
+	const c = themeColors(theme)
 	const root = document.createElement("div")
 	root.id = "idmu-changelog"
 	root.style.position = "fixed"
@@ -20,12 +23,10 @@ function createChangelogPanel(document, entries) {
 	root.style.maxHeight = "60vh"
 	root.style.overflowY = "auto"
 	root.style.padding = "16px"
-	root.style.borderRadius = "12px"
-	root.style.boxShadow = "0 4px 16px rgba(0, 0, 0, 0.3)"
-	root.style.background = "var(--ig-elevated-background, #262626)"
-	root.style.color = "var(--ig-primary-text, #f5f5f5)"
-	root.style.fontSize = "var(--system-14-font-size, 14px)"
+	root.style.borderRadius = "14px"
+	root.style.fontSize = "14px"
 	root.style.display = "none"
+	applyPanelStyle(root, theme)
 
 	const header = document.createElement("div")
 	header.style.display = "flex"
@@ -37,6 +38,11 @@ function createChangelogPanel(document, entries) {
 	const close = document.createElement("button")
 	close.textContent = t("ui.close")
 	close.style.cursor = "pointer"
+	close.style.border = `1px solid ${c.panelBorder}`
+	close.style.borderRadius = "8px"
+	close.style.padding = "4px 8px"
+	close.style.background = c.buttonSecondaryBg
+	close.style.color = c.buttonSecondaryText
 	close.addEventListener("click", () => hide())
 	header.append(title, close)
 	root.append(header)
@@ -44,6 +50,7 @@ function createChangelogPanel(document, entries) {
 	if(entries.length === 0) {
 		const empty = document.createElement("div")
 		empty.textContent = t("ui.noChanges")
+		empty.style.color = c.mutedText
 		root.append(empty)
 	}
 	for(const entry of entries) {
@@ -58,18 +65,15 @@ function createChangelogPanel(document, entries) {
 		for(const item of entry.items) {
 			const li = document.createElement("li")
 			li.textContent = item
+			li.style.marginBottom = "2px"
 			list.append(li)
 		}
 		section.append(heading, list)
 		root.append(section)
 	}
 
-	function show() {
-		root.style.display = ""
-	}
-	function hide() {
-		root.style.display = "none"
-	}
+	function show() { root.style.display = "" }
+	function hide() { root.style.display = "none" }
 	return {
 		root,
 		isVisible: () => root.style.display !== "none",

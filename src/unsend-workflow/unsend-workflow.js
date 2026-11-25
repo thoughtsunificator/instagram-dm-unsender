@@ -91,7 +91,9 @@ UnsendWorkflow.prototype.stop = function() {
  * Removes the ignore markers left by a previous run so that messages can be picked again
  */
 UnsendWorkflow.prototype.clearIgnoreMarkers = function() {
-	this.thread.root.ownerDocument.querySelectorAll("[data-idmu-ignore]").forEach(element => element.removeAttribute("data-idmu-ignore"))
+	const doc = this.thread.root.ownerDocument
+	doc.querySelectorAll("[data-idmu-ignore]").forEach(element => element.removeAttribute("data-idmu-ignore"))
+	clearBadges(doc)
 }
 
 /**
@@ -112,15 +114,19 @@ UnsendWorkflow.prototype.unsendAll = async function() {
 			return
 		}
 		await this.pace()
+		const nextIndex = (this.metrics.counters.unsent ?? 0) + 1
+		badgeMessage(message.root, nextIndex, "active")
 		this.setStatus(t("workflow.unsending", { count: this.metrics.counters.unsent ?? 0 }))
 		try {
 			await new MessageUnsend(message, this.abortController).run()
 			await new MessageValidateUnsend(message, this.abortController).run()
+			badgeMessage(message.root, nextIndex, "done")
 			this.lastUnsendAt = Date.now()
 			consecutiveFailures = 0
 			messagesWrapper.lastScrollTop = null
 			this.metrics.count("unsent")
 		} catch(error) {
+			badgeMessage(message.root, nextIndex, "failed")
 			if(this.isAborted()) {
 				message.clearIgnored()
 				return
@@ -164,4 +170,41 @@ function summary({ outcome, unsent }) {
 		return t("summary.errored", { count: unsent })
 	}
 	return t("summary.done", { count: unsent })
+}
+
+
+function badgeMessage(root, index, state) {
+	const doc = root.ownerDocument
+	const id = "idmu-badge-" + (root.dataset.idmuBadgeId || (root.dataset.idmuBadgeId = Math.random().toString(36).slice(2)))
+	let badge = doc.getElementById(id)
+	if(!badge) {
+		badge = doc.createElement("div")
+		badge.id = id
+		badge.style.position = "absolute"
+		badge.style.top = "4px"
+		badge.style.right = "4px"
+		badge.style.zIndex = "1001"
+		badge.style.padding = "2px 6px"
+		badge.style.borderRadius = "999px"
+		badge.style.fontSize = "11px"
+		badge.style.fontWeight = "700"
+		badge.style.fontFamily = "system-ui, sans-serif"
+		badge.style.pointerEvents = "none"
+		badge.style.boxShadow = "0 1px 4px rgba(0,0,0,0.25)"
+		const pos = doc.defaultView.getComputedStyle(root).position
+		if(pos === "static") root.style.position = "relative"
+		root.append(badge)
+	}
+	const labels = { active: `#${index} unsending`, done: `#${index} unsent`, failed: `#${index} failed` }
+	const colors = { active: "#0095f6", done: "#2e7d32", failed: "#ed4956" }
+	badge.textContent = labels[state] || `#${index}`
+	badge.style.background = colors[state] || "#0095f6"
+	badge.style.color = "white"
+}
+
+function clearBadges(doc) {
+	for(const badge of doc.querySelectorAll("[id^='idmu-badge-']")) badge.remove()
+	for(const el of doc.querySelectorAll("[data-idmu-badge-id]")) {
+		delete el.dataset.idmuBadgeId
+	}
 }

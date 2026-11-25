@@ -1,5 +1,7 @@
 /** @module menu IDMU's main menu */
 
+import { applyPanelStyle, getTheme } from "./theme.js"
+
 export { createMenuElement }
 
 /**
@@ -18,10 +20,8 @@ function createMenuElement(document) {
 	menuElement.style.alignItems = "center"
 	menuElement.style.flexWrap = "wrap"
 	menuElement.style.maxWidth = "min(720px, calc(100vw - 32px))"
-	menuElement.style.padding = "8px 10px"
-	menuElement.style.borderRadius = "12px"
-	menuElement.style.background = "rgba(0, 0, 0, 0.55)"
-	menuElement.style.backdropFilter = "blur(6px)"
-	menuElement.style.color = "white"
+	menuElement.style.padding = "10px 12px"
+	menuElement.style.borderRadius = "14px"
+	applyPanelStyle(menuElement, getTheme(document))
 	return menuElement
 }

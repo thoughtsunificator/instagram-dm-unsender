@@ -8,6 +8,7 @@ import { createChangelogPanel } from "./changelog-panel.js"
 import { BUTTON_STYLE, applyButtonStyle } from "./style.js"
 import { CHANGELOG } from "../../changelog.js"
 import { t } from "../../../../i18n/i18n.js"
+import { applyPanelStyle, getTheme, themeColors } from "./theme.js"
 
 export { OSD }
 
@@ -31,7 +32,7 @@ function OSD(document, { onToggle, debugLog = null, getDebugReport = null, onSna
 	this.statusElement = createStatusElement(document)
 	this.progressElement = document.createElement("div")
 	this.progressElement.id = "idmu-progress"
-	this.progressElement.style.fontSize = "var(--system-12-font-size, 12px)"
+	this.progressElement.style.fontSize = "12px"
 	this.progressElement.style.opacity = "0.8"
 	this.progressElement.style.whiteSpace = "nowrap"
 
@@ -83,35 +84,21 @@ OSD.prototype.remove = function() {
 	this.overlayElement.remove()
 }
 
-/**
- * @param {string} text
- */
 OSD.prototype.setStatus = function(text) {
 	this.statusElement.textContent = text
 }
 
-/**
- * Counts of the current run, shown under the status line
- *
- * @param {{ unsent: number, failures: number }} counts
- */
 OSD.prototype.setProgress = function({ unsent, failures }) {
 	this.progressElement.textContent = t("ui.progress", { unsent, failures })
 }
 
-/**
- * Disables the rest of the UI while unsending
- *
- * @param {boolean} running
- */
 OSD.prototype.setRunning = function(running) {
 	this.overlayElement.style.display = running ? "" : "none"
-	if(running) {
-		this.overlayElement.focus()
-	}
+	if(running) this.overlayElement.focus()
 	this.button.setRunning(running)
-	this.statusElement.style.color = running ? "white" : ""
-	this.progressElement.style.color = running ? "white" : ""
+	const c = themeColors(getTheme(this.document))
+	this.statusElement.style.color = c.panelText
+	this.progressElement.style.color = c.mutedText
 }
 
 OSD.prototype.focusOverlay = function() {
@@ -129,16 +116,17 @@ OSD.prototype.appendDebugEntry = function(entry) {
 	if(entry.message === "Debug log cleared" && this.debugLog?.entries.length === 1) {
 		this.debugPanel.logElement.textContent = ""
 	}
+	const c = themeColors(getTheme(this.document))
 	const line = this.document.createElement("div")
 	line.style.padding = "2px 0"
-	line.style.borderBottom = "1px solid rgba(255,255,255,0.08)"
+	line.style.borderBottom = `1px solid ${c.panelBorder}`
 	line.style.whiteSpace = "pre-wrap"
 	line.style.wordBreak = "break-word"
 	const time = (entry.at || "").slice(11, 19)
 	const data = entry.data === undefined ? "" : ` ${JSON.stringify(entry.data)}`
 	line.textContent = `[${time}] ${entry.level.toUpperCase()} ${entry.message}${data}`
-	if(entry.level === "error") line.style.color = "#ff8080"
-	if(entry.level === "warn") line.style.color = "#ffd280"
+	if(entry.level === "error") line.style.color = "#d93025"
+	if(entry.level === "warn") line.style.color = "#b26a00"
 	this.debugPanel.logElement.append(line)
 	while(this.debugPanel.logElement.childElementCount > 150) {
 		this.debugPanel.logElement.firstChild.remove()
@@ -153,7 +141,6 @@ OSD.prototype.copyDebugReport = async function() {
 		this.setStatus(t("ui.debugCopied"))
 	} catch(error) {
 		console.error(error)
-		// Fallback for userscript contexts without clipboard permission
 		const ta = this.document.createElement("textarea")
 		ta.value = text
 		ta.style.position = "fixed"
@@ -167,34 +154,30 @@ OSD.prototype.copyDebugReport = async function() {
 }
 
 OSD.prototype.runSnapshot = function() {
-	if(!this.onSnapshot) {
-		return
-	}
+	if(!this.onSnapshot) return
 	const snapshot = this.onSnapshot()
 	this.debugLog?.info("DOM snapshot", snapshot)
 	this.toggleDebugPanel()
-	if(this.debugPanel.root.style.display === "none") {
-		this.toggleDebugPanel()
-	}
+	if(this.debugPanel.root.style.display === "none") this.toggleDebugPanel()
 }
 
 function createDebugPanel(document, { onCopy, onSnapshot, onClear }) {
+	const theme = getTheme(document)
+	const c = themeColors(theme)
 	const root = document.createElement("div")
 	root.id = "idmu-debug-panel"
 	root.style.position = "fixed"
 	root.style.top = "108px"
-	root.style.right = "20px"
+	root.style.right = "16px"
 	root.style.zIndex = "999"
-	root.style.width = "min(560px, calc(100vw - 40px))"
+	root.style.width = "min(560px, calc(100vw - 32px))"
 	root.style.maxHeight = "50vh"
 	root.style.display = "flex"
 	root.style.flexDirection = "column"
 	root.style.padding = "12px"
-	root.style.borderRadius = "12px"
-	root.style.boxShadow = "0 4px 16px rgba(0, 0, 0, 0.35)"
-	root.style.background = "var(--ig-elevated-background, #1e1e1e)"
-	root.style.color = "var(--ig-primary-text, #f5f5f5)"
+	root.style.borderRadius = "14px"
 	root.style.fontSize = "12px"
+	applyPanelStyle(root, theme)
 
 	const header = document.createElement("div")
 	header.style.display = "flex"
@@ -205,14 +188,14 @@ function createDebugPanel(document, { onCopy, onSnapshot, onClear }) {
 	const title = document.createElement("strong")
 	title.textContent = t("ui.debug")
 	title.style.marginRight = "auto"
-	const copyBtn = document.createElement("button")
-	copyBtn.textContent = t("ui.copyDebug")
-	applyButtonStyle(copyBtn, BUTTON_STYLE.SECONDARY)
-	copyBtn.addEventListener("click", onCopy)
 	const snapBtn = document.createElement("button")
 	snapBtn.textContent = t("ui.debugSnapshot")
 	applyButtonStyle(snapBtn, BUTTON_STYLE.SECONDARY)
 	snapBtn.addEventListener("click", onSnapshot)
+	const copyBtn = document.createElement("button")
+	copyBtn.textContent = t("ui.copyDebug")
+	applyButtonStyle(copyBtn, BUTTON_STYLE.SECONDARY)
+	copyBtn.addEventListener("click", onCopy)
 	const clearBtn = document.createElement("button")
 	clearBtn.textContent = t("ui.debugClear")
 	applyButtonStyle(clearBtn, BUTTON_STYLE.SECONDARY)
@@ -227,6 +210,8 @@ function createDebugPanel(document, { onCopy, onSnapshot, onClear }) {
 	logElement.style.fontSize = "11px"
 	logElement.style.lineHeight = "1.35"
 	logElement.style.padding = "4px 0"
+	logElement.style.background = c.logBg
+	logElement.style.borderRadius = "8px"
 	logElement.textContent = t("ui.debugEmpty")
 
 	root.append(header, logElement)

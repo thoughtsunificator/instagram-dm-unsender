@@ -90,9 +90,12 @@ function t(key, vars = {}) {
 	if(message === undefined) {
 		return key
 	}
+	if(Array.isArray(message)) {
+		return message.map(item => typeof item === "string" ? item.replace(/\{(\w+)\}/g, (placeholder, name) => (name in vars ? String(vars[name]) : placeholder)) : item)
+	}
 	if(typeof message === "object") {
 		const category = new Intl.PluralRules(locale).select(Number(vars.count ?? 0))
 		message = message[category] ?? message.other
 	}
-	return message.replace(/\{(\w+)\}/g, (placeholder, name) => (name in vars ? String(vars[name]) : placeholder))
+	return String(message).replace(/\{(\w+)\}/g, (placeholder, name) => (name in vars ? String(vars[name]) : placeholder))
 }

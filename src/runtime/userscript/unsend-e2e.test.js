@@ -34,6 +34,7 @@ test("the Unsend button unsends every message of the conversation", async t => {
 		child.getBoundingClientRect = () => ({ x: 0, y: 105, width: 300, height: 50 })
 	}
 
+	window.localStorage.setItem("idmu_onboarding_seen_v1", "1")
 	main(window)
 
 	const button = document.querySelector("#idmu-menu button")

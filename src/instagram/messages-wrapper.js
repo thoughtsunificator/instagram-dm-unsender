@@ -203,26 +203,53 @@ function getMessagesInnerContainer(scrollable) {
 	return best
 }
 
+const OWN_MESSAGE_LABEL_RE = /\b(you sent|your message|vous avez envoyé|votre message|tu as envoyé|hai inviato|tu mensaje|enviaste|deine nachricht|du hast gesendet|sua mensagem|você enviou)\b/i
+
 /**
- * Sent messages are aligned to the right with justify-content: flex-end somewhere within a few levels
+ * Heuristically determine whether a message row was sent by the current user.
+ * Instagram has changed layout multiple times; we use several signals.
  *
  * @param {Element} element
  * @param {Window}  window
  * @returns {boolean}
  */
 function isSentByCurrentUser(element, window) {
-	const queue = [{ element, depth: 0 }]
+	// Strong signal: aria-labels on action buttons often include "your message"/localized equivalent.
+	for(const el of element.querySelectorAll("[aria-label]")) {
+		const label = el.getAttribute("aria-label") || ""
+		if(OWN_MESSAGE_LABEL_RE.test(label)) return true
+	}
+	// Text signal: some layouts include "You sent"/localized marker.
+	const text = (element.textContent || "").replace(/\s+/g, " ").trim()
+	if(/\b(you sent|vous avez envoyé)\b/i.test(text.slice(0, 120))) return true
+
+	// Layout signal: right-aligned content (flex-end / self-end / auto margin).
+	const queue = [{ node: element, depth: 0 }]
 	while(queue.length > 0) {
-		const { element: current, depth } = queue.shift()
-		if(window.getComputedStyle(current).justifyContent === "flex-end") {
-			return true
-		}
-		if(depth < 8) {
-			for(const child of current.children) {
-				queue.push({ element: child, depth: depth + 1 })
-			}
+		const { node, depth } = queue.shift()
+		const style = window.getComputedStyle(node)
+		if(style.justifyContent === "flex-end" || style.justifyContent === "end") return true
+		if(style.alignSelf === "flex-end" || style.alignSelf === "end") return true
+		if(style.marginLeft === "auto" && style.marginRight !== "auto") return true
+		if(depth < 10) {
+			for(const child of node.children) queue.push({ node: child, depth: depth + 1 })
 		}
 	}
+
+	// Geometry signal: message bubble is pushed to the right half of the row.
+	try {
+		const rowRect = element.getBoundingClientRect()
+		const candidates = [...element.querySelectorAll("[role=none], [role=presentation], div")]
+		for(const c of candidates) {
+			const r = c.getBoundingClientRect()
+			if(r.width < 24 || r.height < 16) continue
+			if(r.width > rowRect.width * 0.95) continue
+			const rightGap = rowRect.right - r.right
+			const leftGap = r.left - rowRect.left
+			if(rightGap < 40 && leftGap > rowRect.width * 0.2) return true
+		}
+	} catch {}
+
 	return false
 }
 
