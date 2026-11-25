@@ -3,6 +3,4 @@ dist/
 coverage/
 .env.json
 
-# E2E snapshots may contain personal data; commit only sanitized fixtures
-/test/fixtures/instagram-snapshots/*
-!/test/fixtures/instagram-snapshots/.gitkeep
+# E2E snapshots live in-repo. Only commit sanitized/synthetic snapshots; never commit personal DMs.

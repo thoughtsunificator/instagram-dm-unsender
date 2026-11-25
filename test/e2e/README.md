@@ -28,7 +28,7 @@ Provide any snapshot directory containing `meta.json`, `page.html`, and `resourc
 node test/e2e/capture-snapshot.mjs --from /path/to/archive-dir --name dm-thread-sample
 ```
 
-You can create the archive dir manually, from browser-ctl on another machine, or by copying an existing archive. Review snapshots before committing - they may contain personal data.
+You can create the archive dir manually, from browser-ctl on another machine, or by copying an existing archive. Snapshots must live inside the repository. Only commit sanitized/synthetic snapshots; never commit personal DMs or private data.
 
 ## Run e2e against a snapshot
 

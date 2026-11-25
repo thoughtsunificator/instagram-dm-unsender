@@ -39,6 +39,7 @@ function UnsendFeature(window) {
 		log: this.debugLog,
 		getThread: () => this.thread,
 	})
+	window.__idmuFeature = this
 }
 
 UnsendFeature.prototype.start = function() {

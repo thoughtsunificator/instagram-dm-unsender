@@ -204,6 +204,7 @@ function getMessagesInnerContainer(scrollable) {
 }
 
 const OWN_MESSAGE_LABEL_RE = /\b(you sent|your message|vous avez envoyé|votre message|tu as envoyé|hai inviato|tu mensaje|enviaste|deine nachricht|du hast gesendet|sua mensagem|você enviou)\b/i
+const OTHER_MESSAGE_LABEL_RE = /\b(message de |message from |mensaje de |mensagem de |nachricht von )/i
 
 /**
  * Heuristically determine whether a message row was sent by the current user.
@@ -215,10 +216,14 @@ const OWN_MESSAGE_LABEL_RE = /\b(you sent|your message|vous avez envoyé|votre m
  */
 function isSentByCurrentUser(element, window) {
 	// Strong signal: aria-labels on action buttons often include "your message"/localized equivalent.
+	let sawOtherLabel = false
 	for(const el of element.querySelectorAll("[aria-label]")) {
 		const label = el.getAttribute("aria-label") || ""
 		if(OWN_MESSAGE_LABEL_RE.test(label)) return true
+		if(OTHER_MESSAGE_LABEL_RE.test(label)) sawOtherLabel = true
 	}
+	if(sawOtherLabel) return false
+
 	// Text signal: some layouts include "You sent"/localized marker.
 	const text = (element.textContent || "").replace(/\s+/g, " ").trim()
 	if(/\b(you sent|vous avez envoyé)\b/i.test(text.slice(0, 120))) return true
@@ -235,20 +240,6 @@ function isSentByCurrentUser(element, window) {
 			for(const child of node.children) queue.push({ node: child, depth: depth + 1 })
 		}
 	}
-
-	// Geometry signal: message bubble is pushed to the right half of the row.
-	try {
-		const rowRect = element.getBoundingClientRect()
-		const candidates = [...element.querySelectorAll("[role=none], [role=presentation], div")]
-		for(const c of candidates) {
-			const r = c.getBoundingClientRect()
-			if(r.width < 24 || r.height < 16) continue
-			if(r.width > rowRect.width * 0.95) continue
-			const rightGap = rowRect.right - r.right
-			const leftGap = r.left - rowRect.left
-			if(rightGap < 40 && leftGap > rowRect.width * 0.2) return true
-		}
-	} catch {}
 
 	return false
 }

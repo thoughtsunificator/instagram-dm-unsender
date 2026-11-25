@@ -4,7 +4,8 @@
 - Add light/dark theme-aware styling for menu, panels, and buttons
 - Add first-install onboarding modal explaining how unsending works
 - Show removal-order badges on messages while unsending and lighten the blocking overlay
-- Add DOM debugging tools: `window.__idmuDebug` helpers (snapshot, probe selectors, highlight action buttons, probe unsend menu) and live debug log
+- Add DOM debugging tools: `window.__idmuDebug` helpers (snapshot, probe selectors, highlight action buttons, probe unsend menu) and live debug log; expose `window.__idmuFeature` for debugging
+- Add snapshot-based real-browser e2e workflow and unsend scenario (`test/e2e/`)
 - Harden unsend flow: safer stale overlay dismissal, better confirm-button selection, case-insensitive action button fallback, scrollIntoView before hover, longer unsend validation delay, and stronger sent-by-current-user heuristics
 - Document DOM debugging workflow in README and user manual
 
