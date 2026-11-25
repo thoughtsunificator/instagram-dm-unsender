@@ -5,6 +5,10 @@ export const fr = {
 	"ui.ready": "Prêt",
 	"ui.stopping": "Arrêt en cours...",
 	"ui.error": "Une erreur est survenue, {url}",
+	"ui.progress": "{unsent} retiré(s) · {failures} échec(s)",
+	"ui.whatsNew": "Nouveautés",
+	"ui.close": "Fermer",
+	"ui.noChanges": "Aucune modification enregistrée pour l’instant.",
 
 	"workflow.loadingNextPage": "Chargement de la page suivante...",
 	"workflow.allPagesLoaded": "Toutes les pages sont chargées ({pages} au total).",

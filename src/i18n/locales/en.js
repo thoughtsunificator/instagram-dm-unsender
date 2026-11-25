@@ -8,6 +8,10 @@ export const en = {
 	"ui.ready": "Ready",
 	"ui.stopping": "Stopping...",
 	"ui.error": "An error occurred, {url}",
+	"ui.progress": "{unsent} unsent · {failures} failed",
+	"ui.whatsNew": "What's new",
+	"ui.close": "Close",
+	"ui.noChanges": "No changes recorded yet.",
 
 	"workflow.loadingNextPage": "Loading next page...",
 	"workflow.allPagesLoaded": "All pages loaded ({pages} in total).",

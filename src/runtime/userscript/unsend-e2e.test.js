@@ -41,6 +41,7 @@ test("the Unsend button unsends every message of the conversation", async t => {
 	button.click()
 	await waitFor(() => document.getElementById("idmu-status").textContent.startsWith("Done."))
 	t.is(document.getElementById("idmu-status").textContent, "Done. 2 messages unsent.")
+	t.is(document.getElementById("idmu-progress").textContent, "2 unsent · 0 failed")
 	t.is(root.children.length, 0)
 	t.is(button.textContent, "Unsend all DMs")
 })
