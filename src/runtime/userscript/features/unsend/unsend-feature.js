@@ -3,6 +3,7 @@
 import { PageNavigation } from "../../page-navigation.js"
 import { UnsendWorkflow } from "../../../../unsend-workflow/unsend-workflow.js"
 import { OSD } from "./osd.js"
+import { t } from "../../../../i18n/i18n.js"
 
 export { UnsendFeature }
 
@@ -80,13 +81,13 @@ UnsendFeature.prototype.run = function() {
 	})
 	workflow.run().catch(error => {
 		console.error(error)
-		osd.setStatus(`An error occurred, ${BUG_REPORT_URL}`)
+		osd.setStatus(t("ui.error", { url: BUG_REPORT_URL }))
 	})
 }
 
 UnsendFeature.prototype.stop = function() {
 	if(this.workflow) {
-		this.osd?.setStatus("Stopping...")
+		this.osd?.setStatus(t("ui.stopping"))
 		this.workflow.stop()
 	}
 }

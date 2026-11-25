@@ -2,6 +2,7 @@ import { Workflow } from "../workflow/workflow.js"
 import { backoffDelay, randomDelay } from "../workflow/timing.js"
 import { MessageUnsend, MessageValidateUnsend } from "./message-unsend-workflow.js"
 import { LoadMessages } from "./load-messages.js"
+import { t } from "../i18n/i18n.js"
 
 export { UnsendWorkflow, DEFAULT_OPTIONS }
 
@@ -54,7 +55,7 @@ UnsendWorkflow.prototype.run = async function() {
 		await new LoadMessages(this.thread.messagesWrapper, this.abortController).run()
 		for(let attempt = 0; attempt <= this.options.rescanAttempts; attempt++) {
 			if(attempt > 0) {
-				this.setStatus(`No messages detected, retrying (${attempt}/${this.options.rescanAttempts})...`)
+				this.setStatus(t("workflow.noMessagesRetry", { attempt, max: this.options.rescanAttempts }))
 				await this.wait(this.options.rescanDelayMs)
 				this.clearIgnoreMarkers()
 				await new LoadMessages(this.thread.messagesWrapper, this.abortController).run()
@@ -103,7 +104,7 @@ UnsendWorkflow.prototype.unsendAll = async function() {
 	let consecutiveFailures = 0
 	while(!this.isAborted()) {
 		if(consecutiveFailures >= this.options.maxConsecutiveFailures) {
-			this.setStatus(`Stopped: ${consecutiveFailures} consecutive failures.`)
+			this.setStatus(t("workflow.stoppedConsecutive", { count: consecutiveFailures }))
 			return
 		}
 		const message = await messagesWrapper.findNextMessage(this.abortController)
@@ -111,7 +112,7 @@ UnsendWorkflow.prototype.unsendAll = async function() {
 			return
 		}
 		await this.pace()
-		this.setStatus(`Unsending message... (${this.metrics.counters.unsent ?? 0} unsent so far)`)
+		this.setStatus(t("workflow.unsending", { count: this.metrics.counters.unsent ?? 0 }))
 		try {
 			await new MessageUnsend(message, this.abortController).run()
 			await new MessageValidateUnsend(message, this.abortController).run()
@@ -130,7 +131,7 @@ UnsendWorkflow.prototype.unsendAll = async function() {
 			const base = error.name === "LateFailureWorkflowError" ? this.options.rateLimitBackoffMs : this.options.failureBackoffMs
 			const delay = backoffDelay(consecutiveFailures, base, this.options.backoffMaxMs)
 			console.debug(`UnsendWorkflow: ${error.name} (${consecutiveFailures} in a row), backing off ${delay}ms`, error)
-			this.setStatus(`Failed (${consecutiveFailures}/${this.options.maxConsecutiveFailures}), retrying in ${(delay / 1000).toFixed(0)}s...`)
+			this.setStatus(t("workflow.failedRetry", { failures: consecutiveFailures, max: this.options.maxConsecutiveFailures, seconds: (delay / 1000).toFixed(0) }))
 			await this.wait(delay)
 		}
 	}
@@ -156,12 +157,11 @@ UnsendWorkflow.prototype.pace = async function() {
  * @returns {string}
  */
 function summary({ outcome, unsent }) {
-	const count = `${unsent} message(s) unsent.`
 	if(outcome === "aborted") {
-		return `Aborted. ${count}`
+		return t("summary.aborted", { count: unsent })
 	}
 	if(outcome === "error") {
-		return `Errored. ${count}`
+		return t("summary.errored", { count: unsent })
 	}
-	return `Done. ${count}`
+	return t("summary.done", { count: unsent })
 }

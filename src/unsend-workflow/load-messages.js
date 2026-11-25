@@ -1,4 +1,5 @@
 import { Workflow } from "../workflow/workflow.js"
+import { t } from "../i18n/i18n.js"
 
 export { LoadMessages }
 
@@ -22,10 +23,10 @@ LoadMessages.prototype.run = async function() {
 	let pages = 0
 	for(;;) {
 		this.throwIfAborted()
-		this.setStatus("Loading next page...")
+		this.setStatus(t("workflow.loadingNextPage"))
 		const done = await this.withBackoff(() => this.messagesWrapper.loadMore(this.abortController), { retries: 2, baseMs: 2000 })
 		if(done) {
-			this.setStatus(`All pages loaded (${pages} in total).`)
+			this.setStatus(t("workflow.allPagesLoaded", { pages }))
 			return pages
 		}
 		pages++

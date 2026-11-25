@@ -52,7 +52,8 @@ function findActionButton(scope) {
  * @returns {boolean} true when text is one of the localized "Unsend" labels
  */
 function isUnsendText(text) {
-	const normalized = (text ?? "").trim().toLocaleLowerCase()
+	// NFC so that composed and decomposed accents match; typographic apostrophes are folded to ASCII so that both spellings match
+	const normalized = (text ?? "").normalize("NFC").replace(/[‘’]/g, "'").replace(/\s+/g, " ").trim().toLocaleLowerCase()
 	return UNSEND_TEXT_VARIANTS.some(variant => normalized === variant)
 }
 
