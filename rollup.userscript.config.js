@@ -1,4 +1,18 @@
-/** Bundle our main script into a valid userscript */
+/**
+ * Bundle our main script into a valid userscript.
+ *
+ * Userscript that can be fed to most if not all userscript managers.
+ *
+ * What does it do?
+ *
+ * 1. Reads the userscript metadata in data/meta.json
+ *	1.1 Build the userscript metadata section
+ * 2. Load node_modules using rollup's own plugin (node-resolve)
+ * 3. Bundled by rollup
+ *
+ * Note: When developing (env.BUILD != production) the userscript
+ * will be served via an HTTP server under process.env.PORT || 3000
+ */
 
 import fs from "fs"
 import nodeResolve from "@rollup/plugin-node-resolve"

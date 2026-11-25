@@ -13,5 +13,7 @@ List of up and coming features.
 
 ## Refused
 
-- ❌\[Most Github specific features\]. Because anyone should be able to participate even if one does not want/cannot use Github
-    > Such as complex and complete garbage CIs, [issue forms](https://docs.github.com/en/communities/using-templates-to-encourage-useful-issues-and-pull-requests/syntax-for-issue-forms) etc..
+- ❌\[Most Github specific features\]. Because anyone should be able to participate even if one does not want/cannot use Github.
+    > Such as needlessly complicatated CIs, [issue forms] etc..
+
+[issue forms]: https://docs.github.com/en/communities/using-templates-to-encourage-useful-issues-and-pull-requests/syntax-for-issue-forms

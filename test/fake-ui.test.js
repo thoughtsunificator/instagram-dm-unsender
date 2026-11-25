@@ -8,7 +8,7 @@ test("createDummyMessageElement click", t => {
 })
 
 test("createMessageActionsMenuElement", t => {
-	const messageActionsMenuElement = createMessageActionsMenuElement(t.context.document)
+	const messageActionsMenuElement = createMessageActionsMenuElement({ document: t.context.document })
 	t.context.mountElement.append(messageActionsMenuElement)
 	t.not(messageActionsMenuElement.querySelector("#unsend"), null)
 	t.is(messageActionsMenuElement.querySelector("button"), null)
@@ -18,7 +18,7 @@ test("createMessageActionsMenuElement", t => {
 })
 
 test("createMessageActionsMenuElement click", t => {
-	const messageActionsMenuElement = createMessageActionsMenuElement(t.context.document)
+	const messageActionsMenuElement = createMessageActionsMenuElement({ document: t.context.document })
 	t.context.mountElement.append(messageActionsMenuElement)
 	t.not(messageActionsMenuElement.querySelector("#unsend"), null)
 	t.is(messageActionsMenuElement.querySelector("button"), null)

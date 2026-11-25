@@ -1,14 +1,21 @@
-/** @module main Main module */
+/**
+ * Entrypoint for the userscript runtime
+ */
+import { startFeatures } from "./features.js"
 
-import OSD from "./osd/osd.js"
+export { main }
 
 /**
  * @param {Window} window
+ * @returns {object[]} the started features
  */
-export function main(window) {
-	OSD.render(window)
+function main(window) {
+	return startFeatures(window)
 }
 
+/**
+ * Run in realms where Window global object is defined
+ */
 if(typeof window !== "undefined") {
 	main(window)
 }
