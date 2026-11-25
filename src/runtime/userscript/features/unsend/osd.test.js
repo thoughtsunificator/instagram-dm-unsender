@@ -39,3 +39,15 @@ test("OSD setStatus updates the status line and remove removes the UI", t => {
 	t.is(t.context.document.getElementById("idmu-root"), null)
 	t.is(t.context.document.getElementById("idmu-overlay"), null)
 })
+
+test("OSD shows the run counts and toggles the What's new panel", t => {
+	const osd = createOSD(t)
+	t.is(osd.progressElement.textContent, "0 unsent · 0 failed")
+	osd.setProgress({ unsent: 3, failures: 1 })
+	t.is(osd.progressElement.textContent, "3 unsent · 1 failed")
+	t.is(osd.changelog.isVisible(), false)
+	osd.whatsNewButton.click()
+	t.is(osd.changelog.isVisible(), true)
+	osd.whatsNewButton.click()
+	t.is(osd.changelog.isVisible(), false)
+})

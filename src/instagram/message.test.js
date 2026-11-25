@@ -96,6 +96,16 @@ test("findUnsendMenuItem does not match an unrelated menu entry", t => {
 	t.is(findUnsendMenuItem(document), undefined)
 })
 
+test("findActionButton finds the more options button by a localized aria-label, quotes included", t => {
+	const { document } = t.context
+	const { element } = createMessage(t)
+	const button = document.createElement("div")
+	button.setAttribute("role", "button")
+	button.innerHTML = "<svg aria-label=\"Plus d'options\"></svg>"
+	element.append(button)
+	t.is(findActionButton(element), button)
+})
+
 test("collectHoverTargets walks down to a limited depth", t => {
 	const root = t.context.document.createElement("div")
 	let parent = root

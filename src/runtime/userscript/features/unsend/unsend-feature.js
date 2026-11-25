@@ -72,6 +72,12 @@ UnsendFeature.prototype.run = function() {
 	const workflow = new UnsendWorkflow(this.thread)
 	this.workflow = workflow
 	workflow.on("status", text => osd.setStatus(text))
+	workflow.on("metrics", metric => {
+		if(metric.type === "counter" && (metric.name === "unsent" || metric.name === "failures")) {
+			osd.setProgress({ unsent: workflow.metrics.counters.unsent ?? 0, failures: workflow.metrics.counters.failures ?? 0 })
+		}
+	})
+	osd.setProgress({ unsent: 0, failures: 0 })
 	workflow.on("start", () => osd.setRunning(true))
 	workflow.on("end", () => {
 		osd.setRunning(false)

@@ -17,6 +17,9 @@
 import fs from "fs"
 import nodeResolve from "@rollup/plugin-node-resolve"
 import serve from "rollup-plugin-serve"
+import { parseChangelog } from "./src/changelog/parse-changelog.js"
+
+const CHANGELOG_MODULE = "src/runtime/userscript/changelog.js"
 
 const isProduction = process.env.BUILD === "production"
 const isDevelopment = !isProduction
@@ -42,6 +45,18 @@ export default {
 				}
 				str += "\n\n// ==/UserScript==\n\n"
 				return str
+			}
+		},
+		{
+			/** Fills the CHANGELOG constant of changelog.js with the entries of CHANGELOG.md */
+			name: "idmu-changelog",
+			transform(code, id) {
+				if(!id.replace(/\\/g, "/").endsWith(CHANGELOG_MODULE)) {
+					return null
+				}
+				this.addWatchFile("./CHANGELOG.md")
+				const entries = parseChangelog(fs.readFileSync("./CHANGELOG.md", "utf8"))
+				return code.replace("const CHANGELOG = []", `const CHANGELOG = ${JSON.stringify(entries)}`)
 			}
 		},
 		nodeResolve(),
