@@ -33,8 +33,8 @@ test("OSD setRunning shows the overlay and changes the button", t => {
 
 test("OSD setStatus updates the status line and remove removes the UI", t => {
 	const osd = createOSD(t)
-	osd.setStatus("Done. 2 message(s) unsent.")
-	t.is(osd.statusElement.textContent, "Done. 2 message(s) unsent.")
+	osd.setStatus("Done. 2 messages unsent.")
+	t.is(osd.statusElement.textContent, "Done. 2 messages unsent.")
 	osd.remove()
 	t.is(t.context.document.getElementById("idmu-root"), null)
 	t.is(t.context.document.getElementById("idmu-overlay"), null)

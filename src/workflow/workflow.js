@@ -1,6 +1,7 @@
 import { Observable } from "../event/observable.js"
 import { WorkflowMetrics } from "./workflow-metrics.js"
 import { sleep, backoffDelay } from "./timing.js"
+import { t } from "../i18n/i18n.js"
 
 export { Workflow, WorkflowAbortedError, pipe }
 
@@ -101,7 +102,7 @@ Workflow.prototype.withBackoff = async function(task, { retries = 3, baseMs = 30
 				throw error
 			}
 			const delay = backoffDelay(attempt, baseMs, maxMs)
-			this.setStatus(`Retrying in ${(delay / 1000).toFixed(0)}s (${attempt}/${retries})...`)
+			this.setStatus(t("workflow.retrying", { seconds: (delay / 1000).toFixed(0), attempt, retries }))
 			await sleep(delay, this.abortController.signal)
 		}
 	}

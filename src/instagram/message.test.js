@@ -62,6 +62,40 @@ test("findUnsendMenuItem matches the localized unsend labels", t => {
 	t.is(findUnsendMenuItem(t.context.document), label)
 })
 
+test("findUnsendMenuItem matches labels in any language, ignoring accents composition, apostrophes and spacing", t => {
+	const { document } = t.context
+	const menu = document.createElement("div")
+	menu.setAttribute("role", "menu")
+	const label = document.createElement("span")
+	label.textContent = "送信を取り消す"
+	menu.append(label)
+	document.body.append(menu)
+	t.is(findUnsendMenuItem(document), label)
+
+	menu.innerHTML = ""
+	const decomposed = document.createElement("span")
+	decomposed.textContent = "zurücknehmen" // "zurücknehmen" with a combining diaeresis
+	menu.append(decomposed)
+	t.is(findUnsendMenuItem(document), decomposed)
+
+	menu.innerHTML = ""
+	const spaced = document.createElement("span")
+	spaced.textContent = "  Ongedaan   maken "
+	menu.append(spaced)
+	t.is(findUnsendMenuItem(document), spaced)
+})
+
+test("findUnsendMenuItem does not match an unrelated menu entry", t => {
+	const { document } = t.context
+	const menu = document.createElement("div")
+	menu.setAttribute("role", "menu")
+	const label = document.createElement("span")
+	label.textContent = "Reply"
+	menu.append(label)
+	document.body.append(menu)
+	t.is(findUnsendMenuItem(document), undefined)
+})
+
 test("collectHoverTargets walks down to a limited depth", t => {
 	const root = t.context.document.createElement("div")
 	let parent = root

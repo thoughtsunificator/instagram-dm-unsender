@@ -14,7 +14,7 @@ The userscript allows a user to batch unsend DMs in a thread on the web version 
 
 ## State of Affairs
 
-⚠️ Not all languages are supported as of yet so **please set your UI language to English before running the script**. If you do want your language supported you are always welcome to make a [contribution](./.github/CONTRIBUTING.md).
+idmu shows its own messages in the language of the page (or of your browser), and falls back to English for any text without a translation. Languages are added by translation files, see the [translator manual](./documentation/translator.md). If your language is missing or the "Unsend" menu item is not found, please [report it](./.github/ISSUE_TEMPLATE/bug_report.md) or [contribute](./.github/CONTRIBUTING.md).
 
 ## Use cases
 

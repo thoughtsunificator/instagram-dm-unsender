@@ -2,11 +2,10 @@
 
 import { Observable } from "../../../../event/observable.js"
 import { BUTTON_STYLE, applyButtonStyle } from "./style.js"
+import { t } from "../../../../i18n/i18n.js"
 
 export { UnsendButton }
 
-const IDLE_TEXT = "Unsend all DMs"
-const RUNNING_TEXT = "Stop processing"
 const RUNNING_COLOR = "#FA383E"
 
 /**
@@ -17,7 +16,7 @@ const RUNNING_COLOR = "#FA383E"
 function UnsendButton(document) {
 	Observable.call(this)
 	this.root = document.createElement("button")
-	this.root.textContent = IDLE_TEXT
+	this.root.textContent = t("ui.unsendAll")
 	applyButtonStyle(this.root, BUTTON_STYLE.PRIMARY)
 	this.idleColor = this.root.style.backgroundColor
 	this.root.addEventListener("mouseover", () => {
@@ -35,6 +34,6 @@ UnsendButton.prototype.constructor = UnsendButton
  * @param {boolean} running
  */
 UnsendButton.prototype.setRunning = function(running) {
-	this.root.textContent = running ? RUNNING_TEXT : IDLE_TEXT
+	this.root.textContent = running ? t("ui.stopProcessing") : t("ui.unsendAll")
 	this.root.style.backgroundColor = running ? RUNNING_COLOR : this.idleColor
 }
