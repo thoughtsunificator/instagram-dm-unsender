@@ -54,6 +54,11 @@ UnsendFeature.prototype.isRunning = function() {
 }
 
 UnsendFeature.prototype.onEnterThread = function(thread) {
+	if(this.osd) {
+		this.debugLog.warn("Duplicate OSD detected; removing previous instance")
+		this.osd.remove()
+		this.osd = null
+	}
 	this.thread = thread
 	this.debugLog.info("Entered thread", { url: this.window.location.href })
 	this.osd = new OSD(this.window.document, {
@@ -63,6 +68,7 @@ UnsendFeature.prototype.onEnterThread = function(thread) {
 		onSnapshot: () => snapshotThread(this.thread),
 	})
 	this.osd.render()
+	this.installTestApi()
 	if(shouldShowOnboarding(this.window)) {
 		const modal = createOnboardingModal(this.window.document)
 		this.window.document.body.append(modal.root)
@@ -128,6 +134,35 @@ UnsendFeature.prototype.stop = function() {
 	if(this.workflow) {
 		this.osd?.setStatus(t("ui.stopping"))
 		this.workflow.stop()
+	}
+}
+
+UnsendFeature.prototype.installTestApi = function() {
+	const self = this
+	this.window.__idmuTest = {
+		start: () => { if(!self.isRunning()) self.run() },
+		stop: () => self.stop(),
+		toggle: () => self.toggle(),
+		isRunning: () => self.isRunning(),
+		getState: () => ({
+			running: self.isRunning(),
+			status: self.osd?.statusElement?.textContent || null,
+			progress: self.osd?.progressElement?.textContent || null,
+			unsent: self.workflow?.metrics?.counters?.unsent ?? 0,
+			failures: self.workflow?.metrics?.counters?.failures ?? 0,
+		}),
+		waitForEnd: (timeoutMs = 30000) => new Promise((resolve, reject) => {
+			const start = Date.now()
+			const tick = () => {
+				const ended = (self.debugLog?.getEntries?.() || []).filter(e => e.message === "Workflow ended").at(-1)
+				if(ended) return resolve(ended.data || ended)
+				if(Date.now() - start > timeoutMs) return reject(new Error("waitForEnd timeout"))
+				setTimeout(tick, 100)
+			}
+			tick()
+		}),
+		getDebugReport: () => self.buildDebugReport(),
+		snapshot: () => snapshotThread(self.thread),
 	}
 }
 

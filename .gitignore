@@ -4,3 +4,6 @@ coverage/
 .env.json
 
 # E2E snapshots live in-repo. Only commit sanitized/synthetic snapshots; never commit personal DMs.
+
+# E2E failure artifacts (screenshots/DOM/logs)
+/test/e2e/artifacts/

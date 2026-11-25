@@ -37,8 +37,11 @@ npm run build
 node test/e2e/run-snapshot.mjs --snapshot test/fixtures/instagram-snapshots/<name> --userscript dist/idmu.user.js
 ```
 
-Environment:
+Options / env:
+- `--artifacts-dir <dir>` - where failure artifacts are saved (default: `test/e2e/artifacts/`)
 - `CHROME_BIN` - Chromium binary (default: `chromium`)
+
+On failure, the runner saves `meta.json`, `debug-log.txt`, `state.json`, `dom.html`, and `screenshot.png` to the artifacts dir.
 
 ## What it checks (MVP)
 

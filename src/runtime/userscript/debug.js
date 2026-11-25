@@ -10,7 +10,7 @@ import { LABEL_PATTERNS, UNSEND_TEXT_VARIANTS } from "../../instagram/messages.j
 import { findActionButton, findUnsendMenuItem } from "../../instagram/message.js"
 import { getMessagesInnerContainer, isSentByCurrentUser } from "../../instagram/messages-wrapper.js"
 
-export { DebugLog, installDebugGlobal, snapshotMessageRow, snapshotThread }
+export { DebugLog, installDebugGlobal, snapshotMessageRow, snapshotThread, explainRow, explainScan }
 
 const MAX_ENTRIES = 200
 
@@ -197,6 +197,56 @@ function collectAriaLabels(root) {
 }
 
 /**
+ * Explain why a row would or would not be selected/unsent.
+ * @param {Element} root
+ * @returns {object}
+ */
+function explainRow(root) {
+	const win = root.ownerDocument.defaultView
+	const aria = [...root.querySelectorAll("[aria-label]")].map(el => el.getAttribute("aria-label") || "")
+	const ownLabel = aria.find(l => /\b(you sent|your message|vous avez envoyé|votre message|tu as envoyé|hai inviato|tu mensaje|enviaste|deine nachricht|du hast gesendet|sua mensagem|você enviou)\b/i.test(l))
+	const otherLabel = aria.find(l => /\b(message de |message from |mensaje de |mensagem de |nachricht von )/i.test(l))
+	const text = (root.textContent || "").replace(/\s+/g, " ").trim()
+	const layoutHits = []
+	const q = [{ node: root, depth: 0 }]
+	while(q.length) {
+		const { node, depth } = q.shift()
+		const style = win.getComputedStyle(node)
+		if(["flex-end","end"].includes(style.justifyContent)) layoutHits.push({ depth, prop: "justifyContent", value: style.justifyContent })
+		if(["flex-end","end"].includes(style.alignSelf)) layoutHits.push({ depth, prop: "alignSelf", value: style.alignSelf })
+		if(style.marginLeft === "auto" && style.marginRight !== "auto") layoutHits.push({ depth, prop: "marginLeft", value: "auto" })
+		if(depth < 10) for(const child of node.children) q.push({ node: child, depth: depth + 1 })
+	}
+	const actionButton = findActionButton(root)
+	const menuItem = findUnsendMenuItem(root.ownerDocument)
+	const sentByCurrentUser = isSentByCurrentUser(root, win)
+	const reasons = []
+	if(ownLabel) reasons.push({ signal: "own-aria-label", value: ownLabel })
+	if(otherLabel) reasons.push({ signal: "other-aria-label", value: otherLabel, blocks: !ownLabel })
+	if(/\b(you sent|vous avez envoyé)\b/i.test(text.slice(0,120))) reasons.push({ signal: "own-text" })
+	for(const h of layoutHits) reasons.push({ signal: "layout", ...h, blocks: Boolean(otherLabel) && !ownLabel })
+	if(reasons.length === 0) reasons.push({ signal: "no-match" })
+	return {
+		sentByCurrentUser,
+		selectedForUnsend: sentByCurrentUser && !root.hasAttribute("data-idmu-ignore") && !root.hasAttribute("data-idmu-unsent"),
+		ignored: root.hasAttribute("data-idmu-ignore"),
+		unsent: root.hasAttribute("data-idmu-unsent"),
+		actionButton: describeElement(actionButton),
+		unsendMenuItemVisible: describeElement(menuItem),
+		reasons,
+		ariaLabels: aria.slice(0, 20),
+		textPreview: text.slice(0, 120),
+	}
+}
+
+function explainScan(thread) {
+	if(!thread?.messagesWrapper?.root) return { error: "No thread available" }
+	const root = thread.messagesWrapper.root
+	const inner = getMessagesInnerContainer(root)
+	return [...inner.children].slice(0, 50).map((row, i) => ({ index: i, ...explainRow(row) }))
+}
+
+/**
  * Install window.__idmuDebug for manual console debugging.
  *
  * @param {Window} window
@@ -271,6 +321,8 @@ function installDebugGlobal(window, { log, getThread }) {
 				.map(el => ({ role: el.getAttribute("role"), text: (el.textContent || "").replace(/\s+/g, " ").trim().slice(0, 120) }))
 			return { found: describeElement(item), menus }
 		},
+		explainRow: (el) => explainRow(el),
+		explainScan: () => explainScan(getThread()),
 		help: () => [
 			"__idmuDebug.getEntries() - debug log entries",
 			"__idmuDebug.formatText() - log as plain text",
@@ -279,6 +331,8 @@ function installDebugGlobal(window, { log, getThread }) {
 			"__idmuDebug.highlightActionButtons() - outline detected action buttons",
 			"__idmuDebug.probeSelectors() - per-row selector probe for top 10 rows",
 			"__idmuDebug.probeUnsendMenu() - inspect currently open menus/dialogs for unsend item",
+			"__idmuDebug.explainRow(el) - why a row is/isn't selected for unsend",
+			"__idmuDebug.explainScan() - explain selection for top rows",
 			"__idmuDebug.clear() - clear debug log",
 		].join("\n"),
 	}

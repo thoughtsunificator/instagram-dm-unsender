@@ -19,6 +19,7 @@ async function main() {
 	const snapshotDir = path.resolve(arg("--snapshot", path.join(repoRoot, "test/fixtures/instagram-snapshots/example")))
 	const userscriptPath = path.resolve(arg("--userscript", path.join(repoRoot, "dist/idmu.user.js")))
 	const scenario = arg("--scenario", "")
+	const artifactsDir = path.resolve(arg("--artifacts-dir", path.join(repoRoot, "test/e2e/artifacts")))
 	const chromeBin = process.env.CHROME_BIN || "chromium"
 	const port = 9229 + Math.floor(Math.random() * 500)
 
@@ -44,10 +45,18 @@ async function main() {
 	const chrome = spawn(chromeBin, chromeArgs, { stdio: "ignore" })
 	let chromeClosed = false
 	chrome.on("exit", () => { chromeClosed = true })
+	let cdp = null
 
 	try {
-		const cdp = await connectCdp(port)
+		cdp = await connectCdp(port)
+		cdp.consoleLogs = []
 		await cdp.send("Runtime.enable")
+		await cdp.send("Log.enable").catch(() => {})
+		cdp.on("Runtime.consoleAPICalled", p => {
+			const msg = (p.args || []).map(a => a.value ?? a.description ?? a.type).join(" ")
+			cdp.consoleLogs.push({ type: p.type, msg, ts: Date.now() })
+		})
+		cdp.on("Log.entryAdded", p => cdp.consoleLogs.push({ type: p.entry?.level || "log", msg: p.entry?.text || "", ts: Date.now() }))
 		await cdp.send("Page.enable")
 		await cdp.send("Page.navigate", { url: replay.baseUrl + (replay.snapshotPath || "/__page__") })
 		await waitFor(async () => {
@@ -77,27 +86,32 @@ async function main() {
 		}
 
 		const failed = checks.filter(c => !c.ok)
-		await cdp.close().catch(() => {})
 		if(failed.length) {
+			await dumpArtifacts(cdp, artifactsDir, { reason: "checks-failed", checks, scenario, snapshotDir })
 			console.error(`[e2e] ${failed.length} check(s) failed`)
 			process.exitCode = 1
 		} else {
 			console.log(`[e2e] ${checks.length} checks passed`)
 		}
+		await cdp.close().catch(() => {})
+		cdp = null
+	} catch (err) {
+		console.error(err?.stack || err)
+		if(cdp) await dumpArtifacts(cdp, artifactsDir, { reason: "exception", error: String(err?.stack || err), scenario, snapshotDir }).catch(() => {})
+		process.exitCode = 1
 	} finally {
+		if(cdp) await cdp.close().catch(() => {})
 		if(!chromeClosed) chrome.kill("SIGTERM")
 		await replay.close().catch(() => {})
 	}
 }
 
 async function runUnsendScenario(cdp, ok) {
-	// Dismiss onboarding modal if present
 	await cdp.evaluate("document.getElementById('idmu-onboarding')?.querySelector('button')?.click()")
 	await sleep(200)
 	const injected = await cdp.evaluate("window.__idmuE2E?.state?.unsent === 0")
 	ok("unsend scenario injected", injected)
 
-	// Click Unsend all DMs
 	await cdp.evaluate("window.__idmuFeature ? window.__idmuFeature.toggle() : document.querySelector('#idmu-menu button').click()")
 	try {
 		await waitFor(async () => {
@@ -110,8 +124,8 @@ async function runUnsendScenario(cdp, ok) {
 			return /Done\.|Terminé\.|Aborted\.|Interrompu\.|Stopped|Arrêté/.test(state.text) || (state.ended && state.unsent >= 1)
 		}, 45000)
 	} catch (e) {
-		const diag = await cdp.evaluate(`(() => ({status: document.getElementById('idmu-status')?.textContent, progress: document.getElementById('idmu-progress')?.textContent, unsent: window.__idmuE2E?.state?.unsent, debug: window.__idmuDebug?.formatText?.().slice(-2000), menu: Boolean(document.querySelector('#idmu-menu button'))}))()`)
-		console.error('[e2e] timeout diag', diag)
+		const diag = await cdp.evaluate(`(() => ({status: document.getElementById('idmu-status')?.textContent, progress: document.getElementById('idmu-progress')?.textContent, unsent: window.__idmuE2E?.state?.unsent, debug: window.__idmuDebug?.formatText?.().slice(-4000), menu: Boolean(document.querySelector('#idmu-menu button'))}))()`)
+		console.error("[e2e] timeout diag", diag)
 		throw e
 	}
 
@@ -126,6 +140,24 @@ async function runUnsendScenario(cdp, ok) {
 	ok("workflow completed", /Done\.|Terminé\./.test(status) || ended)
 	ok("at least one message unsent", Number(unsent) >= 1)
 	ok("progress shows unsent", /[1-9].*unsent|retiré/i.test(progress) || ended)
+}
+
+async function dumpArtifacts(cdp, artifactsDir, meta) {
+	if(!cdp) return
+	const stamp = new Date().toISOString().replace(/[:.]/g, "-")
+	const dir = path.join(artifactsDir, stamp)
+	await fs.mkdir(dir, { recursive: true })
+	const write = async (name, value) => fs.writeFile(path.join(dir, name), typeof value === "string" ? value : JSON.stringify(value, null, 2))
+	await write("meta.json", meta)
+	try { await write("console.json", cdp.consoleLogs || []) } catch {}
+	try { await write("debug-log.txt", await cdp.evaluate("window.__idmuDebug?.formatText?.() || ''")) } catch {}
+	try { await write("state.json", await cdp.evaluate(`(() => ({status: document.getElementById('idmu-status')?.textContent, progress: document.getElementById('idmu-progress')?.textContent, url: location.href, title: document.title, unsent: window.__idmuE2E?.state?.unsent, feature: Boolean(window.__idmuFeature), debug: Boolean(window.__idmuDebug), testApi: Boolean(window.__idmuTest)}))()`)) } catch {}
+	try { await write("dom.html", await cdp.evaluate("document.documentElement.outerHTML")) } catch {}
+	try {
+		const shot = await cdp.send("Page.captureScreenshot", { format: "png" })
+		if(shot?.data) await fs.writeFile(path.join(dir, "screenshot.png"), Buffer.from(shot.data, "base64"))
+	} catch {}
+	console.error(`[e2e] artifacts saved: ${dir}`)
 }
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)) }

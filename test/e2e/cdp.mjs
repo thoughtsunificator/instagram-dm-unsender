@@ -22,6 +22,7 @@ async function connectCdp(port, timeoutMs = 10000) {
 function createClient(ws) {
 	let id = 0
 	const pending = new Map()
+	const listeners = new Map()
 	ws.onmessage = ev => {
 		const msg = JSON.parse(String(ev.data))
 		if(msg.id && pending.has(msg.id)) {
@@ -29,7 +30,17 @@ function createClient(ws) {
 			pending.delete(msg.id)
 			if(msg.error) reject(new Error(msg.error.message || JSON.stringify(msg.error)))
 			else resolve(msg.result)
+			return
 		}
+		if(msg.method) {
+			for(const fn of listeners.get(msg.method) || []) fn(msg.params || {})
+			for(const fn of listeners.get("*") || []) fn(msg)
+		}
+	}
+	function on(method, fn) {
+		if(!listeners.has(method)) listeners.set(method, new Set())
+		listeners.get(method).add(fn)
+		return () => listeners.get(method)?.delete(fn)
 	}
 	function send(method, params = {}) {
 		const msgId = ++id
@@ -45,7 +56,7 @@ function createClient(ws) {
 		return r.result?.value
 	}
 	return {
-		send, evaluate,
+		send, evaluate, on,
 		close: () => new Promise(resolve => { ws.onclose = resolve; ws.close() }),
 	}
 }
