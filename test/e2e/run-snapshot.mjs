@@ -16,14 +16,23 @@ function arg(name, fallback = null) {
 }
 
 async function main() {
-	const snapshotDir = path.resolve(arg("--snapshot", path.join(repoRoot, "test/fixtures/instagram-snapshots/example")))
+	const snapshotArg = arg("--snapshot")
+	const snapshotDir = path.resolve(snapshotArg || path.join(repoRoot, "test/fixtures/instagram-snapshots/example"))
 	const userscriptPath = path.resolve(arg("--userscript", path.join(repoRoot, "dist/idmu.user.js")))
 	const scenario = arg("--scenario", "")
 	const artifactsDir = path.resolve(arg("--artifacts-dir", path.join(repoRoot, "test/e2e/artifacts")))
 	const chromeBin = process.env.CHROME_BIN || "chromium"
 	const port = 9229 + Math.floor(Math.random() * 500)
 
-	await fs.access(path.join(snapshotDir, "meta.json"))
+	try {
+		await fs.access(path.join(snapshotDir, "meta.json"))
+	} catch {
+		console.error(`[e2e] Snapshot not found: ${snapshotDir}`)
+		console.error("Provide --snapshot <dir> containing meta.json/page.html/resources/.")
+		console.error("Capture one: node test/e2e/capture-snapshot.mjs --session <browser-ctl-session> --name <name>")
+		console.error("Or use:       node test/e2e/capture-snapshot.mjs --from <archive-dir> --name <name>")
+		process.exit(2)
+	}
 	const userscript = await fs.readFile(userscriptPath, "utf8")
 	const replay = await createReplayServer(snapshotDir)
 	console.log(`[e2e] replay: ${replay.baseUrl}`)
