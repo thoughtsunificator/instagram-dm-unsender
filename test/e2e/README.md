@@ -12,15 +12,23 @@ Live Instagram testing is slow, flaky, rate-limited, and requires auth. Instead:
 
 ## Capture a snapshot
 
-With a browser-ctl session open on the Instagram DM thread you want to capture:
+### With browser-ctl (convenient)
 
 ```sh
 node test/e2e/capture-snapshot.mjs --session <browser-ctl-session> --name dm-thread-sample
 ```
 
-This flushes `browser-ctl archive` and copies the latest Instagram Messages archive into `test/fixtures/instagram-snapshots/<name>/`.
+This flushes `browser-ctl archive` and copies the latest Instagram Messages archive.
 
-Snapshots contain page HTML, resources, and metadata from browser-ctl archive. Review them before committing - they may contain personal data.
+### Without browser-ctl (manual/portable)
+
+Provide any snapshot directory containing `meta.json`, `page.html`, and `resources/` (the browser-ctl archive format):
+
+```sh
+node test/e2e/capture-snapshot.mjs --from /path/to/archive-dir --name dm-thread-sample
+```
+
+You can create the archive dir manually, from browser-ctl on another machine, or by copying an existing archive. Review snapshots before committing - they may contain personal data.
 
 ## Run e2e against a snapshot
 
