@@ -4,6 +4,7 @@ import { PageNavigation } from "../../page-navigation.js"
 import { UnsendWorkflow } from "../../../../unsend-workflow/unsend-workflow.js"
 import { OSD } from "./osd.js"
 import { t } from "../../../../i18n/i18n.js"
+import { DebugLog, installDebugGlobal, snapshotThread } from "../../debug.js"
 
 export { UnsendFeature }
 
@@ -22,13 +23,21 @@ function UnsendFeature(window) {
 	this.thread = null
 	this.osd = null
 	this.workflow = null
+	this.debugLog = new DebugLog()
 	this.navigation.on("enter", thread => this.onEnterThread(thread))
 	this.navigation.on("leave", () => this.onLeaveThread())
-	this.navigation.on("error", error => console.error(error))
+	this.navigation.on("error", error => {
+		this.debugLog.error("Navigation error", { message: error?.message, stack: error?.stack })
+		console.error(error)
+	})
 	this.onKeyEvent = event => this.filterKeyEvent(event)
 	// Capture phase: runs before the page's own handlers
 	window.document.addEventListener("keydown", this.onKeyEvent, true)
 	window.document.addEventListener("keyup", this.onKeyEvent, true)
+	installDebugGlobal(window, {
+		log: this.debugLog,
+		getThread: () => this.thread,
+	})
 }
 
 UnsendFeature.prototype.start = function() {
@@ -44,11 +53,18 @@ UnsendFeature.prototype.isRunning = function() {
 
 UnsendFeature.prototype.onEnterThread = function(thread) {
 	this.thread = thread
-	this.osd = new OSD(this.window.document, { onToggle: () => this.toggle() })
+	this.debugLog.info("Entered thread", { url: this.window.location.href })
+	this.osd = new OSD(this.window.document, {
+		onToggle: () => this.toggle(),
+		debugLog: this.debugLog,
+		getDebugReport: () => this.buildDebugReport(),
+		onSnapshot: () => snapshotThread(this.thread),
+	})
 	this.osd.render()
 }
 
 UnsendFeature.prototype.onLeaveThread = function() {
+	this.debugLog.info("Leaving thread")
 	this.stop()
 	if(this.osd) {
 		this.osd.remove()
@@ -60,9 +76,11 @@ UnsendFeature.prototype.onLeaveThread = function() {
 UnsendFeature.prototype.toggle = function() {
 	if(this.isRunning()) {
 		console.debug("User asked for messages unsending to stop")
+		this.debugLog.info("User requested stop")
 		this.stop()
 	} else {
 		console.debug("User asked for messages unsending to start")
+		this.debugLog.info("User requested start")
 		this.run()
 	}
 }
@@ -71,22 +89,31 @@ UnsendFeature.prototype.run = function() {
 	const { osd } = this
 	const workflow = new UnsendWorkflow(this.thread)
 	this.workflow = workflow
-	workflow.on("status", text => osd.setStatus(text))
+	workflow.on("status", text => {
+		osd.setStatus(text)
+		this.debugLog.debug("Workflow status", { text })
+	})
 	workflow.on("metrics", metric => {
 		if(metric.type === "counter" && (metric.name === "unsent" || metric.name === "failures")) {
 			osd.setProgress({ unsent: workflow.metrics.counters.unsent ?? 0, failures: workflow.metrics.counters.failures ?? 0 })
 		}
+		this.debugLog.debug("Workflow metric", metric)
 	})
 	osd.setProgress({ unsent: 0, failures: 0 })
-	workflow.on("start", () => osd.setRunning(true))
-	workflow.on("end", () => {
+	workflow.on("start", () => {
+		osd.setRunning(true)
+		this.debugLog.info("Workflow started")
+	})
+	workflow.on("end", result => {
 		osd.setRunning(false)
+		this.debugLog.info("Workflow ended", result)
 		if(this.workflow === workflow) {
 			this.workflow = null
 		}
 	})
 	workflow.run().catch(error => {
 		console.error(error)
+		this.debugLog.error("Workflow crashed", { message: error?.message, stack: error?.stack, name: error?.name })
 		osd.setStatus(t("ui.error", { url: BUG_REPORT_URL }))
 	})
 }
@@ -96,6 +123,23 @@ UnsendFeature.prototype.stop = function() {
 		this.osd?.setStatus(t("ui.stopping"))
 		this.workflow.stop()
 	}
+}
+
+UnsendFeature.prototype.buildDebugReport = function() {
+	const snapshot = snapshotThread(this.thread)
+	const lines = [
+		"# instagram-dm-unsender debug report",
+		`url: ${this.window.location.href}`,
+		`userAgent: ${this.window.navigator.userAgent}`,
+		`running: ${this.isRunning()}`,
+		"",
+		"## Snapshot",
+		JSON.stringify(snapshot, null, 2),
+		"",
+		"## Log",
+		this.debugLog.formatText(),
+	]
+	return lines.join("\n")
 }
 
 /**

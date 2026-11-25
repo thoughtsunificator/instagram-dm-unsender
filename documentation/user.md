@@ -30,3 +30,19 @@ Install a Userscript manager for your browser :
 2. You should see a menu with a button titled "Unsend all DMs":
 ![UI Preview](../preview.gif)
 3. Click the button and the workflow will start unsending your messages.
+
+## Troubleshooting
+
+- If unsending stops with failures, open the **Debug** panel in the IDMU menu and click **Copy debug report**. Include that report in bug reports.
+- For DOM selector issues, open the browser DevTools console on instagram.com and use:
+
+```js
+__idmuDebug.help()
+__idmuDebug.snapshotThread()
+__idmuDebug.probeSelectors()
+__idmuDebug.highlightActionButtons()
+__idmuDebug.probeUnsendMenu()
+```
+
+- If no messages are found, make sure a conversation is open and visible. Instagram DOM changes can break selectors; the debug report shows what IDMU saw.
+- Rate limits: if Instagram temporarily blocks unsending, IDMU backs off and may stop after repeated failures. Wait and retry later.

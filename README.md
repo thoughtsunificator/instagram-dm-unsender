@@ -62,6 +62,8 @@ Contributions [are always welcome](./.github/CONTRIBUTING.md).
 
 ❗The issue will not be considered unless you provide ALL the required information as per the template. 
 
+Use the **Debug** panel in IDMU and include the copied debug report (it contains DOM snapshot + log). For DOM selector issues, also include `__idmuDebug.snapshotThread()` output from the browser console.
+
 To report a bug please use [this link](https://github.com/thoughtsunificator/instagram-dm-unsender/issues/new?template=bug_report.md) while following the template.
 
 ## 💡 Feature request 

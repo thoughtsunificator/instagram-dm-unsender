@@ -12,6 +12,13 @@ export const en = {
 	"ui.whatsNew": "What's new",
 	"ui.close": "Close",
 	"ui.noChanges": "No changes recorded yet.",
+	"ui.debug": "Debug",
+	"ui.copyDebug": "Copy debug report",
+	"ui.debugCopied": "Debug report copied",
+	"ui.debugCopyFailed": "Could not copy debug report",
+	"ui.debugEmpty": "No debug entries yet.",
+	"ui.debugSnapshot": "Snapshot DOM",
+	"ui.debugClear": "Clear",
 
 	"workflow.loadingNextPage": "Loading next page...",
 	"workflow.allPagesLoaded": "All pages loaded ({pages} in total).",

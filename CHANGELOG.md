@@ -1,3 +1,10 @@
+## 0.7.3 — 2026-11-25
+
+- Improve the on-screen UI: compact menu layout, debug panel, and debug report copy
+- Add DOM debugging tools: `window.__idmuDebug` helpers (snapshot, probe selectors, highlight action buttons, probe unsend menu) and live debug log
+- Harden unsend flow: safer stale overlay dismissal, better confirm-button selection, case-insensitive action button fallback, scrollIntoView before hover, and longer unsend validation delay
+- Document DOM debugging workflow in README and user manual
+
 # Changelog
 
 Shown in the "What's new" panel of the userscript.

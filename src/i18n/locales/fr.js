@@ -9,6 +9,13 @@ export const fr = {
 	"ui.whatsNew": "Nouveautés",
 	"ui.close": "Fermer",
 	"ui.noChanges": "Aucune modification enregistrée pour l’instant.",
+	"ui.debug": "Débogage",
+	"ui.copyDebug": "Copier le rapport de débogage",
+	"ui.debugCopied": "Rapport de débogage copié",
+	"ui.debugCopyFailed": "Impossible de copier le rapport de débogage",
+	"ui.debugEmpty": "Aucune entrée de débogage pour l’instant.",
+	"ui.debugSnapshot": "Instantané DOM",
+	"ui.debugClear": "Effacer",
 
 	"workflow.loadingNextPage": "Chargement de la page suivante...",
 	"workflow.allPagesLoaded": "Toutes les pages sont chargées ({pages} au total).",

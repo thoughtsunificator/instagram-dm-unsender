@@ -12,6 +12,7 @@ function createStatusElement(document) {
 	const statusElement = document.createElement("div")
 	statusElement.id = "idmu-status"
 	statusElement.textContent = t("ui.ready")
-	statusElement.style.width = "200px"
+	statusElement.style.minWidth = "160px"
+	statusElement.style.maxWidth = "320px"
 	return statusElement
 }

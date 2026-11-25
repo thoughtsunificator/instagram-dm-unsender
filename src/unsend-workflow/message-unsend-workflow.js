@@ -5,7 +5,7 @@ import { dismissOverlays } from "../instagram/overlays.js"
 export { MessageUnsend, MessageValidateUnsend, FailedWorkflowError, LateFailureWorkflowError }
 
 /** Time given to Instagram to remove the message from the DOM after confirmation */
-const VALIDATION_DELAY_MS = 800
+const VALIDATION_DELAY_MS = 1500
 
 /**
  * @param {string} message

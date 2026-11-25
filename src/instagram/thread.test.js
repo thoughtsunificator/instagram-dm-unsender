@@ -19,18 +19,24 @@ test("isThreadPath matches conversation urls", t => {
 	t.false(isThreadPath(t.context.window))
 })
 
-test("dismissStaleOverlays closes a stale dialog by clicking its button", t => {
+test("dismissStaleOverlays dismisses a stale dialog via Escape, falling back to a cancel button", t => {
 	const dialog = t.context.document.createElement("div")
 	dialog.setAttribute("role", "dialog")
-	const button = t.context.document.createElement("button")
+	const cancel = t.context.document.createElement("button")
+	cancel.textContent = "Cancel"
 	let clicked = false
-	button.addEventListener("click", () => {
-		clicked = true
-	})
-	dialog.append(button)
+	cancel.addEventListener("click", () => { clicked = true; dialog.remove() })
+	const confirm = t.context.document.createElement("button")
+	confirm.textContent = "Unsend"
+	confirm.addEventListener("click", () => { t.fail("must not click confirm") })
+	dialog.append(confirm, cancel)
 	t.context.document.body.append(dialog)
+	let escapePressed = false
+	t.context.document.body.addEventListener("keydown", event => { if(event.key === "Escape") escapePressed = true })
 	dismissStaleOverlays(t.context.document)
+	t.true(escapePressed)
 	t.true(clicked)
+	t.is(t.context.document.querySelector("[role=dialog]"), null)
 })
 
 test("dismissStaleOverlays presses Escape when a menu is open", t => {

@@ -13,8 +13,8 @@ function createChangelogPanel(document, entries) {
 	const root = document.createElement("div")
 	root.id = "idmu-changelog"
 	root.style.position = "fixed"
-	root.style.top = "60px"
-	root.style.right = "430px"
+	root.style.top = "76px"
+	root.style.right = "16px"
 	root.style.zIndex = "999"
 	root.style.width = "360px"
 	root.style.maxHeight = "60vh"
