@@ -1,7 +1,15 @@
-function Status() {
-	this.root = document.createElement("div")
-	this.root.textContent = "Ready"
-	this.root.id = "idmu-status"
-	this.root.style = "width: 200px"
-}
+/** @module status IDMU's status line */
 
+export { createStatusElement }
+
+/**
+ * @param {Document} document
+ * @returns {HTMLDivElement}
+ */
+function createStatusElement(document) {
+	const statusElement = document.createElement("div")
+	statusElement.id = "idmu-status"
+	statusElement.textContent = "Ready"
+	statusElement.style.width = "200px"
+	return statusElement
+}

@@ -1,52 +1,105 @@
-import { ThreadPageNavigation } from "./thread-page-navigation.js"
-import { Observable } from "../../../../event/observable.js"
+/** @module unsend-feature Unsend all the messages of a conversation */
+
+import { PageNavigation } from "../../page-navigation.js"
+import { UnsendWorkflow } from "../../../../unsend-workflow/unsend-workflow.js"
+import { OSD } from "./osd.js"
 
 export { UnsendFeature }
 
+const BUG_REPORT_URL = "https://github.com/thoughtsunificator/instagram-dm-unsender/issues/new?template=bug_report.md"
+
 /**
+ * Shows the OSD on every conversation and runs an UnsendWorkflow on demand.
+ *
+ * While the workflow runs, keyboard interaction with the page is cancelled so that it cannot corrupt the run.
+ *
  * @param {Window} window
  */
 function UnsendFeature(window) {
-	const feature = new Observable()
-	const navigation = new ThreadPageNavigation()
-	let workflow
-	let osd
-	navigation.on("enter", (page) => {
-		osd = ThreadPageWorkflowOSD()
-		workflow = new UnsendWorkflow(page)
-		filterInteractions(navigation, workflow)
-		window.document.body.appendChild(threadPageWorkflowOSD.root)
+	this.window = window
+	this.navigation = new PageNavigation(window)
+	this.thread = null
+	this.osd = null
+	this.workflow = null
+	this.navigation.on("enter", thread => this.onEnterThread(thread))
+	this.navigation.on("leave", () => this.onLeaveThread())
+	this.navigation.on("error", error => console.error(error))
+	this.onKeyEvent = event => this.filterKeyEvent(event)
+	// Capture phase: runs before the page's own handlers
+	window.document.addEventListener("keydown", this.onKeyEvent, true)
+	window.document.addEventListener("keyup", this.onKeyEvent, true)
+}
+
+UnsendFeature.prototype.start = function() {
+	this.navigation.start()
+}
+
+/**
+ * @returns {boolean} true while a workflow is running
+ */
+UnsendFeature.prototype.isRunning = function() {
+	return this.workflow !== null
+}
+
+UnsendFeature.prototype.onEnterThread = function(thread) {
+	this.thread = thread
+	this.osd = new OSD(this.window.document, { onToggle: () => this.toggle() })
+	this.osd.render()
+}
+
+UnsendFeature.prototype.onLeaveThread = function() {
+	this.stop()
+	if(this.osd) {
+		this.osd.remove()
+	}
+	this.osd = null
+	this.thread = null
+}
+
+UnsendFeature.prototype.toggle = function() {
+	if(this.isRunning()) {
+		console.debug("User asked for messages unsending to stop")
+		this.stop()
+	} else {
+		console.debug("User asked for messages unsending to start")
+		this.run()
+	}
+}
+
+UnsendFeature.prototype.run = function() {
+	const { osd } = this
+	const workflow = new UnsendWorkflow(this.thread)
+	this.workflow = workflow
+	workflow.on("status", text => osd.setStatus(text))
+	workflow.on("start", () => osd.setRunning(true))
+	workflow.on("end", () => {
+		osd.setRunning(false)
+		if(this.workflow === workflow) {
+			this.workflow = null
+		}
 	})
-	navigation.on("leave", (page) => {
-		workflow.stop()
-		osd.remove()
+	workflow.run().catch(error => {
+		console.error(error)
+		osd.setStatus(`An error occurred, ${BUG_REPORT_URL}`)
 	})
 }
 
+UnsendFeature.prototype.stop = function() {
+	if(this.workflow) {
+		this.osd?.setStatus("Stopping...")
+		this.workflow.stop()
+	}
+}
 
 /**
- * When workflow is running, filter user interactions to avoid corrupting it
- * This is done by cancelling keydown
+ * @param {KeyboardEvent} event
  */
-function filterInteractions(navigation, workflow) {
-	workflow.on("run", () => toggleListener(true))
-	workflow.on("stop", () => toggleListener(false))
-	navigation.on("enter", () => toggleListener(true))
-	navigation.on("leave", () => toggleListener(false))
-	let listener = null
-	function toggleListener(enable) {
-		if(enable) {
-			listener = window.addEventListener("keydown", () => {
-				// Replace with a non-blocking alert
-				console.log("User interaction is disabled as the unsending is still running; Please stop the execution first.")
-				event.stopImmediatePropagation()
-				event.preventDefault()
-				event.stopPropagation()
-				feature.emit("userInteractionPrevented")
-				return false
-			})
-		} else if(listener) {
-			window.removeEventListener(listener)
-		}
+UnsendFeature.prototype.filterKeyEvent = function(event) {
+	if(this.isRunning() && this.osd) {
+		console.log("User interaction is disabled while unsending is running; stop the execution first.")
+		event.stopImmediatePropagation()
+		event.preventDefault()
+		event.stopPropagation()
+		this.osd.focusOverlay()
 	}
 }

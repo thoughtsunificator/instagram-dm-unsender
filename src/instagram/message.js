@@ -1,35 +1,45 @@
 import { WorkflowElement } from "../workflow/workflow-element.js"
-import Mutations from "./generic/mutations.js"
-import * as messages from "./messages.js"
+import { sleep } from "../workflow/timing.js"
+import { hoverIn, hoverOut } from "./mutations.js"
+import { dismissStaleOverlays } from "./overlays.js"
+import { UNSEND_TEXT_VARIANTS, LABEL_PATTERNS } from "./messages.js"
 
-export { Message }
+export { Message, findActionButton, findUnsendMenuItem, collectHoverTargets }
 
-function Message(root, page) {
-	WorkflowElement.prototype.constructor.call(this, root, page)
+const IGNORED_ATTRIBUTE = "data-idmu-ignore"
+const UNSENT_ATTRIBUTE = "data-idmu-unsent"
+
+/**
+ * A message sent by the current user, as rendered by Instagram.
+ *
+ * Each step of the unsend workflow is an instance method taking the output of
+ * the previous step and an AbortController, so it can be composed with pipe().
+ *
+ * @param {Element} root
+ */
+function Message(root) {
+	WorkflowElement.call(this, root)
 }
-Message.prototype = Object.create(WorkflowElement)
+Message.prototype = Object.create(WorkflowElement.prototype)
 Message.prototype.constructor = Message
 
 /**
- * Find the action button within the message row.
- * Instagram moved aria-label from the button div to a nested SVG/title.
- * Any match (SVG or div) is walked up to the nearest [role=button] ancestor.
+ * Find the action ("...") button of a message row.
+ * Instagram puts the aria-label on a nested SVG/title, so matches are walked up to the nearest button.
  *
  * @param {Element} scope
  * @returns {Element|null}
  */
 function findActionButton(scope) {
-	for (const sel of messages.LABEL_PATTERNS) {
-		const el = scope.querySelector(sel)
-		if (el) {
-			// Always resolve to a clickable button container
-			const btn = el.closest("[role=button]") || el.closest("button")
-			if (btn && scope.contains(btn)) {
-				return btn
+	for(const selector of LABEL_PATTERNS) {
+		const element = scope.querySelector(selector)
+		if(element) {
+			const button = element.closest("[role=button]") || element.closest("button")
+			if(button && scope.contains(button)) {
+				return button
 			}
-			// el itself is already a button-like element
-			if (el.tagName === "BUTTON" || el.getAttribute("role") === "button") {
-				return el
+			if(element.tagName === "BUTTON" || element.getAttribute("role") === "button") {
+				return element
 			}
 		}
 	}
@@ -38,211 +48,148 @@ function findActionButton(scope) {
 }
 
 /**
- * @param {AbortController} abortController
- * @returns {Promise<HTMLButtonElement>}
+ * @param {string|null} text
+ * @returns {boolean} true when text is one of the localized "Unsend" labels
  */
-Message.prototype.showActionsMenuButton = async function(abortController) {
-	console.debug("Workflow step 1 : showActionsMenuButton", this.root)
-	// Collect all hoverable ancestors from root down to the message bubble.
-	// Instagram React listens at intermediate levels (role=group, flex-end wrapper).
-	// TODO replace with treewalker
-	const hoverTargets = [this.root]
-	const collectTargets = (el, depth) => {
-		if (depth > 8) return
-		for (const child of el.children) {
-			hoverTargets.push(child)
-			collectTargets(child, depth + 1)
+function isUnsendText(text) {
+	const normalized = (text ?? "").trim().toLocaleLowerCase()
+	return UNSEND_TEXT_VARIANTS.some(variant => normalized === variant)
+}
+
+/**
+ * Finds the "Unsend" entry of an open actions menu
+ *
+ * @param {Document} document
+ * @param {Node[]}   [nodes] - Nodes to search first (added by a mutation)
+ * @returns {Element|undefined}
+ */
+function findUnsendMenuItem(document, nodes = []) {
+	for(const node of nodes) {
+		if(node.nodeType !== 1) {
+			continue
+		}
+		const candidate = [...node.querySelectorAll("span,div")].find(element => isUnsendText(element.textContent) && element.firstChild?.nodeType === 3)
+		if(candidate) {
+			return candidate
 		}
 	}
-	collectTargets(this.root, 0)
+	return [...document.querySelectorAll("[role=menu] span, [role=menu] div, [role=menuitem] span, [role=menuitem] div")]
+		.find(element => isUnsendText(element.textContent) && element.firstChild?.nodeType === 3)
+}
 
-	for (const target of hoverTargets) {
-		Mutations.hoverIn(target)
-	}
-
-	try {
-		const actionButton = await Promise.race([
-			this.waitForElement(
-				this.root,
-				() => findActionButton(this.root),
-				waitAbortController
-			),
-			new Promise((resolve, reject) => {
-				promiseTimeout = setTimeout(() => reject("Timeout showActionsMenuButton"), 3000)
-			})
-		])
-
-		if (actionButton) {
-			return actionButton
+/**
+ * The message row and its descendants (up to maxDepth): Instagram's React listens for hover at several levels.
+ *
+ * @param {Element} root
+ * @param {number}  [maxDepth=8]
+ * @returns {Element[]}
+ */
+function collectHoverTargets(root, maxDepth = 8) {
+	const targets = [root]
+	const walk = (element, depth) => {
+		if(depth > maxDepth) {
+			return
 		}
-		return actionButton
-	} finally {
-		waitAbortController.abort() // Aborting without reason because the reason is the error itself
-		clearTimeout(promiseTimeout)
-		abortController.signal.removeEventListener("abort", abortHandler)
+		for(const child of element.children) {
+			targets.push(child)
+			walk(child, depth + 1)
+		}
 	}
+	walk(root, 0)
+	return targets
 }
 
 /**
- * @param {AbortController} abortController
- * @returns {Promise<boolean>}
- */
-Message.prototype.hideActionMenuButton = async function(abortController) {
-	console.debug("hideActionMenuButton", this.root)
-	Mutations.hoverOut(this.root)
-
-	const noneEl = this.root.querySelector("[role=none]")
-	if (noneEl) {
-		Mutations.hoverOut(noneEl)
-	}
-
-	try {
-		const result = await Promise.race([
-			this.waitForElement(
-				this.root,
-				() => this._findActionButton(this.root) === null,
-				waitAbortController
-			),
-			new Promise((resolve, reject) => {
-				resolveTimeout = resolve
-				promiseTimeout = setTimeout(() => reject("Timeout hideActionMenuButton"), 500)
-			})
-		])
-		return result
-	} finally {
-		waitAbortController.abort() // Aborting without reason because the reason is the error itself
-		clearTimeout(promiseTimeout)
-		abortController.signal.removeEventListener("abort", abortHandler)
-	}
-}
-
-/**
- * Opens the actions menu by clicking the action button and waiting for the "Unsend" item.
+ * Makes the action button appear by hovering the message.
+ * Hover is flaky, so it is attempted a few times before falling back to waiting for the button.
  *
- * @param {HTMLButtonElement} actionButton
+ * @param {any}             _ - Unused, output of the previous step
  * @param {AbortController} abortController
- * @returns {Promise}
+ * @returns {Promise<Element>}
  */
-Unsend.prototype.openActionsMenu = async function(actionButton, abortController) {
-	console.debug("Workflow step 2 : Clicking actionButton and waiting for unsend menu item to appear", actionButton)
-
-	const isUnsendText = (text) => {
-		const normalized = text.trim().toLocaleLowerCase()
-		return messages.UNSEND_TEXT_VARIANTS.some(v => normalized === v)
+Message.prototype.showActionsMenuButton = async function(_, abortController) {
+	const doc = this.root.ownerDocument
+	const hoverTargets = collectHoverTargets(this.root)
+	dismissStaleOverlays(doc)
+	for(let attempt = 0; attempt < 3; attempt++) {
+		hoverTargets.forEach(target => hoverIn(target))
+		await sleep(100, abortController.signal)
+		const button = findActionButton(this.root)
+		if(button) {
+			return button
+		}
+		console.debug("showActionsMenuButton: no button on attempt", attempt)
+		hoverOut(this.root)
+		await sleep(50, abortController.signal)
 	}
-
-	try {
-		const unsendButton = await Promise.race([
-			this.clickElementAndWaitFor(
-				actionButton,
-				this.root.ownerDocument.body,
-				(mutations) => {
-					if (mutations) {
-						const addedNodes = [...mutations.map(mutation => [...mutation.addedNodes])].flat().filter(node => node.nodeType === 1)
-						for (const addedNode of addedNodes) {
-							const node = [...addedNode.querySelectorAll("span,div")].find(node => isUnsendText(node.textContent) && node.firstChild?.nodeType === 3)
-							if (node) {
-								console.debug("Workflow step 2 : found unsend node via mutation", node)
-								return node
-							}
-						}
-					}
-					// Fallback: scan the whole document for an unsend menu item already present
-					const allSpans = this.root.ownerDocument.querySelectorAll("[role=menu] span, [role=menu] div, [role=menuitem] span, [role=menuitem] div")
-					for (const span of allSpans) {
-						if (isUnsendText(span.textContent) && span.firstChild?.nodeType === 3) {
-							console.debug("Workflow step 2 : found unsend node via document scan", span)
-							return span
-						}
-					}
-				},
-				waitAbortController
-			),
-			new Promise((resolve, reject) => {
-				promiseTimeout = setTimeout(() => reject("Timeout openActionsMenu"), 3000)
-			})
-		])
-
-		console.debug("Workflow step 2 : Found unsendButton", unsendButton)
-		return unsendButton
-	} finally {
-		waitAbortController.abort() // Aborting without reason because the reason is the error itself
-		clearTimeout(promiseTimeout)
-		abortController.signal.removeEventListener("abort", abortHandler)
-	}
+	hoverTargets.forEach(target => hoverIn(target))
+	return this.waitForElement(this.root, () => findActionButton(this.root), abortController)
 }
 
 /**
- * Closes the actions menu.
+ * Clicks the action button and waits for the "Unsend" menu entry.
  *
- * @param {HTMLButtonElement} actionButton
- * @param {HTMLDivElement} actionsMenuElement
+ * @param {Element}         actionButton
  * @param {AbortController} abortController
- * @returns {Promise<boolean>}
+ * @returns {Promise<Element>}
  */
-Message.prototype.closeActionsMenu = async function(actionButton, actionsMenuElement) {
-	console.debug("closeActionsMenu")
-	try {
-		this.withTimeout(
-			this.clickElementAndWaitFor(
-				actionButton,
-				this.root.ownerDocument.body,
-				() => this.root.ownerDocument.body.contains(actionsMenuElement) === false
-			),
-		)
-		return result !== null
-	} catch(error) {
-		console.error(error)
-	}
+Message.prototype.openActionsMenu = function(actionButton, abortController) {
+	const doc = this.root.ownerDocument
+	return this.clickElementAndWaitFor(actionButton, doc.body, (mutations) => {
+		const nodes = mutations ? mutations.flatMap(mutation => [...mutation.addedNodes]) : []
+		return findUnsendMenuItem(doc, nodes)
+	}, abortController)
 }
 
 /**
- * Click unsend button and wait for the confirmation dialog.
+ * Clicks "Unsend" and waits for the confirmation dialog.
  *
- * @param {HTMLSpanElement} unsendButton
+ * @param {Element}         unsendButton
  * @param {AbortController} abortController
- * @returns {Promise<HTMLButtonElement>|Promise<Error>}
+ * @returns {Promise<Element>}
  */
 Message.prototype.openConfirmUnsendModal = function(unsendButton, abortController) {
-	console.debug("Workflow step 3 : Clicking unsendButton and waiting for dialog to appear...")
-	return this.clickElementAndWaitFor(
-		unsendButton,
-		this.root.ownerDocument.body,
-		() => this.root.ownerDocument.querySelector("[role=dialog] button"),
-		abortController
-	)
+	const doc = this.root.ownerDocument
+	return this.clickElementAndWaitFor(unsendButton, doc.body, () => doc.querySelector("[role=dialog] button"), abortController)
 }
 
 /**
- * Click unsend confirm button in the modal dialog.
+ * Clicks the confirm button and waits for the dialog to close.
  *
- * @param {HTMLButtonElement} dialogButton
+ * @param {Element}         dialogButton
  * @param {AbortController} abortController
- * @returns {Promise}
+ * @returns {Promise<boolean>}
  */
-Message.prototype.confirmUnsend = async function(dialogButton, abortController) {
-	console.debug("Workflow final step : confirmUnsend", dialogButton)
-	await this.clickElementAndWaitFor(
-		dialogButton,
-		this.root.ownerDocument.body,
-		() => this.root.ownerDocument.querySelector("[role=dialog] button") === null,
-		abortController
-	)
+Message.prototype.confirmUnsend = function(dialogButton, abortController) {
+	const doc = this.root.ownerDocument
+	return this.clickElementAndWaitFor(dialogButton, doc.body, () => doc.querySelector("[role=dialog] button") === null, abortController, 5000)
 }
 
 /**
- * Used to determine whether the message is still present in the DOM
- * If it is that means the unsending somehow fails
+ * @returns {boolean} true while the message is still rendered
  */
 Message.prototype.exists = function() {
-	return this.root.isConnected && !this.root.hasAttribute("data-idmu-unsent")
+	return this.root.isConnected
 }
 
-Message.prototype.setFlag = function() {
-	if(flag === "unsent") {
-		this.uiComponent.root.setAttribute("data-idmu-unsent", "") // Next run should ignore this message
-	} else if(flag === "ignore") {
-		this.uiComponent.root.setAttribute("data-idmu-ignore", "") // Next run should ignore this message
-	}
+Message.prototype.isUnsent = function() {
+	return this.root.hasAttribute(UNSENT_ATTRIBUTE)
 }
 
+Message.prototype.markUnsent = function() {
+	this.root.setAttribute(UNSENT_ATTRIBUTE, "")
+}
+
+/**
+ * Prevents the message from being picked again during the current scan
+ */
+Message.prototype.markIgnored = function() {
+	this.root.setAttribute(IGNORED_ATTRIBUTE, "")
+}
+
+/**
+ * Lets a failed message be picked again
+ */
+Message.prototype.clearIgnored = function() {
+	this.root.removeAttribute(IGNORED_ATTRIBUTE)
+}

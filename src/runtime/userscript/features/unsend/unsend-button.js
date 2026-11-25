@@ -1,83 +1,40 @@
-function UnsendButton() {
-	this.root = document.createElement("button")
-	this.root.textContent =  "Unsend all DMs"
-	applyButtonStyle(this.root, BUTTON_STYLE.PRIMARY)
-	this.root.addEventListener("mouseover", () => {
-		this.root.style.filter = `brightness(1.15)`
-	})
-	this.root.addEventListener("mouseout", () => {
-		this.root.style.filter = ``
-	})
-	this.root.addEventListener("click", () => this.onClick())
-	this.root.dataTextContent = this.root.textContent
-	this.root.dataBackgroundColor = this.root.style.backgroundColor
-}
+/** @module unsend-button The "Unsend all DMs" button. It only emits intents, the feature decides what to do */
 
-UnsendButton.prototype.onClick = async function() {
-	if(this.strategy.isRunning()) {
-		console.debug("User asked for messages unsending to stop")
-		this.strategy.stop()
-		this._onUnsendingFinished()
-	} else {
-		console.debug("User asked for messages unsending to start")
-		;[...this.menuElement.querySelectorAll("button")].filter(button => button !== this.unsendThreadMessagesButton).forEach(button => {
-			button.style.visibility = "hidden"
-			button.disabled = true
-		})
-		this.overlayElement.style.display = ""
-		this.overlayElement.focus()
-		this.unsendThreadMessagesButton.textContent = "Stop processing"
-		this.unsendThreadMessagesButton.style.backgroundColor = "#FA383E"
-		this.statusElement.style.color = "white"
-		this._mutationObserver.disconnect()
-		try {
-			await this.strategy.run()
-		} catch(error) {
-			console.error(error)
-			if(this.strategy.isRunning()) {
-				this.strategy.stop()
-			}
-			this.statusElement.innerHTML = `<span style="color: red">An error occured, <a href="https://github.com/thoughtsunificator/instagram-dm-unsender/issues/new?template=bug_report.md">please open an issue</a></span>`
-		} finally {
-			this._onUnsendingFinished()
-		}
-	}
-}
+import { Observable } from "../../../../event/observable.js"
+import { BUTTON_STYLE, applyButtonStyle } from "./style.js"
 
+export { UnsendButton }
 
-UnsendButton.prototype._onUnsendingFinished = function() {
-	console.debug("render onUnsendingFinished")
-	;[...this.menuElement.querySelectorAll("button")].filter(button => button !== this.unsendThreadMessagesButton).forEach(button => {
-		button.style.visibility = ""
-		button.disabled = false
-	})
-	this.unsendThreadMessagesButton.textContent = this.unsendThreadMessagesButton.dataTextContent
-	this.unsendThreadMessagesButton.style.backgroundColor = this.unsendThreadMessagesButton.dataBackgroundColor
-	this.overlayElement.style.display = "none"
-	this.statusElement.style.color = ""
-	this._mutationObserver.observe(this._document.body, { childList: true }) // TODO test
-}
-
-const BUTTON_STYLE = {
-	"PRIMARY": "primary",
-	"SECONDARY": "secondary",
-}
+const IDLE_TEXT = "Unsend all DMs"
+const RUNNING_TEXT = "Stop processing"
+const RUNNING_COLOR = "#FA383E"
 
 /**
- * @param {HTMLButtonElement} buttonElement
- * @param {string}            styleName
+ * Emits "toggle" when clicked
+ *
+ * @param {Document} document
  */
-function applyButtonStyle(buttonElement, styleName) {
-	// TODO reset style
-	buttonElement.style.fontSize = "var(--system-14-font-size)"
-	buttonElement.style.color = "white"
-	buttonElement.style.border = "0px"
-	buttonElement.style.borderRadius = "8px"
-	buttonElement.style.padding = "8px"
-	buttonElement.style.fontWeight = "bold"
-	buttonElement.style.cursor = "pointer"
-	buttonElement.style.lineHeight = "var(--system-14-line-height)"
-	if(styleName) {
-		buttonElement.style.backgroundColor = `rgb(var(--ig-${styleName}-button))`
-	}
+function UnsendButton(document) {
+	Observable.call(this)
+	this.root = document.createElement("button")
+	this.root.textContent = IDLE_TEXT
+	applyButtonStyle(this.root, BUTTON_STYLE.PRIMARY)
+	this.idleColor = this.root.style.backgroundColor
+	this.root.addEventListener("mouseover", () => {
+		this.root.style.filter = "brightness(1.15)"
+	})
+	this.root.addEventListener("mouseout", () => {
+		this.root.style.filter = ""
+	})
+	this.root.addEventListener("click", () => this.emit("toggle"))
+}
+UnsendButton.prototype = Object.create(Observable.prototype)
+UnsendButton.prototype.constructor = UnsendButton
+
+/**
+ * @param {boolean} running
+ */
+UnsendButton.prototype.setRunning = function(running) {
+	this.root.textContent = running ? RUNNING_TEXT : IDLE_TEXT
+	this.root.style.backgroundColor = running ? RUNNING_COLOR : this.idleColor
 }

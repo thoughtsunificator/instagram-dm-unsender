@@ -1,98 +1,74 @@
-import { test } from "../../../test/setup.js"
-import { UIMessagesWrapper } from "./ui-messages-wrapper.js"
-import { createMessagesWrapperElement } from "../../../test/fake-ui.js"
-import { findMessagesWrapper } from "./dom-lookup.js"
+import { test } from "../../test/setup.js"
+import { createMessagesWrapperElement, createMessageElement } from "../../test/fake-ui.js"
+import { MessagesWrapper, getFirstVisibleMessage, isSentByCurrentUser } from "./messages-wrapper.js"
 
-test("UIMessagesWrapper", t => {
-	const messagesWrapperElement = createMessagesWrapperElement({ document: t.context.document })
-	const uiMessagesWrapper = new UIMessagesWrapper(messagesWrapperElement)
-	t.context.mountElement.append(uiMessagesWrapper.root)
-	t.deepEqual(uiMessagesWrapper.root, messagesWrapperElement)
+const IN_VIEW = () => ({ x: 0, y: 105, width: 300, height: 50 })
+const ABOVE_VIEW = () => ({ x: 0, y: -300, width: 300, height: 50 })
+
+/**
+ * Three messages sent by us, all in view unless overridden
+ */
+function createWrapper(t, { itemsPerPage = 3 } = {}) {
+	const element = createMessagesWrapperElement({ document: t.context.document, totalPages: 0, itemsPerPage })
+	t.context.mountElement.append(element)
+	const root = element.querySelector("#messageWrapper")
+	for(const child of root.children) {
+		child.getBoundingClientRect = IN_VIEW
+	}
+	return root
+}
+
+test("getFirstVisibleMessage returns the newest visible message sent by us and flags it", t => {
+	const root = createWrapper(t)
+	const found = getFirstVisibleMessage(root, new AbortController(), t.context.window)
+	t.is(found, root.children[2])
+	t.true(found.hasAttribute("data-idmu-ignore"))
 })
 
-test("UIMessagesWrapper loadMessages", async t => {
-	t.context.mountElement.append(createMessagesWrapperElement({ document: t.context.document }))
-	const messagesWrapperElement = findMessagesWrapper(t.context.window)
-	const uiMessagesWrapper = new UIMessagesWrapper(messagesWrapperElement)
-	messagesWrapperElement.innerHTML += `<div role="progressbar"></div>`
-	// TODO replace with mock
-	const result = uiMessagesWrapper.loadMessages(new AbortController())
-	messagesWrapperElement.querySelector("[role=progressbar]").remove()
-	t.is(await result, true)
+test("getFirstVisibleMessage skips the newest message when it was already processed", t => {
+	const root = createWrapper(t)
+	root.children[2].setAttribute("data-idmu-ignore", "")
+	t.is(getFirstVisibleMessage(root, new AbortController(), t.context.window), root.children[1])
 })
 
-test("UIMessagesWrapper loadMessages done", async t => {
-	t.context.mountElement.append(createMessagesWrapperElement({ document: t.context.document }))
-	const messagesWrapperElement = findMessagesWrapper(t.context.window)
-	const uiMessagesWrapper = new UIMessagesWrapper(messagesWrapperElement)
-	messagesWrapperElement.innerHTML += `<div role="progressbar"></div>`
-	// TODO replace with mock
-	const result = uiMessagesWrapper.loadMessages(new AbortController())
-	t.is(await result, true)
+test("getFirstVisibleMessage skips messages received from others", t => {
+	const root = createWrapper(t, { itemsPerPage: 0 })
+	const received = createMessageElement({ document: t.context.document, text: "hi", includesUnsend: false })
+	received.getBoundingClientRect = IN_VIEW
+	root.append(received)
+	t.is(getFirstVisibleMessage(root, new AbortController(), t.context.window), undefined)
 })
 
-test("UIMessagesWrapper loadMessages stop when there are not more messages", async t => {
-	t.context.mountElement.append(createMessagesWrapperElement({ document: t.context.document, totalPages: 2, itemsPerPage: 3 }))
-	const messagesWrapperElement = findMessagesWrapper(t.context.window)
-	const uiMessagesWrapper = new UIMessagesWrapper(messagesWrapperElement)
-	// Ensure there is content that extends beyond the viewport
-	Object.defineProperty(messagesWrapperElement, "scrollHeight", { value: 2000, writable: true, configurable: true })
-	Object.defineProperty(messagesWrapperElement, "clientHeight", { value: 500, writable: true, configurable: true })
-	// Start from a non-zero scroll position (not at top)
-	messagesWrapperElement._scrollTop = 500
-	const result = uiMessagesWrapper.loadMessages(new AbortController())
-	// Simulate: after scroll to 0, progressbar appears and is removed, but scrollTop stays non-zero
-	messagesWrapperElement._scrollTop = 100
-	t.is(await result, false) // TODO this should not fail
+test("getFirstVisibleMessage skips messages fully above the viewport", t => {
+	const root = createWrapper(t)
+	for(const child of root.children) {
+		child.getBoundingClientRect = ABOVE_VIEW
+	}
+	t.is(getFirstVisibleMessage(root, new AbortController(), t.context.window), undefined)
 })
 
-test("getFirstVisibleMessage", async t => {
-	const messageElement = createMessageElement({ document: t.context.document, text: "Test" })
-	t.context.mountElement.append(messageElement)
-	t.is(await getFirstVisibleMessage(t.context.document.body, new AbortController(), t.context.window), undefined)
+test("getFirstVisibleMessage accepts a tall message whose top is above the viewport", t => {
+	const root = createWrapper(t)
+	root.children[2].getBoundingClientRect = () => ({ x: 0, y: -200, width: 300, height: 500 })
+	root.children[1].getBoundingClientRect = ABOVE_VIEW
+	root.children[0].getBoundingClientRect = ABOVE_VIEW
+	t.is(getFirstVisibleMessage(root, new AbortController(), t.context.window), root.children[2])
 })
 
-test("getFirstVisibleMessage visible", async t => {
-	const messageElement = createMessageElement({ document: t.context.document, text: "Test" })
-	t.context.mountElement.append(messageElement)
-	messageElement.getBoundingClientRect = () => ({ y: 105, height: 50 })
-	t.is(await getFirstVisibleMessage(t.context.document.body, new AbortController(), t.context.window), messageElement)
+test("isSentByCurrentUser detects justify-content flex-end", t => {
+	const root = createWrapper(t, { itemsPerPage: 1 })
+	t.true(isSentByCurrentUser(root.children[0], t.context.window))
+	const received = createMessageElement({ document: t.context.document, includesUnsend: false })
+	t.false(isSentByCurrentUser(received, t.context.window))
 })
 
-test("getFirstVisibleMessage ignore if already processed", async t => {
-	const messageElement = createMessageElement({ document: t.context.document, text: "Test", includesUnsend: true, ignored: true })
-	t.context.mountElement.append(messageElement)
-	t.is(await getFirstVisibleMessage(t.context.document.body, new AbortController(), t.context.window), undefined)
+test("MessagesWrapper.findNextMessage returns a Message for a message already in view", async t => {
+	const root = createWrapper(t)
+	const message = await new MessagesWrapper(root).findNextMessage(new AbortController())
+	t.is(message.root, root.children[2])
 })
 
-test("getFirstVisibleMessage ignore if sent by someone else", async t => {
-	const messageElement = createMessageElement({ document: t.context.document, text: "Test", includesUnsend: false, ignored: true })
-	t.context.mountElement.append(messageElement)
-	messageElement.getBoundingClientRect = () => ({ y: 105, height: 50 })
-	t.is(await getFirstVisibleMessage(t.context.document.body, new AbortController(), t.context.window), undefined)
-})
-
-test("getFirstVisibleMessage tall message partially visible", async t => {
-	// Tall message with top edge above viewport (negative y) but bottom edge still visible
-	const messageElement = createMessageElement({ document: t.context.document, text: "Long text" })
-	t.context.mountElement.append(messageElement)
-	messageElement.getBoundingClientRect = () => ({ y: -200, height: 500 })
-	// Bottom edge = -200 + 500 = 300, which is > 0 so it should be found
-	t.is(await getFirstVisibleMessage(t.context.document.body, new AbortController(), t.context.window), messageElement)
-})
-
-test("getFirstVisibleMessage skips fully offscreen message", async t => {
-	// Message completely above viewport: bottom edge is negative
-	const messageElement = createMessageElement({ document: t.context.document, text: "Offscreen" })
-	t.context.mountElement.append(messageElement)
-	messageElement.getBoundingClientRect = () => ({ y: -300, height: 50 })
-	// Bottom edge = -300 + 50 = -250, which is < 0 so it should be skipped
-	t.is(await getFirstVisibleMessage(t.context.document.body, new AbortController(), t.context.window), undefined)
-})
-
-test("findMessagesWrapper", t => {
-	t.is(findMessagesWrapper(t.context.window), null)
-	const messagesWrapperElement = createMessagesWrapperElement({ document: t.context.document })
-	t.context.mountElement.append(messagesWrapperElement)
-	t.not(findMessagesWrapper(t.context.window), null)
+test("MessagesWrapper.loadMore reports the last page when nothing loads", async t => {
+	const root = createWrapper(t)
+	t.true(await new MessagesWrapper(root).loadMore(new AbortController()))
 })

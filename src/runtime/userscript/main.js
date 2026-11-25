@@ -1,15 +1,16 @@
 /**
  * Entrypoint for the userscript runtime
  */
-import { UnsendFeature } from "./features/unsend/unsend-feature.js"
+import { startFeatures } from "./features.js"
 
 export { main }
 
 /**
  * @param {Window} window
+ * @returns {object[]} the started features
  */
 function main(window) {
-	UnsendFeature(window)
+	return startFeatures(window)
 }
 
 /**

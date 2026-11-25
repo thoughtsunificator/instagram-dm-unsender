@@ -1,181 +1,280 @@
 import { WorkflowElement } from "../workflow/workflow-element.js"
+import { sleep } from "../workflow/timing.js"
+import { waitForElementWithTimeout } from "../dom/async-events.js"
+import { Message } from "./message.js"
 
-function MessagesWrapper(root, page) {
-	WorkflowElement.prototype.constructor.call(this, root, page)
-	this._scrollUntilMessage = new ScrollUntilMessage(pageDocument.messagesWrapper)
-	this._loadMoreMessages = new LoadMoreMessages(pageDocument.messagesWrapper)
-}
-MessagesWrapper.prototype = Object.create(WorkflowElement)
-MessagesWrapper.prototype.constructor = Message
+export { MessagesWrapper, getMessagesInnerContainer, isSentByCurrentUser, getFirstVisibleMessage, findVisibleLoader }
 
-MessageWrapper.prototype.scrollUntilMessage = function() {
-	this._scrollUntilMessage.run()
-}
-
-MessageWrapper.prototype.loadMessages = function() {
-
-}
+const IGNORED_ATTRIBUTE = "data-idmu-ignore"
+const UNSENT_ATTRIBUTE = "data-idmu-unsent"
+const MAX_SCAN_PASSES = 3
 
 /**
- * Retrieve a batch of candidate elements and run a serie of tests until one candidate remains
+ * The scrollable container holding the messages of a thread.
  *
- * The selected candidate is expected to be the first visible message sent by us
+ * Instagram uses flex-direction: column-reverse on this container: scrollTop=0 is the
+ * newest message and the oldest messages are reached with negative scrollTop values.
+ * Normal layouts are supported as well.
  *
- * @param {Element} root - The scrollable messages wrapper
- * @returns {Element|undefined}
+ * @param {Element} root
  */
-function getFirstVisibleMessage(root) {
-	// Fish for a whole bunch of candidates based on ... absolutely, nothing
-	// The only prerequisites is to be a descendant of the root element which is the message wrapper
-	const candidateElements = [...root.querySelectorAll("div")]
-	if(candidateElements.length >= 1) {
-		console.debug("getFirstVisibleMessage", candidateElements.length, "candidate elements")
-	} else {
-		console.debug("getFirstVisibleMessage: no candidate elements found")
-	}
-	console.debug("Filtering candidates Elements...")
-	for(const element of candidateElements) {
-		const { retained, reason } = testCandidate(element)
-		if(retained) {
-			console.debug("A valid candidate was found", element)
-			return element
-		} else {
-			console.debug("Candidate not retained, reason:", reason)
-			element.setAttribute("data-idmu-ignore", "")
-		}
-	}
-	console.debug("No candidate retained")
+function MessagesWrapper(root) {
+	WorkflowElement.call(this, root)
+	this.lastScrollTop = null
+}
+MessagesWrapper.prototype = Object.create(WorkflowElement.prototype)
+MessagesWrapper.prototype.constructor = MessagesWrapper
+
+/**
+ * @returns {boolean}
+ */
+MessagesWrapper.prototype.isColumnReversed = function() {
+	return this.root.ownerDocument.defaultView.getComputedStyle(this.root).flexDirection === "column-reverse"
 }
 
 /**
- * Run a series of tests to determine whether
- * a given element is a valid candidate
- * @param   {Element} element - Any element that might be a message
- * @returns {object}  report
- *					{boolean} report.retained
- *					{string}  report.reason
+ * Finds the next message sent by the current user that can be unsent, scrolling the
+ * container when needed. Messages are looked for from the newest to the oldest.
+ *
+ * The returned message is marked as ignored so that the next call returns another one.
+ *
+ * @param {AbortController} abortController
+ * @returns {Promise<Message|false>} false when no message is left
  */
-function testCandidate(element) {
-	const window = element.ownerDocument.defaultView
-	if (element.hasAttribute("data-idmu-ignore")) {
-		return { retained: false, reason: "has ignore attribute" }
+MessagesWrapper.prototype.findNextMessage = async function(abortController) {
+	const root = this.root
+	const window = root.ownerDocument.defaultView
+	const fromElement = () => {
+		const element = getFirstVisibleMessage(root, abortController, window)
+		return element ? new Message(element) : undefined
 	}
-	if (element.hasAttribute("data-idmu-unsent")) {
-		return { retained: false, reason: "already unsent" }
-	}
-	// Must contain message content indicators
-	const hasMessageContent = element.querySelector("[role=none]") || element.querySelector("[role=presentation]")
-	if (!hasMessageContent) {
-		return { retained: false, reason: "does not have either role=none or role=presentation attribute set." }
-	}
-	const computedStyle = window.getComputedStyle(element)
-	if (computedStyle.justifyContent !== "flex-end") {
-		return { retained: false, reason: "justify-content should be flex-end" }
-	}
-	const visibilityCheck = element.checkVisibility({
-		visibilityProperty: true,
-		contentVisibilityAuto: true,
-		opacityProperty: true,
-	})
-	if (visibilityCheck === false) {
-		return { retained: false, reason: "visiblity check failed" }
-	}
-	const rect = element.getBoundingClientRect()
-	// Check if element is at least partially in viewport.
-	// For tall elements (images, long text), rect.y can be negative
-	// while the element is still visible. Use bottom edge instead.
-	if (rect.y + rect.height < 0 || rect.height === 0) {
-		return { retained: false, reason: "viewport check failed" }
-	}
-	// It is expected that the ideal candidate will hold the message within no
-	// more than 10 children
-	const treeWalker = window.document.createTreeWalker(element)
-	let childrenCount = 0
-	const maxChildren = 10
-	while(treeWalker.nextNode()) {
-		childrenCount++
-		if (childrenCount  > maxChildren) {
-			return { retained: false, reason: `is above the children treshold (${maxChildren}), counted ${childrenCount} children instead.` }
-		}
-	}
-	return { retained: true }
-}
 
-/**
- * Scroll to discover possible message candidates
- * The selected candidate should be the most recent message sent by us
- */
-function ScrollUntilMessage(messagesWrapper) {
-	// Scroll can be resumed if needed
-	this.scrollTop = null
-	this.messagesWrapper = messagesWrapper
-}
-ScrollUntilMessage.prototype = Object.create(Workflow)
-ScrollUntilMessage.prototype.constructor = ScrollUntilMessage
+	// Messages already in the viewport (short chats, or the DOM shrank after an unsend)
+	const visible = fromElement()
+	if(visible) {
+		return visible
+	}
 
-ScrollUntilMessage.prototype.run = function() {
-	const { root } = this.messagesWrapper
-	// Even though all pages have been loaded, messages that are no longer inside
-	// the viewport are automatically removed
-	// Keep scrolling step by step to make them reappear
+	const reversed = this.isColumnReversed()
+	const minScroll = -(root.scrollHeight - root.clientHeight)
 	const maxScroll = root.scrollHeight - root.clientHeight
-	const startScrollTop = (pass === 0 && this.scrollTop !== null)
-		? Math.min(this.scrollTop, maxScroll)
-		: maxScroll
-	// Use smaller increments for short conversations
-	const step = maxScroll < 500 ? 30 : 150
-	console.debug(`ScrollUntilMessage startScrollTop=${startScrollTop}, maxScroll=${maxScroll}, step=${step}`)
-	for (let i = Math.max(1, startScrollTop); i > 0; i = i - step) {
-		this.scrollTop = i
-		root.scrollTop = i
-		root.dispatchEvent(new root.Event("scroll"))
-		await new Promise(resolve => setTimeout(resolve, 5))
-		try {
-			const messageElement = getFirstVisibleMessage(root)
-			if (messageElement) {
-				return new Message(this, messageElement)
-			}
-		} catch (error) {
-			console.error(error)
+	const range = reversed ? Math.abs(minScroll) : maxScroll
+	const step = range < 500 ? 30 : 150
+
+	for(let pass = 0; pass < MAX_SCAN_PASSES; pass++) {
+		let start
+		let floor
+		if(reversed) {
+			start = pass === 0 && this.lastScrollTop !== null ? Math.max(this.lastScrollTop, minScroll) : 0
+			floor = minScroll
+		} else {
+			start = pass === 0 && this.lastScrollTop !== null ? Math.min(this.lastScrollTop, maxScroll) : maxScroll
+			floor = 1
 		}
+		console.debug(`findNextMessage pass=${pass} reversed=${reversed} start=${start} floor=${floor} step=${step}`)
+		for(let position = Math.max(floor, start); position >= floor; position -= step) {
+			if(abortController.signal.aborted) {
+				return false
+			}
+			this.lastScrollTop = position
+			root.scrollTop = position
+			root.dispatchEvent(new window.Event("scroll"))
+			await sleep(5, abortController.signal)
+			const message = fromElement()
+			if(message) {
+				return message
+			}
+		}
+		// Nothing found in this pass: the DOM may have changed, start again from the beginning
+		this.lastScrollTop = null
 	}
+	return false
 }
 
-function LoadMoreMessages(messagesWrapper) {
-	Workflow.prototype.constructor.call(this)
-	const { root } = messagesWrapper
-	this.initialScrollTop = root.scrollTop
-	this.initialScrollHeight = root.scrollHeight
-}
-LoadMoreMessages.prototype = Object.create(Workflow.prototype)
-LoadMoreMessages.prototype.constructor = LoadMoreMessages
+/**
+ * Scrolls to the oldest messages so that Instagram loads the previous page.
+ *
+ * @param {AbortController} abortController
+ * @returns {Promise<boolean>} true when there is no older page left
+ */
+MessagesWrapper.prototype.loadMore = async function(abortController) {
+	const root = this.root
+	const signal = abortController.signal
+	const reversed = this.isColumnReversed()
+	const scrollToTop = reversed ? -(root.scrollHeight - root.clientHeight) : 0
+	const isAtTop = () => reversed ? root.scrollTop <= scrollToTop + 5 : root.scrollTop === 0
 
-LoadMoreMessages.prototype.run = function() {
-	const { root } = this.messagesWrapper
-	// Set scroll top to 0 to simulate user scrolling to load more messages
-	root.scrollTop = 0
-	// At this point, as a result of this scrolling it is expected that some sort of loaded will appear
-	if (root.scrollTop === 0) {
-		// Check if a visible loader appeared
-		const loader = findVisibleLoader()
-		if (loader) {
-			console.debug("loadMessages: Found visible loader after scroll; waiting for removal (max 5s)")
-			await Promise.race([
-				this.waitForElement(root, () => findVisibleLoader() === null, abortController),
-				new Promise(resolve => setTimeout(resolve, 5000))
-			])
-			const grew = root.scrollHeight > initialScrollHeight
-			console.debug(`loadMessages: loader phase done, content ${grew ? "grew" : "did not grow"}`)
+	const beforeScroll = root.scrollTop
+	const beforeHeight = root.scrollHeight
+	root.scrollTop = scrollToTop
+
+	// Short chat: everything fits in the viewport
+	if(beforeScroll === 0 && root.scrollHeight <= root.clientHeight + 50) {
+		console.debug("loadMore: chat fits in viewport, nothing to load")
+		return true
+	}
+
+	if(isAtTop()) {
+		// Give Instagram a moment to start loading older messages
+		await sleep(500, signal)
+		if(findVisibleLoader(root)) {
+			console.debug("loadMore: loader visible after scroll, waiting for its removal")
+			await waitUntil(root, () => findVisibleLoader(root) === null, 5000, abortController)
+			const grew = root.scrollHeight > beforeHeight
+			console.debug(`loadMore: loader phase done, content ${grew ? "grew" : "did not grow"}`)
 			return !grew
 		}
-		// No loader appeared — check if scrollHeight grew (new content loaded without spinner)
-		const grew = root.scrollHeight > initialScrollHeight
-		if (!grew) {
-			console.debug("loadMessages: at top, no loader, no new content — reached last page")
+		if(root.scrollHeight <= beforeHeight) {
+			console.debug("loadMore: at top, no loader, no new content: reached last page")
 			return true
 		}
 	}
+
+	// Not at top yet: wait (max 3s) for a loader, scrolling again while none shows up
+	const loader = await waitUntil(root, () => {
+		if(findVisibleLoader(root) === null) {
+			root.scrollTop = scrollToTop
+		}
+		return findVisibleLoader(root)
+	}, 3000, abortController)
+	if(loader) {
+		console.debug("loadMore: found loader, standing by until it is removed (max 5s)")
+		await waitUntil(root, () => findVisibleLoader(root) === null, 5000, abortController)
+	}
+	const atTop = isAtTop()
+	console.debug(`loadMore: scrollTop is ${root.scrollTop}, ${atTop ? "reached last page" : "not last page"}`)
+	return atTop
 }
 
+/**
+ * Resolves with the element or true matched by getElement, or undefined on timeout/abort
+ *
+ * @param {Element}         root
+ * @param {function}        getElement
+ * @param {number}          timeoutMs
+ * @param {AbortController} abortController
+ * @returns {Promise<any>}
+ */
+async function waitUntil(root, getElement, timeoutMs, abortController) {
+	try {
+		return await waitForElementWithTimeout(root, getElement, timeoutMs, abortController)
+	} catch(error) {
+		console.debug(error.message)
+		return undefined
+	}
+}
 
+/**
+ * A message row holds its content in a role=none or role=presentation child.
+ * Rows are never the container: their own children (bubbles) would otherwise win on child count.
+ *
+ * @param {Element} element
+ * @returns {boolean}
+ */
+function isRow(element) {
+	return [...element.children].some(child => child.getAttribute("role") === "none" || child.getAttribute("role") === "presentation")
+}
 
+/**
+ * Finds the element holding the message rows: the element (within 3 levels, rows excluded) with the most children
+ *
+ * @param {Element} scrollable
+ * @returns {Element}
+ */
+function getMessagesInnerContainer(scrollable) {
+	let best = scrollable
+	let bestCount = scrollable.children.length
+	const search = (element, depth) => {
+		if(depth > 3) {
+			return
+		}
+		for(const child of element.children) {
+			if(isRow(child)) {
+				continue
+			}
+			if(child.children.length > bestCount) {
+				best = child
+				bestCount = child.children.length
+			}
+			search(child, depth + 1)
+		}
+	}
+	search(scrollable, 0)
+	return best
+}
+
+/**
+ * Sent messages are aligned to the right with justify-content: flex-end somewhere within a few levels
+ *
+ * @param {Element} element
+ * @param {Window}  window
+ * @returns {boolean}
+ */
+function isSentByCurrentUser(element, window) {
+	const queue = [{ element, depth: 0 }]
+	while(queue.length > 0) {
+		const { element: current, depth } = queue.shift()
+		if(window.getComputedStyle(current).justifyContent === "flex-end") {
+			return true
+		}
+		if(depth < 8) {
+			for(const child of current.children) {
+				queue.push({ element: child, depth: depth + 1 })
+			}
+		}
+	}
+	return false
+}
+
+/**
+ * Returns the first (newest) message in view that was sent by us and was not processed yet.
+ * The returned element is flagged as ignored.
+ *
+ * @param {Element}         root
+ * @param {AbortController} abortController
+ * @param {Window}          window
+ * @returns {Element|undefined}
+ */
+function getFirstVisibleMessage(root, abortController, window) {
+	const innerContainer = getMessagesInnerContainer(root)
+	const candidates = [...innerContainer.children]
+		.filter(element => {
+			if(element.hasAttribute(IGNORED_ATTRIBUTE) || element.hasAttribute(UNSENT_ATTRIBUTE)) {
+				return false
+			}
+			const hasMessageContent = element.querySelector("[role=none]") || element.querySelector("[role=presentation]")
+			return Boolean(hasMessageContent) && isSentByCurrentUser(element, window)
+		})
+		.reverse()
+	for(const element of candidates) {
+		if(abortController.signal.aborted) {
+			break
+		}
+		if(element.checkVisibility && element.checkVisibility({ visibilityProperty: true, contentVisibilityAuto: true, opacityProperty: true }) === false) {
+			continue
+		}
+		const rect = element.getBoundingClientRect()
+		// Tall messages can start above the viewport while still being visible: test the bottom edge
+		if(rect.y + rect.height < 0 || rect.height === 0) {
+			continue
+		}
+		element.setAttribute(IGNORED_ATTRIBUTE, "")
+		return element
+	}
+	return undefined
+}
+
+/**
+ * @param {Element} root
+ * @returns {Element|null} the visible progress bar inside root, if any
+ */
+function findVisibleLoader(root) {
+	const rootRect = root.getBoundingClientRect()
+	for(const bar of root.querySelectorAll("[role=progressbar]")) {
+		const rect = bar.getBoundingClientRect()
+		if(rect.height > 0 && rect.y >= rootRect.y - 100 && rect.y <= rootRect.y + rootRect.height + 100) {
+			return bar
+		}
+	}
+	return null
+}

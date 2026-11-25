@@ -1,31 +1,31 @@
 import { test } from "../../test/setup.js"
-import { UIMessage } from "../ui/default/ui-message.js"
 import { createMessageElement } from "../../test/fake-ui.js"
-import { MessageUnsend } from "./message-unsend-workflow.js"
+import { Message } from "../instagram/message.js"
+import { MessageUnsend, MessageValidateUnsend } from "./message-unsend-workflow.js"
 
-test("MessageUnsend", t => {
-	const messageElement = createMessageElement({ document: t.context.document, text: "Test" })
-	const uiMessage = new UIMessage(messageElement)
-	const workflow = new MessageUnsend(uiMessage)
-	t.is(workflow.uiComponent, uiMessage)
+function createMessage(t, options = {}) {
+	const element = createMessageElement({ document: t.context.document, text: "Test", ...options })
+	t.context.mountElement.append(element)
+	return new Message(element)
+}
+
+test("MessageUnsend and MessageValidateUnsend unsend a message", async t => {
+	const message = createMessage(t)
+	await t.notThrowsAsync(() => new MessageUnsend(message).run())
+	await t.notThrowsAsync(() => new MessageValidateUnsend(message).run())
+	t.true(message.isUnsent())
 })
 
-test("MessageUnsend unsend", async t => {
-	const messageElement = createMessageElement({ document: t.context.document, text: "Test" })
-	const uiMessage = new UIMessage(messageElement)
-	t.context.mountElement.append(uiMessage.root)
-	const workflow = new MessageUnsend(uiMessage)
-	await t.notThrowsAsync(() => workflow.unsend(new AbortController()))
-	t.is(t.context.mountElement.contains(uiMessage.root), false)
+test("MessageUnsend fails and ignores the message when a step fails", async t => {
+	const message = createMessage(t, { includesUnsend: false })
+	const error = await t.throwsAsync(() => new MessageUnsend(message).run())
+	t.is(error.name, "FailedWorkflowError")
+	t.true(message.root.hasAttribute("data-idmu-ignore"))
 })
 
-test("MessageUnsend batch unsend", async t => {
-	for(let i =0; i < 5; i++) {
-		const messageElement = createMessageElement({ document: t.context.document, text: "Test" })
-		const uiMessage = new UIMessage(messageElement)
-		t.context.mountElement.append(uiMessage.root)
-		const workflow = new MessageUnsend(uiMessage)
-		await t.notThrowsAsync(() => workflow.unsend(new AbortController()))
-		t.is(t.context.mountElement.contains(uiMessage.root), false)
-	}
+test("MessageValidateUnsend reports a late failure when the message is still rendered", async t => {
+	const message = createMessage(t)
+	const error = await t.throwsAsync(() => new MessageValidateUnsend(message).run())
+	t.is(error.name, "LateFailureWorkflowError")
+	t.false(message.isUnsent())
 })

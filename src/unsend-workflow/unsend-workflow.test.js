@@ -1,80 +1,75 @@
-import { test } from "../../../test/setup.js"
-import { createMessagesWrapperElement } from "../../../test/fake-ui.js"
+import { test } from "../../test/setup.js"
+import { createMessagesWrapperElement, createMessageElement } from "../../test/fake-ui.js"
+import { Thread } from "../instagram/thread.js"
+import { MessagesWrapper } from "../instagram/messages-wrapper.js"
 import { UnsendWorkflow } from "./unsend-workflow.js"
+import { LoadMessages } from "./load-messages.js"
 
-test.beforeEach(t => {
-	t.context.mountElement.append(createMessagesWrapperElement({ document: t.context.document, totalPages: 3, itemsPerPage: 5 }))
+const FAST = { minDelayMs: 0, maxDelayMs: 0, rescanAttempts: 0, failureBackoffMs: 0, rateLimitBackoffMs: 0, rescanDelayMs: 0 }
+
+function visible(element) {
+	element.getBoundingClientRect = () => ({ x: 0, y: 105, width: 300, height: 50 })
+	return element
+}
+
+/**
+ * @param {object}  t
+ * @param {boolean} [sent=true] - false creates messages without the unsend entry, so every unsend fails
+ * @param {number}  [count=2]
+ */
+function createThread(t, { sent = true, count = 2 } = {}) {
+	const element = createMessagesWrapperElement({ document: t.context.document, totalPages: 0, itemsPerPage: 0 })
+	t.context.mountElement.append(element)
+	const root = element.querySelector("#messageWrapper")
+	for(let index = 0; index < count; index++) {
+		root.append(visible(createMessageElement({ document: t.context.document, text: `Item ${index}`, includesUnsend: sent })))
+	}
+	return { thread: new Thread(new MessagesWrapper(root)), root }
+}
+
+test("UnsendWorkflow unsends every message of the conversation", async t => {
+	const { thread, root } = createThread(t)
+	const result = await new UnsendWorkflow(thread, FAST).run()
+	t.deepEqual(result, { outcome: "done", unsent: 2, failures: 0 })
+	t.is(root.children.length, 0)
 })
 
-test("UnsendWorkflow run", async t => {
-	const strategy = new UnsendWorkflow(() => {})
-	await strategy.run(1)
-	t.pass()
+test("UnsendWorkflow clears stale ignore markers when it starts", async t => {
+	const { thread, root } = createThread(t)
+	for(const child of root.children) {
+		child.setAttribute("data-idmu-ignore", "")
+	}
+	await new UnsendWorkflow(thread, FAST).run()
+	t.is(root.children.length, 0)
 })
 
-test("UnsendWorkflow clears stale ignore markers on run", async t => {
-	// Add elements with data-idmu-ignore — they should be cleared when run() starts
-	const el1 = t.context.document.createElement("div")
-	el1.setAttribute("data-idmu-ignore", "")
-	t.context.document.body.appendChild(el1)
-	const el2 = t.context.document.createElement("div")
-	el2.setAttribute("data-idmu-ignore", "")
-	t.context.document.body.appendChild(el2)
-	t.is(t.context.document.querySelectorAll("[data-idmu-ignore]").length, 2)
-	const strategy = new UnsendWorkflow(() => {})
-	await strategy.run()
-	t.is(el1.hasAttribute("data-idmu-ignore"), false)
-	t.is(el2.hasAttribute("data-idmu-ignore"), false)
+test("UnsendWorkflow stops after too many consecutive failures", async t => {
+	const { thread, root } = createThread(t, { count: 0 })
+	for(let index = 0; index < 3; index++) {
+		// Sent by us, but the row never shows its action button: every unsend fails
+		const row = t.context.document.createElement("div")
+		row.innerHTML = "<div role=\"none\" style=\"justify-content: flex-end\"><span>Failing</span></div>"
+		root.append(visible(row))
+	}
+	const workflow = new UnsendWorkflow(thread, { ...FAST, maxConsecutiveFailures: 2 })
+	const statuses = []
+	workflow.on("status", text => statuses.push(text))
+	const result = await workflow.run()
+	t.is(result.unsent, 0)
+	t.is(result.failures, 2)
+	t.true(statuses.some(text => text.startsWith("Stopped: 2 consecutive failures")))
 })
 
-test("getFirstVisibleMessage", async t => {
-	const messageElement = createMessageElement({ document: t.context.document, text: "Test" })
-	t.context.mountElement.append(messageElement)
-	t.is(await getFirstVisibleMessage(t.context.document.body, new AbortController(), t.context.window), undefined)
+test("UnsendWorkflow stop aborts the run", async t => {
+	const { thread } = createThread(t)
+	const workflow = new UnsendWorkflow(thread, FAST)
+	workflow.stop()
+	const result = await workflow.run()
+	t.is(result.outcome, "aborted")
+	t.is(result.unsent, 0)
 })
 
-test("getFirstVisibleMessage visible", async t => {
-	const messageElement = createMessageElement({ document: t.context.document, text: "Test" })
-	t.context.mountElement.append(messageElement)
-	messageElement.getBoundingClientRect = () => ({ y: 105, height: 50 })
-	t.is(await getFirstVisibleMessage(t.context.document.body, new AbortController(), t.context.window), messageElement)
+test("LoadMessages returns the number of pages loaded", async t => {
+	const { thread } = createThread(t)
+	t.is(await new LoadMessages(thread.messagesWrapper).run(), 0)
 })
-
-test("getFirstVisibleMessage ignore if already processed", async t => {
-	const messageElement = createMessageElement({ document: t.context.document, text: "Test", includesUnsend: true, ignored: true })
-	t.context.mountElement.append(messageElement)
-	t.is(await getFirstVisibleMessage(t.context.document.body, new AbortController(), t.context.window), undefined)
-})
-
-test("getFirstVisibleMessage ignore if sent by someone else", async t => {
-	const messageElement = createMessageElement({ document: t.context.document, text: "Test", includesUnsend: false, ignored: true })
-	t.context.mountElement.append(messageElement)
-	messageElement.getBoundingClientRect = () => ({ y: 105, height: 50 })
-	t.is(await getFirstVisibleMessage(t.context.document.body, new AbortController(), t.context.window), undefined)
-})
-
-test("getFirstVisibleMessage tall message partially visible", async t => {
-	// Tall message with top edge above viewport (negative y) but bottom edge still visible
-	const messageElement = createMessageElement({ document: t.context.document, text: "Long text" })
-	t.context.mountElement.append(messageElement)
-	messageElement.getBoundingClientRect = () => ({ y: -200, height: 500 })
-	// Bottom edge = -200 + 500 = 300, which is > 0 so it should be found
-	t.is(await getFirstVisibleMessage(t.context.document.body, new AbortController(), t.context.window), messageElement)
-})
-
-test("getFirstVisibleMessage skips fully offscreen message", async t => {
-	// Message completely above viewport: bottom edge is negative
-	const messageElement = createMessageElement({ document: t.context.document, text: "Offscreen" })
-	t.context.mountElement.append(messageElement)
-	messageElement.getBoundingClientRect = () => ({ y: -300, height: 50 })
-	// Bottom edge = -300 + 50 = -250, which is < 0 so it should be skipped
-	t.is(await getFirstVisibleMessage(t.context.document.body, new AbortController(), t.context.window), undefined)
-})
-
-test("findMessagesWrapper", t => {
-	t.is(findMessagesWrapper(t.context.window), null)
-	const messagesWrapperElement = createMessagesWrapperElement({ document: t.context.document })
-	t.context.mountElement.append(messagesWrapperElement)
-	t.not(findMessagesWrapper(t.context.window), null)
-})
-

@@ -1,20 +1,34 @@
+import { Workflow } from "../workflow/workflow.js"
+
 export { LoadMessages }
 
 /**
- * Ensure all messages are loaded
- * as if the user scrolled to load
- * its entire chat history
+ * Loads the whole history of a conversation, page after page, as if the user scrolled up to the very first message.
  *
- * @param {ThreadPage}
+ * @param {MessagesWrapper} messagesWrapper
+ * @param {AbortController} [abortController]
  */
-function LoadMessages(page) {
-	Workflow.prototype.constructor.call(this)
-	this.page = page
+function LoadMessages(messagesWrapper, abortController) {
+	Workflow.call(this, abortController)
+	this.messagesWrapper = messagesWrapper
 }
 LoadMessages.prototype = Object.create(Workflow.prototype)
 LoadMessages.prototype.constructor = LoadMessages
 
+/**
+ * @returns {Promise<number>} number of pages loaded
+ */
 LoadMessages.prototype.run = async function() {
-	await this.withBackoff(page.loadMessages)
+	let pages = 0
+	for(;;) {
+		this.throwIfAborted()
+		this.setStatus("Loading next page...")
+		const done = await this.withBackoff(() => this.messagesWrapper.loadMore(this.abortController), { retries: 2, baseMs: 2000 })
+		if(done) {
+			this.setStatus(`All pages loaded (${pages} in total).`)
+			return pages
+		}
+		pages++
+		this.metrics.count("pageLoaded")
+	}
 }
-

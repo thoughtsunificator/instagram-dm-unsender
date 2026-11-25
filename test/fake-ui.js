@@ -4,7 +4,7 @@
  * Used for automated testing
  */
 
-export { createMountElement, createMessagesWrapperElement, createDummyMessageElement, createMessageActionsMenuElement }
+export { createMountElement, createMessagesWrapperElement, createMessageElement, createDummyMessageElement, createMessageActionsMenuElement }
 
 /**
  *

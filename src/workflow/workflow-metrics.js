@@ -1,31 +1,32 @@
 export { WorkflowMetrics }
 
-function WorkflowMetrics(workflow) {
+/**
+ * Counters and states of a workflow. Every change is emitted on the owner
+ * workflow as a "metrics" event so that the UI can reflect progress.
+ *
+ * @param {Observable} owner - Anything with an emit(name, payload) method
+ */
+function WorkflowMetrics(owner) {
+	this.owner = owner
 	this.counters = {}
-	this.arrays = {}
 	this.state = null
-	this.workflow = workflow
 }
 
-WorkflowMetrics.prototype.push = function(name, value) {
-	if(!this.arrays[name]) {
-		this.arrays[name] = []
-	}
-	this.arrays[name].push(value)
-	this.workflow.emit("metrics", { type: "push", name, value: value })
+/**
+ * @param {string} name
+ * @param {number} [amount=1]
+ * @returns {number} the new value
+ */
+WorkflowMetrics.prototype.count = function(name, amount = 1) {
+	this.counters[name] = (this.counters[name] ?? 0) + amount
+	this.owner.emit("metrics", { type: "counter", name, value: this.counters[name] })
+	return this.counters[name]
 }
 
-WorkflowMetrics.prototype.count = function(name) {
-	if(!this.counters[name]) {
-		this.counters[name] = 0
-	}
-	this.counters[name]++
-	this.workflow.emit("metrics", { type: "counter", name, value: this.counters[name] })
+/**
+ * @param {string|null} name - null clears the state
+ */
+WorkflowMetrics.prototype.setState = function(name = null) {
+	this.state = name
+	this.owner.emit("metrics", { type: "state", name, value: name })
 }
-
-WorkflowMetrics.prototype.state = function(name, value) {
-	this.states[state] = state
-	this.workflow.emit("metrics", { type: "state", name: counter, value: this.counters[counter] })
-}
-
-
