@@ -63,9 +63,26 @@ async function main() {
 	} else {
 		session = pickSession(session)
 		console.log(`[capture] session: ${session}`)
-		// archive active tab (or specified tab)
-		const archiveArgs = ["-S", session, "archive"]
-		if(tabId) archiveArgs.push("--tab", tabId)
+		let tabs = []
+		try { tabs = jsonBrowserCtl(["-S", session, "tabs"]) } catch (e) {
+			throw new Error(`Cannot list tabs for session ${session}: ${e.message}`)
+		}
+		const igTabs = tabs.filter(t => /instagram\.com\/direct/.test(String(t.url || "")))
+		let targetTabId = tabId
+		if(!targetTabId) {
+			if(igTabs.length > 0) {
+				targetTabId = igTabs[0].id
+				console.log(`[capture] tab: ${targetTabId} ${igTabs[0].url || ""}`)
+			} else {
+				const tabSummary = tabs.map(t => `- ${t.id || "?"} ${t.url || t.title || "(no url)"}`).join("\n")
+				throw new Error(
+					`No Instagram DM tab found in session ${session}.\n` +
+					`Open instagram.com/direct/... in that browser session, or pass --session/--tab.\n` +
+					`Available tabs:\n${tabSummary || "(none)"}`
+				)
+			}
+		}
+		const archiveArgs = ["-S", session, "archive", "--tab", String(targetTabId)]
 		const arch = runBrowserCtl(archiveArgs, { encoding: "utf8" })
 		if(arch.status !== 0) throw new Error(`browser-ctl archive failed: ${(arch.stderr || arch.stdout || "unknown error").trim()}`)
 		const pagesDirRes = runBrowserCtl(["-S", session, "pages", "-p"], { encoding: "utf8" })
@@ -75,7 +92,7 @@ async function main() {
 		const igDir = path.join(pagesDir, "www.instagram.com")
 		let entries = []
 		try { entries = (await fs.readdir(igDir)).filter(e => e.includes("Messages")).sort() }
-		catch (e) { throw new Error(`Cannot read Instagram archive dir ${igDir}: ${e.message}. Is the active tab on instagram.com?`) }
+		catch (e) { throw new Error(`Cannot read Instagram archive dir ${igDir}: ${e.message}. The archived tab may not be an Instagram page.`) }
 		if(entries.length === 0) {
 			try { entries = (await fs.readdir(igDir)).sort() }
 			catch (e) { throw new Error(`Cannot read Instagram archive dir ${igDir}: ${e.message}`) }
@@ -83,7 +100,7 @@ async function main() {
 		if(entries.length === 0) throw new Error("No Instagram archive found in " + igDir + ". Open an Instagram DM tab and try again.")
 		const latest = entries[entries.length - 1]
 		src = path.join(igDir, latest)
-		sourceMeta = { session, archive: latest }
+		sourceMeta = { session, tabId: String(targetTabId), archive: latest }
 	}
 
 	await fs.access(path.join(src, "meta.json"))

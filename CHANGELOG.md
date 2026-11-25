@@ -7,6 +7,7 @@
 - Add DOM debugging tools: `window.__idmuDebug` helpers (snapshot, probe selectors, highlight action buttons, probe unsend menu) and live debug log; expose `window.__idmuFeature` for debugging
 - Add snapshot-based real-browser e2e workflow and unsend scenario (`test/e2e/`)
 - Add e2e failure artifacts (screenshot/DOM/debug log/state), page console capture, `__idmuTest` API, `explainRow/explainScan` debug helpers, and duplicate OSD guard
+- Improve e2e snapshot capture: auto-detect IG DM tab, auto-name from date, clearer errors when no IG tab is available
 - Harden unsend flow: safer stale overlay dismissal, better confirm-button selection, case-insensitive action button fallback, scrollIntoView before hover, longer unsend validation delay, and stronger sent-by-current-user heuristics
 - Document DOM debugging workflow in README and user manual
 
