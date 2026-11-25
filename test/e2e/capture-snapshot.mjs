@@ -89,11 +89,8 @@ async function main() {
 	await fs.access(path.join(src, "meta.json"))
 	await fs.access(path.join(src, "page.html"))
 	if(!name) {
-		let meta = {}
-		try { meta = JSON.parse(await fs.readFile(path.join(src, "meta.json"), "utf8")) } catch {}
-		const slug = String(meta.title || "instagram-dm").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40) || "instagram-dm"
 		const ts = new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-")
-		name = `${slug}-${ts}`
+		name = `snapshot-${ts}`
 	}
 	const dst = path.join(outRoot, name)
 	await fs.rm(dst, { recursive: true, force: true })

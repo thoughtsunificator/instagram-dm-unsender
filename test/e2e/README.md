@@ -15,10 +15,10 @@ Live Instagram testing is slow, flaky, rate-limited, and requires auth. Instead:
 ### With browser-ctl (convenient, auto-detect)
 
 ```sh
-node test/e2e/capture-snapshot.mjs --name dm-thread-sample
+node test/e2e/capture-snapshot.mjs  # auto-named: snapshot-YYYY-MM-DD-HH-MM-SS
 ```
 
-By default it auto-detects browser-ctl sessions, prefers one with an Instagram Messages tab, archives the active tab, and copies the latest archive. You can also pass `--session <id>` or `--tab <tabId>`.
+By default it auto-detects browser-ctl sessions, prefers one with an Instagram Messages tab, archives the active tab, copies the latest archive, and auto-names the snapshot from the current date (`snapshot-YYYY-MM-DD-HH-MM-SS`) unless `--name` is provided. You can also pass `--session <id>` or `--tab <tabId>`.
 
 ### Without browser-ctl (manual/portable)
 
