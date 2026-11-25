@@ -2,3 +2,7 @@ node_modules/
 dist/
 coverage/
 .env.json
+
+# E2E snapshots may contain personal data; commit only sanitized fixtures
+/test/fixtures/instagram-snapshots/*
+!/test/fixtures/instagram-snapshots/.gitkeep

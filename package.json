@@ -11,7 +11,9 @@
     "start": "rollup --config rollup.userscript.config.js --environment BUILD:development --watch",
     "build": "rollup --config rollup.userscript.config.js --environment BUILD:production",
     "lint:ecmascript": "eslint",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "test:e2e:capture": "node test/e2e/capture-snapshot.mjs",
+    "test:e2e:snapshot": "node test/e2e/run-snapshot.mjs"
   },
   "author": "Romain Lebesle <oss@thoughtsunificator.me> (https://thoughtsunificator.me)",
   "license": "MIT",

@@ -1,0 +1,49 @@
+# E2E snapshot workflow
+
+Fast, deterministic e2e tests against real Instagram DOM snapshots in a real browser (Chromium), without hitting live Instagram.
+
+## Why
+
+Live Instagram testing is slow, flaky, rate-limited, and requires auth. Instead:
+
+1. **Capture a snapshot manually** while logged into Instagram in a normal browser session.
+2. **Replay the snapshot locally** with a cached replay server.
+3. **Run the userscript in a real Chromium** via CDP and assert behavior.
+
+## Capture a snapshot
+
+With a browser-ctl session open on the Instagram DM thread you want to capture:
+
+```sh
+node test/e2e/capture-snapshot.mjs --session <browser-ctl-session> --name dm-thread-sample
+```
+
+This flushes `browser-ctl archive` and copies the latest Instagram Messages archive into `test/fixtures/instagram-snapshots/<name>/`.
+
+Snapshots contain page HTML, resources, and metadata from browser-ctl archive. Review them before committing - they may contain personal data.
+
+## Run e2e against a snapshot
+
+```sh
+npm run build
+node test/e2e/run-snapshot.mjs --snapshot test/fixtures/instagram-snapshots/<name> --userscript dist/idmu.user.js
+```
+
+Environment:
+- `CHROME_BIN` - Chromium binary (default: `chromium`)
+
+## What it checks (MVP)
+
+- Replay server serves snapshot on the original DM path.
+- Userscript injects and renders IDMU menu/status/debug controls.
+- `window.__idmuDebug` is installed.
+- Onboarding modal appears on first run.
+
+Extend `run-snapshot.mjs` with scenario-specific assertions as snapshots are added.
+
+## Files
+
+- `capture-snapshot.mjs` - copies browser-ctl archive into fixtures.
+- `replay-server.mjs` - local cached replay server (rewrites resource URLs to local snapshot files).
+- `cdp.mjs` - minimal CDP client.
+- `run-snapshot.mjs` - launches Chromium, injects userscript, runs checks.
